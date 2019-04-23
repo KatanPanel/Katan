@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Katan Frontend</title>
+    <link rel="stylesheet" href="static/css/style.css" type="text/css">
+    <script src="https://unpkg.com/feather-icons" type="text/javascript"></script>
+
+</head>
+<body>
+    <main class="main">
+        <div class="content">
+            <div class="top">
+                <h4>Test Server</h4>
+                <p>
+                    <span>
+                        <i data-feather="x"></i> Offline
+                    </span>
+                    <span>
+                        <i data-feather="play"></i> 0/100
+                    </span>
+                </p>
+            </div>
+            <div class="console">
+                <div class="title">
+                    <h2>Console</h2>
+                    <div>
+                        <a href="#" class="btn">Iniciar</a>
+                        <a href="#" class="btn disabled">Reiniciar</a>
+                        <a href="#" class="btn disabled danger">Desligar servidor</a>
+                    </div>
+                </div>
+                <div class="output"></div>
+                <div class="writter">
+                    <input type="text" class="input" placeholder="Executar comando...">
+                    <a href="#" class="btn"><i data-feather="clipboard"></i></a>
+                    <a href="#" class="btn"><i data-feather="chevron-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div class="floating-menu">
+        <div class="klogo">K</div>
+        <ul>
+            <li>
+                <div class="tooltip">Home</div>
+                <a href="#"><i data-feather="home"></i></a>
+            </li>
+            <li class="active">
+                <div class="tooltip">Console</div>
+                <a href="#"><i data-feather="layers"></i></a>
+            </li>
+            <li>
+                <a href="#"><i data-feather="smile"></i></a>
+            </li>
+            <li class="disabled">
+                <a href="#"><i data-feather="file"></i></a>
+            </li>
+            <li>
+                <a href="#"><i data-feather="settings"></i></a>
+            </li>
+        </ul>
+    </div>
+
+    <script data-main="./main" src="./require.js"></script>
+    <script type="text/javascript">
+        feather.replace()
+    </script>
+</body>
+</html>
