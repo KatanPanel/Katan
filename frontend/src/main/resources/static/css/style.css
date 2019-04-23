@@ -68,16 +68,22 @@ body {
 }
 
 .btn {
+    cursor: pointer;
     color: #FFF;
     text-decoration: none;
     font-size: 17px;
     background-color: #323642;
     padding: 6px 18px;
+    outline: none;
+}
+
+.btn:not(.disabled):hover {
+    opacity: .7;
 }
 
 .btn.disabled {
     cursor: default;
-    opacity: .7;
+    opacity: .47;
 }
 
 .btn.danger {
