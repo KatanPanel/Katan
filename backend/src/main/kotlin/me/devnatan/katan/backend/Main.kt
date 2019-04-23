@@ -5,12 +5,12 @@ import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.application.log
 import io.ktor.features.*
+import io.ktor.gson.gson
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.readText
 import io.ktor.response.respond
-import io.ktor.response.respondText
 import io.ktor.routing.Routing
 import io.ktor.routing.get
 import io.ktor.routing.route
@@ -21,6 +21,7 @@ import io.ktor.websocket.webSocket
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.mapNotNull
 import me.devnatan.katan.backend.http.HttpError
+import me.devnatan.katan.backend.http.HttpResponse
 import org.slf4j.Logger
 import kotlin.system.measureTimeMillis
 
@@ -32,6 +33,13 @@ private fun Application.hooks() {
     install(Compression)
     install(CallLogging)
     install(AutoHeadResponse)
+
+    install(ContentNegotiation) {
+        gson {
+            disableInnerClassSerialization()
+            enableComplexMapKeySerialization()
+        }
+    }
 
     install(CORS) {
         anyHost()
@@ -72,11 +80,7 @@ private fun Routing.routes() {
     route("/server/{serverId}") {
         get("start") {
             val server = call.parameters["serverId"]
-            call.respondText { "Start server $server" }
-        }
-
-        get("stop") {
-
+            call.respond(HttpStatusCode.OK, HttpResponse("ok"))
         }
     }
 }
