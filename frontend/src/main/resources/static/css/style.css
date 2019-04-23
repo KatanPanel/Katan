@@ -119,6 +119,11 @@ body {
 .console .writter {
     margin-top: 1rem;
     display: flex;
+    transition: box-shadow 200ms linear;
+}
+
+.console .writter:hover {
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 }
 
 .console .writter .btn {
@@ -141,7 +146,6 @@ body {
     border-bottom-left-radius: .5rem;
     color: #FFF;
     font-size: 16px;
-    transition: box-shadow 200ms linear;
 }
 
 .console .input::placeholder {
@@ -151,7 +155,6 @@ body {
 
 .console .input:focus {
     outline: none;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 }
 
 .status {
@@ -214,6 +217,8 @@ body {
     height: 100%;
     flex: 1 0 auto;
     max-width: 92%;
+    left: 8%;
+    position: relative;
 }
 
 .main .top {
@@ -242,7 +247,7 @@ body {
 
 .floating-menu {
     position: fixed;
-    right: 0;
+    left: 0;
     height: 100%;
     width: 8%;
     background-color: #404552;
