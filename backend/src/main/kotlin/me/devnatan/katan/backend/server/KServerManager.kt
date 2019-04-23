@@ -53,6 +53,7 @@ class KServerManager(private val logger: Logger) {
             createProcess(coroutine, path, "java", "-Xms256M", "-Xmx512M", "-jar", jar.name, "-o", "FALSE"),
             EnumKServerState.STOPPED
         )
+
         servers.add(server)
         return server
     }

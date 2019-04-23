@@ -2,7 +2,7 @@ package me.devnatan.katan.backend.io
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.BufferedWriter
@@ -10,27 +10,27 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 
 class KProcess(
-    @Transient private val builder: ProcessBuilder,
-    @Transient val coroutine: CoroutineScope
+    private val builder: ProcessBuilder,
+    val coroutine: CoroutineScope
 ) {
 
-    @Transient var process: Process? = null
+    var process: Process? = null
 
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
-
     val output: MutableList<String> = mutableListOf()
 
-    suspend fun startAsync() = coroutine.async {
+    suspend fun startAsync() {
         withContext(Dispatchers.IO) {
             process = builder.start()
+            reader = BufferedReader(InputStreamReader(process!!.inputStream))
+            writer = BufferedWriter(OutputStreamWriter(process!!.outputStream))
         }
 
-        reader = BufferedReader(InputStreamReader(process!!.inputStream))
-        writer = BufferedWriter(OutputStreamWriter(process!!.outputStream))
-
-        readBlocking { line ->
-            output.add(line)
+        coroutine.launch {
+            readBlocking { line ->
+                output.add(line)
+            }
         }
     }
 

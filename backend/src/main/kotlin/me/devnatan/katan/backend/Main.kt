@@ -19,6 +19,7 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.mapNotNull
 import me.devnatan.katan.backend.http.HttpError
 import me.devnatan.katan.backend.http.HttpResponse
+import me.devnatan.katan.backend.server.EnumKServerState
 import me.devnatan.katan.backend.server.KServer
 import org.slf4j.Logger
 import kotlin.system.measureTimeMillis
@@ -78,9 +79,10 @@ private fun Routing.routes() {
     logger.info("[~] Routing...")
     route("/listServers") {
         get("/") {
-            call.respond(HttpStatusCode.OK, HttpResponse("ok", Katan.serverManager.getServers()))
+            call.respond(HttpResponse("ok", Katan.serverManager.getServers()))
         }
     }
+
     route("/server/{serverId}") {
         var server: KServer? = null
         intercept(ApplicationCallPipeline.Features) {
@@ -92,16 +94,32 @@ private fun Routing.routes() {
             }
         }
 
+        get("/") {
+            call.respond(HttpResponse("ok", server))
+        }
+
         get("start") {
-            call.respond(HttpStatusCode.OK, HttpResponse("ok"))
+            when (server!!.state) {
+                EnumKServerState.RUNNING -> call.respond(HttpResponse("error", "Server is already started."))
+                EnumKServerState.STARTING -> call.respond(HttpResponse("error", "Server already is starting."))
+                else -> {
+                    server!!.startAsync()
+                    call.respond(HttpResponse("ok"))
+                }
+            }
         }
 
         get("stop") {
-            call.respond(HttpStatusCode.OK, HttpResponse("ok"))
+            if (server!!.state == EnumKServerState.STOPPED)
+                call.respond(HttpResponse("error", "Server is not running"))
+            else {
+                server!!.stop()
+                call.respond(HttpResponse("ok"))
+            }
         }
 
         get("restart") {
-            call.respond(HttpStatusCode.OK, HttpResponse("ok"))
+            call.respond(HttpResponse("ok"))
         }
     }
 }
