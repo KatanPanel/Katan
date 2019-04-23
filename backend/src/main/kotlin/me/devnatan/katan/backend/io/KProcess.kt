@@ -8,6 +8,7 @@ import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
+import java.util.concurrent.ConcurrentLinkedQueue
 
 class KProcess(
     private val builder: ProcessBuilder,
@@ -18,7 +19,7 @@ class KProcess(
 
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
-    val output: MutableList<String> = mutableListOf()
+    val output = ConcurrentLinkedQueue<String>() // fast "add"()
 
     suspend fun startAsync() {
         withContext(Dispatchers.IO) {
