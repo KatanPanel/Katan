@@ -27,11 +27,11 @@ class KServer(
         }
     }
 
-    fun stop() {
+    fun stop(force: Boolean = false) {
         if (state == EnumKServerState.STOPPED)
             return
 
-        process.process!!.destroy()
+        process.interrupt(force)
         state = EnumKServerState.STOPPED
         Katan.logger.info("Server [$id] stopped.")
     }

@@ -113,8 +113,9 @@ private fun Routing.routes() {
             if (server!!.state == EnumKServerState.STOPPED)
                 call.respond(HttpResponse("error", "Server is not running"))
             else {
-                server!!.stop()
-                call.respond(HttpResponse("ok"))
+                val force = call.request.queryParameters.contains("force")
+                server!!.stop(force)
+                call.respond(HttpResponse("ok", mapOf("force" to force)))
             }
         }
 
