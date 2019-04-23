@@ -79,7 +79,14 @@ private fun Routing.routes() {
     logger.info("[~] Routing...")
     route("/server/{serverId}") {
         get("start") {
-            val server = call.parameters["serverId"]
+            call.respond(HttpStatusCode.OK, HttpResponse("ok"))
+        }
+
+        get("stop") {
+            call.respond(HttpStatusCode.OK, HttpResponse("ok"))
+        }
+
+        get("restart") {
             call.respond(HttpStatusCode.OK, HttpResponse("ok"))
         }
     }
