@@ -10,11 +10,11 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 
 class KProcess(
-    private val builder: ProcessBuilder,
-    val coroutine: CoroutineScope
+    @Transient private val builder: ProcessBuilder,
+    @Transient val coroutine: CoroutineScope
 ) {
 
-    var process: Process? = null
+    @Transient var process: Process? = null
 
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter

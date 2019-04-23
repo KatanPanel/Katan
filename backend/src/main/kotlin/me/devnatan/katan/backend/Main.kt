@@ -1,9 +1,6 @@
 package me.devnatan.katan.backend
 
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.application.log
+import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.gson.gson
 import io.ktor.http.HttpMethod
@@ -22,6 +19,7 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.mapNotNull
 import me.devnatan.katan.backend.http.HttpError
 import me.devnatan.katan.backend.http.HttpResponse
+import me.devnatan.katan.backend.server.KServer
 import org.slf4j.Logger
 import kotlin.system.measureTimeMillis
 
@@ -36,6 +34,7 @@ private fun Application.hooks() {
 
     install(ContentNegotiation) {
         gson {
+            setPrettyPrinting()
             disableInnerClassSerialization()
             enableComplexMapKeySerialization()
         }
@@ -77,7 +76,22 @@ private fun Routing.socket() {
 
 private fun Routing.routes() {
     logger.info("[~] Routing...")
+    route("/listServers") {
+        get("/") {
+            call.respond(HttpStatusCode.OK, HttpResponse("ok", Katan.serverManager.getServers()))
+        }
+    }
     route("/server/{serverId}") {
+        var server: KServer? = null
+        intercept(ApplicationCallPipeline.Features) {
+            val serverId = call.parameters["serverId"]
+            server = Katan.serverManager.getServer(serverId!!)
+            if (server == null) {
+                context.respond(HttpStatusCode.BadRequest, HttpResponse("error", "Server [$serverId] not found."))
+                finish()
+            }
+        }
+
         get("start") {
             call.respond(HttpStatusCode.OK, HttpResponse("ok"))
         }

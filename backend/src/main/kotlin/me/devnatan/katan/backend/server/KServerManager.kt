@@ -6,10 +6,17 @@ import me.devnatan.katan.backend.io.createProcess
 import org.slf4j.Logger
 import java.io.File
 import java.io.FileNotFoundException
+import java.util.*
 
 class KServerManager(private val logger: Logger) {
 
     private val servers = ConcurrentSet<KServer>()
+
+    fun getServers(): Set<KServer> {
+        return Collections.unmodifiableSet(servers)
+    }
+
+    fun getServer(id: String): KServer? = servers.find { it.id.equals(id, true) }
 
     fun load(coroutine: CoroutineScope) {
         val folder = File("C:\\Users\\GFIRE\\Documents\\CloudCraft\\Katan\\backend\\src\\main\\resources\\servers")
@@ -42,9 +49,9 @@ class KServerManager(private val logger: Logger) {
 
         val server = KServer(
             id,
-            path,
-            jar,
-            createProcess(coroutine, path, "java", "-Xms256M", "-Xmx512M", "-jar", jar.name, "-o", "FALSE")
+            KServerPath(path.absolutePath, jar.name),
+            createProcess(coroutine, path, "java", "-Xms256M", "-Xmx512M", "-jar", jar.name, "-o", "FALSE"),
+            EnumKServerState.STOPPED
         )
         servers.add(server)
         return server
