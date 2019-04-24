@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Katan Frontend</title>
+    <link rel="stylesheet" href="static/css/style.css" type="text/css">
+    <script src="https://unpkg.com/feather-icons" type="text/javascript"></script>
+
+</head>
+<body class="dark">
+    <main class="main">
+        <div class="content">
+            <div class="top">
+                <h4>Entrar</h4>
+            </div>
+            <div class="inner">
+                <form class="form">
+                    <div class="group">
+                        <label>Nome de usuário</label>
+                        <input type="text" class="input">
+                    </div>
+                    <div class="group">
+                        <label>Senha</label>
+                        <input type="password" class="input">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    <div class="floating-menu">
+        <div class="klogo">K</div>
+        <ul>
+            <li>
+                <div class="tooltip">Home</div>
+                <a href="#"><i data-feather="home"></i></a>
+            </li>
+            <li class="active">
+                <div class="tooltip">Console</div>
+                <a href="#"><i data-feather="layers"></i></a>
+            </li>
+            <li>
+                <a href="#"><i data-feather="smile"></i></a>
+            </li>
+            <li class="disabled">
+                <a href="#"><i data-feather="file"></i></a>
+            </li>
+            <li>
+                <a href="#"><i data-feather="settings"></i></a>
+            </li>
+        </ul>
+    </div>
+
+    <script data-main="./main" src="./require.js"></script>
+    <script type="text/javascript">
+        feather.replace()
+    </script>
+</body>
+</html>

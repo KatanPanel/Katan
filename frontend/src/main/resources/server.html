@@ -7,7 +7,7 @@
     <script src="https://unpkg.com/feather-icons" type="text/javascript"></script>
 
 </head>
-<body>
+<body class="dark">
     <main class="main">
         <div class="content">
             <div class="top">
@@ -21,21 +21,23 @@
                     </span>
                 </p>
             </div>
-            <div class="console">
-                <div class="title">
-                    <h2>Console</h2>
-                    <div>
-                        <a href="#" class="btn">Iniciar</a>
-                        <a href="#" class="btn disabled">Reiniciar</a>
-                        <a href="#" class="btn disabled danger">Desligar servidor</a>
+            <div class="inner">
+                <div class="console">
+                    <div class="title">
+                        <h2>Console</h2>
+                        <div>
+                            <a href="#" class="btn">Iniciar</a>
+                            <a href="#" class="btn disabled">Reiniciar</a>
+                            <a href="#" class="btn disabled danger">Desligar servidor</a>
+                        </div>
                     </div>
+                    <div class="box output" id="console-output"></div>
+                    <form class="writter" id="console-input">
+                        <input type="text" class="input" placeholder="Executar comando...">
+                        <button type="reset" class="btn"><i data-feather="clipboard"></i></button>
+                        <button type="submit" class="btn"><i data-feather="chevron-right"></i></button>
+                    </form>
                 </div>
-                <div class="output" id="console-output"></div>
-                <form class="writter" id="console-input">
-                    <input type="text" class="input" placeholder="Executar comando...">
-                    <button type="reset" class="btn"><i data-feather="clipboard"></i></button>
-                    <button type="submit" class="btn"><i data-feather="chevron-right"></i></button>
-                </form>
             </div>
         </div>
     </main>

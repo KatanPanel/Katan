@@ -16,28 +16,15 @@ h3 { font-size: 1.8em }
 h4 { font-size: 1.4em }
 h5 { font-size: 1em }
 h6 { font-size: .6em }
-
 p { font-size: 18px }
 
-h1, h2, h3, h4, h5, h6 {
-    font-weight: 500;
-}
+small { font-weight: 400; }
 
-p, small {
-    color: #EEE;
-}
+html, body { height: 100%; }
 
-small {
-    font-weight: 400;
-}
-
-html, body {
-    height: 100%;
-    background-color: #383c4a;
-}
+h1, h2, h3, h4, h5, h6 { font-weight: 500; }
 
 body {
-    color: #FFFFFF;
     font-family: "Open Sans", sans-serif;
     display: flex;
     display: -ms-flexbox;
@@ -45,13 +32,62 @@ body {
     line-height: 1.2;
 }
 
+.dark {
+    background-color: #383c4a;
+    color: #FFF;
+}
+
+.light {
+    background-color: #FFF;
+    color: #383c4a;
+}
+
+.box {
+    border-radius: .5rem;
+    background-color: #4b5162;
+    padding: 1rem;
+}
+
+body.light .box {
+    background-color: #DDD;
+}
+
 .header {
     background-color: #5294e2;
     padding: 4em 2em;
 }
 
+.btn {
+    cursor: pointer;
+    color: #FFF;
+    text-decoration: none;
+    font-size: 17px;
+    background-color: #323642;
+    padding: 6px 18px;
+    outline: none;
+}
+
+body.light .btn {
+    background-color: #DDD;
+    color: #383c4a;
+}
+
+.btn:not(.disabled):hover {
+    opacity: .7;
+}
+
+.btn.disabled {
+    cursor: default;
+    opacity: .47;
+}
+
+.btn.danger {
+    /* "!important" overwrite the light theme */
+    color: #FFF !important;
+    background-color: #ED4C67 !important;
+}
+
 .console {
-    padding: 2em;
     flex: 1 0 auto;
     height: 580px;
     max-height: 580px;
@@ -67,40 +103,15 @@ body {
     flex: 1 0 auto;
 }
 
-.btn {
-    cursor: pointer;
-    color: #FFF;
-    text-decoration: none;
-    font-size: 17px;
-    background-color: #323642;
-    padding: 6px 18px;
-    outline: none;
-}
-
-.btn:not(.disabled):hover {
-    opacity: .7;
-}
-
-.btn.disabled {
-    cursor: default;
-    opacity: .47;
-}
-
-.btn.danger {
-    background-color: #ED4C67;
-}
-
 .console .title div a:not(:last-child) {
     margin-right: .5rem;
 }
 
 .console .output {
-    background-color: #4b5162;
-    border-radius: .5rem;
     height: 100%;
     margin-top: 1rem;
-    padding: 1rem;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .console .output::-webkit-scrollbar {
@@ -126,6 +137,7 @@ body {
     margin-top: 1rem;
     display: flex;
     transition: box-shadow 200ms linear;
+    border-radius: .5rem;
 }
 
 .console .writter:hover {
@@ -134,7 +146,6 @@ body {
 
 .console .writter .btn {
     height: 42px;
-    background-color: rgb(64, 69, 82) !important;
 }
 
 .console .writter .btn:last-child {
@@ -152,6 +163,10 @@ body {
     border-bottom-left-radius: .5rem;
     color: #FFF;
     font-size: 16px;
+}
+
+body.light .console .input {
+    background-color: #EEE;
 }
 
 .console .input::placeholder {
@@ -236,6 +251,10 @@ body {
     background-color: rgba(0, 0, 0, .1);
 }
 
+body.light .main .top {
+    background-color: #EEE;
+}
+
 .main .top h4 {
     font-weight: 500;
     font-family: "Titillium Web", sans-serif;
@@ -257,10 +276,14 @@ body {
     height: 100%;
     width: 8%;
     background-color: #404552;
-    /* box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); */
+}
+
+body.light .floating-menu {
+    background-color: #2d98da;
 }
 
 .floating-menu .klogo {
+    color: #FFF;
     text-shadow: 1px 1px 1px;
     height: 120px;
     line-height: 120px;
@@ -350,4 +373,8 @@ body {
     font-family: 'Titillium Web', sans-serif;
     font-weight: 900;
     font-size: 5em;
+}
+
+.inner {
+    margin: 2rem;
 }
