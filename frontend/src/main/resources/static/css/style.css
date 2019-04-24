@@ -263,10 +263,11 @@ body {
 .floating-menu .klogo {
     text-shadow: 1px 1px 1px;
     height: 120px;
+    line-height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 4em;
+    font-size: 5em;
     font-family: 'Titillium Web', sans-serif;
     background-color: #2d98da;
 }
