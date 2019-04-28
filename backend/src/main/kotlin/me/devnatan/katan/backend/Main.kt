@@ -21,13 +21,12 @@ import me.devnatan.katan.backend.http.HttpError
 import me.devnatan.katan.backend.http.HttpResponse
 import me.devnatan.katan.backend.server.EnumKServerState
 import me.devnatan.katan.backend.server.KServer
-import org.slf4j.Logger
+import me.devnatan.katan.backend.util.asJsonMap
+import me.devnatan.katan.backend.util.asJsonString
 import kotlin.system.measureTimeMillis
 
-private lateinit var logger: Logger
-
 private fun Application.hooks() {
-    logger.info("[~] Setup...")
+    log.info("Setupping hooks...")
     install(DefaultHeaders)
     install(Compression)
     install(CallLogging)
@@ -38,6 +37,8 @@ private fun Application.hooks() {
             setPrettyPrinting()
             disableInnerClassSerialization()
             enableComplexMapKeySerialization()
+
+            Katan.gson = create()
         }
     }
 
@@ -66,17 +67,59 @@ private fun Application.hooks() {
 }
 
 private fun Routing.socket() {
-    logger.info("[~] WebSocket...")
+    application.log.info("Initializing WebSocket server...")
     webSocket("/") {
+        Katan.webSocket = this
         incoming.mapNotNull { it as? Frame.Text }.consumeEach { frame ->
-            val json = frame.readText()
-            logger.info("WebSocket message: $json")
+            val map = frame.readText().asJsonMap()
+            if (map["type"] == "command") {
+                when (map["command"]) {
+                    "input-server" -> {
+                        val server = map["server"]!! as String
+                        val serverObj = Katan.serverManager.getServer(server)!!
+                        if (serverObj.state == EnumKServerState.RUNNING) {
+                            serverObj.write(map["input"] as String)
+                            outgoing.send(Frame.Text(mapOf(
+                                "type" to "message",
+                                "message" to "Command ${map["input"]} written to [$server]."
+                            ).asJsonString()))
+                        }
+                    }
+                    "start-server" -> {
+                        val server = map["server"]!! as String
+                        val serverObj = Katan.serverManager.getServer(server)!!
+                        if (serverObj.state == EnumKServerState.STOPPED) {
+                            serverObj.startAsync()
+                            outgoing.send(Frame.Text(mapOf(
+                                "type" to "message",
+                                "message" to "Server [$server] started."
+                            ).asJsonString()))
+                        } else {
+                            outgoing.send(Frame.Text(mapOf(
+                                "type" to "message",
+                                "message" to "Server [$server] already is started."
+                            ).asJsonString()))
+                        }
+                    }
+                    else -> {
+
+                    }
+                }
+            } else if(map["type"] == "server-log") {
+                val server = map["server"]!! as String
+                val serverObj = Katan.serverManager.getServer(server)!!
+                outgoing.send(Frame.Text(mapOf(
+                    "type" to "server-log",
+                    "server" to server,
+                    "message" to serverObj.process.output
+                ).asJsonString()))
+            }
         }
     }
 }
 
 private fun Routing.routes() {
-    logger.info("[~] Routing...")
+    application.log.info("Creating routes...")
     route("/listServers") {
         get("/") {
             call.respond(HttpResponse("ok", Katan.serverManager.getServers()))
@@ -126,8 +169,6 @@ private fun Routing.routes() {
 }
 
 fun Application.main() {
-    logger = log
-
     val l = measureTimeMillis {
         hooks()
         routing {
@@ -135,9 +176,9 @@ fun Application.main() {
             routes()
         }
 
-        logger.info("[~] Starting...")
-        Katan.init(logger)
+        log.info("Starting...")
+        Katan.init()
     }
 
-    logger.info("[+] Katan started took ${String.format("%.2f", l.toFloat())}ms")
+    log.info("Katan started took ${String.format("%.2f", l.toFloat())}ms")
 }
