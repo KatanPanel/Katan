@@ -21,7 +21,7 @@ export default new Router({
       children: [
         {
           path: "",
-          name: "index",
+          name: "main.scss",
           component: ServerIndex
         },
         {
