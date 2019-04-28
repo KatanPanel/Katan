@@ -8,6 +8,7 @@ import ServerConsole from "@/views/server/ServerConsole.vue";
 Vue.use(Router);
 
 export default new Router({
+  mode: "history",
   routes: [
     {
       path: "/",
@@ -15,13 +16,12 @@ export default new Router({
       component: Home
     },
     {
-      path: "/server",
-      name: "server",
+      path: "/server/:serverId/",
       component: Server,
       children: [
         {
           path: "",
-          name: "main.scss",
+          name: "server",
           component: ServerIndex
         },
         {
