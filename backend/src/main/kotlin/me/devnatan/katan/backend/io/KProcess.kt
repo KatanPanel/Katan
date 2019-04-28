@@ -13,10 +13,11 @@ class KProcess(
 ) {
 
     var process: Process? = null
+    val output = ConcurrentLinkedQueue<String>() // fast "add"()
+    var onMessage: ((String) -> Unit)? = null
 
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
-    val output = ConcurrentLinkedQueue<String>() // fast "add"()
 
     suspend fun startAsync() {
         output.clear()
@@ -30,6 +31,7 @@ class KProcess(
         coroutine.launch {
             readBlocking { line ->
                 output.add(line)
+                onMessage?.invoke(line)
             }
         }
     }
@@ -59,6 +61,11 @@ class KProcess(
             block(lastLine)
             lastLine = reader.readLine()
         }
+    }
+
+    fun write(command: String) {
+        writer.write(command + "\n")
+        writer.flush()
     }
 
 }
