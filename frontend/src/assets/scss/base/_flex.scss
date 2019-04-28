@@ -1,0 +1,27 @@
+.flex {
+  display: flex;
+  display: -ms-flexbox;
+  flex-wrap: wrap;
+}
+
+.flex-child {
+  flex: 1 0 auto;
+}
+
+.flex-child:not(:last-child) {
+  margin-right: .5rem;
+}
+
+.flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-end {
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.flex-row {
+  flex-direction: row !important;
+}

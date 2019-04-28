@@ -1,7 +1,6 @@
 .menu {
   position: relative;
-  left: 0;
-  height: 100%;
+  height: auto;
   width: 8%;
   padding-bottom: 1rem;
   background-color: map_get($colors, 'b');

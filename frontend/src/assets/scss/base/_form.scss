@@ -1,0 +1,35 @@
+.form {
+  label {
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 11px;
+    margin-bottom: 5px;
+    opacity: 1;
+    color: #CCCCCC;
+  }
+
+  input {
+    cursor: text;
+    height: 38px;
+    border-radius: .4rem;
+    outline: none;
+    padding: 0 1rem;
+    font-size: 14px;
+    width: 100%;
+    color: #EEE;
+    background-color: #4b5162;
+
+    &::placeholder {
+      color: #CCC;
+    }
+  }
+
+  .group {
+    display: flex;
+    display: -ms-flexbox;
+    flex-direction: column;
+
+    &:not(:last-child) { margin-bottom: 2rem }
+  }
+
+}

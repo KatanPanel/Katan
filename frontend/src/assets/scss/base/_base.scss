@@ -49,9 +49,10 @@ html, body {
 
   .inner {
     flex: 1 0 auto;
+    max-width: 92%;
   }
+}
 
-  .content {
-    margin: 2rem;
-  }
+a {
+  color: #FFF;
 }
