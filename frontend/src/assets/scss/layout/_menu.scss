@@ -1,0 +1,96 @@
+.menu {
+  position: relative;
+  left: 0;
+  height: 100%;
+  width: 8%;
+  padding-bottom: 1rem;
+  background-color: map_get($colors, 'b');
+
+  .klogo {
+    color: #FFF;
+    text-shadow: 1px 1px 1px;
+    height: 120px;
+    line-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5em;
+    font-family: 'Titillium Web', sans-serif;
+    background-color: $blue_color;
+    user-select: none;
+
+    span {
+      user-select: none;
+      transform: skew(-12deg);
+    }
+  }
+
+  ul {
+    position: relative;
+    list-style: none;
+    text-align: center;
+    margin: 3rem 0;
+
+    li {
+      position: relative;
+
+      &:hover .tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      &:not(:last-child) {
+        margin-bottom: 3rem;
+      }
+
+      &.disabled a {
+        opacity: .47;
+        cursor: default;
+      }
+
+      &.active a {
+        opacity: 1;
+      }
+
+      .tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        text-align: center;
+        background-color: $blue_color;
+        padding: 5px 16px;
+        border-radius: 20px;
+        left: -20%;
+        transform: translate(-50%, 10%);
+
+        &:after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          border-top: solid 10px $blue_color;
+          border-left: solid 10px transparent;
+          border-right: solid 10px transparent;
+          -webkit-transform: rotate(270deg);
+          -ms-transform: rotate(270deg);
+          transform: rotate(270deg) translate(25%, 70%);
+        }
+      }
+
+      a {
+        color: #FFF;
+        opacity: .7;
+        cursor: pointer;
+        transition: opacity 200ms;
+
+        &:hover {
+          opacity: 1;
+        }
+
+        svg {
+          width: 32px;
+          height: 32px;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 120px;
+  padding: 2rem;
+  background-color: map_get($colors, 'd');
+
+  h1, h2, h3, h4 {
+    font-weight: 500;
+    font-family: "Titillium Web", sans-serif;
+  }
+
+  p {
+    margin-top: .2rem;
+
+    span:not(:last-child) {
+      margin-right: 1rem
+    }
+  }
+
+  svg {
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+}

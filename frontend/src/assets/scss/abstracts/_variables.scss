@@ -1,1 +1,16 @@
 $base-url: '/assets/' !default;
+
+$blue_color: #5294e2;
+
+$breakpoints: (
+        'small': 320px,
+        'medium': 768px,
+        'large': 1024px,
+) !default;
+
+$colors: (
+        'a': #383c4a,
+        'b': #404552,
+        'c': #4b5162,
+        'd': #52596c
+);

@@ -27,12 +27,31 @@ body {
   flex-direction: column;
   line-height: 1.2;
   font-size: 1.5em;
-
-  &.dark-theme { background-color: #383c4a }
-  &.light-theme { background-color: #FFFFFF }
+  background-color: map_get($colors, 'a');
+  color: #FFF;
 }
 
 html, body {
   height: 100%;
   width: 100%;
+}
+
+#app {
+  height: 100%;
+}
+
+.main {
+  display: flex;
+  display: -ms-flexbox;
+  flex-wrap: wrap;
+  flex-direction: row;
+  height: 100%;
+
+  .inner {
+    flex: 1 0 auto;
+  }
+
+  .content {
+    margin: 2rem;
+  }
 }

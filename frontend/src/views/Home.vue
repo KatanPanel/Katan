@@ -1,20 +1,26 @@
 <template>
-  <div>
-    <TopHeader />
-    <h1>Home</h1>
-    <LeftSidebar />
-  </div>
+  <main class="main">
+    <Menu />
+    <div class="inner">
+      <header class="header">
+        <h2>Heading</h2>
+      </header>
+      <div class="content">
+        <h4>Content</h4>
+      </div>
+    </div>
+  </main>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import TopHeader from "@/components/static/TopHeader.vue";
-import LeftSidebar from "@/components/static/LeftSidebar.vue";
+import Header from "@/components/static/Header.vue";
+import Menu from "@/components/static/Menu.vue";
 
 @Component({
   components: {
-    TopHeader,
-    LeftSidebar
+    Header,
+    Menu
   }
 })
 export default class Home extends Vue {}
