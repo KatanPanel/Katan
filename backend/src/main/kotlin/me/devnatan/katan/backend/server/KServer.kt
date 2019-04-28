@@ -12,9 +12,12 @@ class KServer(
     var state: EnumKServerState
 ) {
 
+    @Transient var onMessage: ((String) -> Unit)? = null
+
     fun startAsync(): Deferred<Unit> {
         state = EnumKServerState.STARTING
         return process.coroutine.async {
+            process.onMessage = onMessage
             process.startAsync() // block here
 
             if (process.process!!.isAlive) {
@@ -34,6 +37,11 @@ class KServer(
         process.interrupt(force)
         state = EnumKServerState.STOPPED
         Katan.logger.info("Server [$id] stopped.")
+    }
+
+    fun write(command: String) {
+        process.write(command)
+        Katan.logger.info("Writting \"/$command\" to [$id]...")
     }
 
 }
