@@ -4,16 +4,15 @@
       <h5 class="flex-child">Console</h5>
       <div>
         <button @click="startServer" :class="server.state === 'RUNNING' || server.state === 'STARTING' ? 'disabled' : ''" class="btn mr1">Start</button>
-        <button @click="restartServer" class="btn mr1 disabled">Restart</button>
         <button @click="stopServer" :class="server.state === 'STOPPED' ? 'disabled' : ''" class="btn danger">Stop server</button>
       </div>
     </div>
     <div class="box mb1 console-output" id="console-output">
       <p v-for="log in serverLogs" class="console-log"><code>{{ log }}</code></p>
     </div>
-    <form class="form" id="console-input">
+    <form class="form" @submit="inputServer">
       <div class="group">
-        <input type="text" :placeholder="lastCommand || 'Type \'/help\' for help.'">
+        <input type="text" :placeholder='lastCommand || "Type \"/help\" for help."'>
       </div>
     </form>
   </div>
@@ -44,11 +43,6 @@
           server: this.server.id
         }
       });
-      console.log(this.server);
-    }
-
-    private restartServer(): void {
-      throw new Error("Unsupported")
     }
 
     private stopServer(): void {
@@ -64,8 +58,33 @@
       });
     }
 
+    private inputServer(e: Event): void {
+        e.preventDefault();
+
+        if (this.server.state == "RUNNING") {
+            const el = (<Element> e.target).querySelector("input")!!;
+            const value = el.value;
+            if (value) {
+                const input = value.trim();
+                if (input.length > 0) {
+                    el.value = "";
+                    this.lastCommand = input;
+                    this.SOCKET.send({
+                        type: "command",
+                        content: {
+                            command: "input-server",
+                            server: this.server.id,
+                            input: input
+                        }
+                    });
+                }
+            }
+        }
+    }
+
     private scrollDownConsoleOutput(): void {
-      this.consoleOutputElement.scrollTop = this.consoleOutputElement.scrollHeight
+        const el = this.consoleOutputElement;
+        el.scrollTop = el.scrollHeight;
     }
 
     created() {
@@ -86,10 +105,13 @@
       }).then(() => {
         // handle server-log received from "Server" component
         Vue.prototype.$bus.on("server-log", (data: any) => {
-          this.serverLogs.push(data.message);
+            this.serverLogs.push(data.message);
+            setTimeout(() => {
+                this.scrollDownConsoleOutput();
+            }, 50)
         });
 
-        this.scrollDownConsoleOutput()
+        this.scrollDownConsoleOutput();
       });
     }
 
