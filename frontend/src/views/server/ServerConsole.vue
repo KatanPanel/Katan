@@ -1,5 +1,127 @@
 <template>
-  <div>
-    <h1>Server Console</h1>
+  <div class="console">
+    <div class="flex flex-center mb2">
+      <h5 class="flex-child">Console</h5>
+      <div>
+        <button @click="startServer" :class="server.state === 'RUNNING' || server.state === 'STARTING' ? 'disabled' : ''" class="btn mr1">Start</button>
+        <button @click="restartServer" class="btn mr1 disabled">Restart</button>
+        <button @click="stopServer" :class="server.state === 'STOPPED' ? 'disabled' : ''" class="btn danger">Stop server</button>
+      </div>
+    </div>
+    <div class="box mb1 console-output" id="console-output">
+      <p v-for="log in serverLogs" class="console-log"><code>{{ log }}</code></p>
+    </div>
+    <form class="form" id="console-input">
+      <div class="group">
+        <input type="text" :placeholder="lastCommand || 'Type \'/help\' for help.'">
+      </div>
+    </form>
   </div>
 </template>
+<script lang="ts">
+  import {Component, Vue} from "vue-property-decorator";
+
+  @Component
+  export default class ServerConsole extends Vue {
+    private readonly SOCKET = Vue.prototype.$socket;
+    private consoleOutputElement!: Element;
+
+    serverLogs: Array<string> = Array();
+    lastCommand?: string | null = null;
+
+    get server(): any {
+      return this.$attrs.server
+    }
+
+    private startServer(): void {
+      if (this.server.state == "RUNNING" || this.server.state == "STARTING")
+        return;
+
+      this.SOCKET.send({
+        type: "command",
+        content: {
+          command: "start-server",
+          server: this.server.id
+        }
+      });
+      console.log(this.server);
+    }
+
+    private restartServer(): void {
+      throw new Error("Unsupported")
+    }
+
+    private stopServer(): void {
+      if (this.server.state == "STOPPED")
+        return;
+
+      this.SOCKET.send({
+        type: "command",
+        content: {
+          command: "stop-server",
+          server: this.server.id
+        }
+      });
+    }
+
+    private scrollDownConsoleOutput(): void {
+      this.consoleOutputElement.scrollTop = this.consoleOutputElement.scrollHeight
+    }
+
+    created() {
+      Vue.prototype.$http({
+        method: "GET",
+        url: "server/" + this.server.id + "/logs"
+      }).then((response: any) => {
+        if (response.status === 200) {
+          const logs = <Array<any>> response.data.message;
+          if (logs.length > 0) {
+            for (let log of logs) {
+              this.serverLogs.push(log);
+            }
+          }
+        }
+      }).catch((error: any) => {
+        console.error(error);
+      }).then(() => {
+        // handle server-log received from "Server" component
+        Vue.prototype.$bus.on("server-log", (data: any) => {
+          this.serverLogs.push(data.message);
+        });
+
+        this.scrollDownConsoleOutput()
+      });
+    }
+
+    mounted() {
+      this.consoleOutputElement = document.getElementById("console-output")!!;
+    }
+  }
+</script>
+<style lang="scss">
+  .console-output {
+    max-height: 480px;
+    min-height: 480px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+      border-radius: .4rem;
+    }
+
+    &::-webkit-scrollbar-track {
+      border-radius: .4rem;
+      background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: .4rem;
+      background: rgba(0, 0, 0, .2);
+    }
+
+    .console-log {
+      color: #CCC;
+    }
+  }
+</style>
