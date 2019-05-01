@@ -17,11 +17,20 @@
   align-items: center;
 }
 
+.flex-start {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
 .flex-end {
   align-items: flex-end;
   justify-content: flex-end;
 }
 
 .flex-row {
-  flex-direction: row !important;
+  flex-direction: row;
+}
+
+.flex-column {
+  flex-direction: column;
 }
