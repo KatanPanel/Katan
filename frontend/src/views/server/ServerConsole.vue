@@ -8,7 +8,9 @@
       </div>
     </div>
     <div class="box mb1 console-output" id="console-output">
-      <p v-for="log in serverLogs" class="console-log"><code>{{ log }}</code></p>
+      <p v-for="(log, index) in serverLogs" v-bind:key="'log-' + index" class="console-log list-item">
+        <code>{{ log }}</code>
+      </p>
     </div>
     <form class="form" @submit="inputServer">
       <div class="group">
@@ -56,6 +58,7 @@
           server: this.server.id
         }
       });
+      this.lastCommand = null;
     }
 
     private inputServer(e: Event): void {
@@ -106,9 +109,7 @@
         // handle server-log received from "Server" component
         Vue.prototype.$bus.on("server-log", (data: any) => {
             this.serverLogs.push(data.message);
-            setTimeout(() => {
-                this.scrollDownConsoleOutput();
-            }, 50)
+            setTimeout(() => this.scrollDownConsoleOutput(), 50);
         });
 
         this.scrollDownConsoleOutput();
@@ -120,15 +121,17 @@
     }
   }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
   .console-output {
     max-height: 480px;
     min-height: 480px;
     overflow-y: auto;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
 
     &::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
       border-radius: .4rem;
     }
 
