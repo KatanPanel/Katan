@@ -1,9 +1,7 @@
-import {EventEmitter} from "events";
+import { EventEmitter } from "events";
 
 export default class Bus extends EventEmitter {
-
-    constructor() {
-        super();
-    }
-
+  constructor() {
+    super();
+  }
 }
