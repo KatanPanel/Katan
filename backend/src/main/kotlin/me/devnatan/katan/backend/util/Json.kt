@@ -1,7 +1,7 @@
+@file:JvmName("JsonUtil")
 package me.devnatan.katan.backend.util
 
-import me.devnatan.katan.backend.Katan
+import me.devnatan.katan.backend.katan
 
-fun String.asJsonMap() = Katan.gson.fromJson(this, Map::class.java)
-
-fun Any.asJsonString() = Katan.gson.toJson(this)
+fun String.asJsonMap(): Map<*, *>? = katan.gson.fromJson(this, Map::class.java)
+fun Any.asJsonString() = katan.gson.toJson(this)!!
