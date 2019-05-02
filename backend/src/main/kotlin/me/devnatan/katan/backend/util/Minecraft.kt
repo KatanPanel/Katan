@@ -9,32 +9,37 @@ import java.net.Socket
 import java.net.SocketException
 import kotlin.system.measureTimeMillis
 
-fun query(address: InetSocketAddress): KServerQuery {
-    val socket = Socket()
-    return try {
-        val latency = measureTimeMillis {
-            socket.connect(address, 3000)
-        }
+object Minecraft {
 
-        val writter = DataOutputStream(socket.getOutputStream())
-        val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
-
-        socket.use {
-            writter.write(byteArrayOf(0xFE.toByte(), 0x01.toByte()))
-            val line = reader.readLine() ?: return KServerQuery.offline()
-            val response = line.split("\u0000\u0000\u0000").map {
-                it.replace("\u0000", "")
+    fun query(address: InetSocketAddress): KServerQuery {
+        val socket = Socket()
+        return try {
+            val latency = measureTimeMillis {
+                socket.connect(address, 3000)
             }
 
-            KServerQuery(
-                response[2],
-                response[3],
-                response[4].toInt(),
-                response[5].toInt(),
-                latency
-            )
+            val writter = DataOutputStream(socket.getOutputStream())
+            val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
+
+            socket.use {
+                writter.write(byteArrayOf(0xFE.toByte(), 0x01.toByte()))
+                val line = reader.readLine() ?: return KServerQuery.offline()
+                val response = line.split("\u0000\u0000\u0000").map {
+                    it.replace("\u0000", "")
+                }
+
+                KServerQuery(
+                    address.hostName to address.port,
+                    response[2],
+                    response[3],
+                    response[4].toInt(),
+                    response[5].toInt(),
+                    latency
+                )
+            }
+        } catch (e: SocketException) {
+            KServerQuery.offline()
         }
-    } catch (e: SocketException) {
-        KServerQuery.offline()
     }
+
 }
