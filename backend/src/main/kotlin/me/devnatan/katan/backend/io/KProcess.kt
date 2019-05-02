@@ -1,6 +1,9 @@
 package me.devnatan.katan.backend.io
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.InputStreamReader
@@ -19,7 +22,11 @@ class KProcess(
     private lateinit var reader: BufferedReader
     private lateinit var writer: BufferedWriter
 
-    suspend fun startAsync() {
+    fun isReady(): Boolean {
+        return process != null && process!!.isAlive
+    }
+
+    suspend fun startAsync(callback: suspend () -> Unit) {
         output.clear()
 
         withContext(Dispatchers.IO) {
@@ -29,32 +36,35 @@ class KProcess(
         }
 
         coroutine.launch {
-            readBlocking { line ->
+            callback()
+            read { line ->
                 output.add(line)
                 onMessage?.invoke(line)
             }
         }
     }
 
-    fun interrupt(force: Boolean = false) {
+    fun interrupt(force: Boolean = false, callback: suspend () -> Unit) {
         if (process == null)
             throw IllegalStateException("Process is not defined yet")
 
         if (!process!!.isAlive)
             throw IllegalStateException("Process is not alive")
 
-
-        if (!force) {
-            coroutine.async {
-                process!!.waitFor()
+        coroutine.launch {
+            withContext(Dispatchers.IO) {
+                if (!force) {
+                    write("stop")
+                    process!!.waitFor()
+                } else
+                    process!!.destroy()
             }
 
-            process!!.destroy()
-        } else process!!.destroyForcibly()
+            callback()
+        }
     }
 
-    private fun readBlocking(block: (String) -> Unit) {
-        reader.read()
+    private fun read(block: (String) -> Unit) {
         var lastLine = reader.readLine()
 
         while (lastLine != null) {
