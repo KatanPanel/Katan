@@ -2,47 +2,47 @@ package me.devnatan.katan.backend.server
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import me.devnatan.katan.backend.Katan
 import me.devnatan.katan.backend.io.KProcess
 
 class KServer(
     val id: String,
     val path: KServerPath,
     @Transient val process: KProcess,
-    var state: EnumKServerState
+    var state: EnumKServerState,
+    var query: KServerQuery
 ) {
 
     @Transient var onMessage: ((String) -> Unit)? = null
 
-    fun startAsync(): Deferred<Unit> {
+    fun startAsync(callback: suspend () -> Unit): Deferred<Unit> {
         state = EnumKServerState.STARTING
         return process.coroutine.async {
             process.onMessage = onMessage
-            process.startAsync() // block here
-
-            if (process.process!!.isAlive) {
-                state = EnumKServerState.RUNNING
-                Katan.logger.info("Server [$id] running.")
-            } else {
-                state = EnumKServerState.STOPPED
-                Katan.logger.warn("Failed to start server [$id]: process is not alive.")
+            process.startAsync {
+                state = if (process.process!!.isAlive)
+                    EnumKServerState.RUNNING
+                else
+                    EnumKServerState.STOPPED
+                callback()
             }
         }
     }
 
-    fun stop(force: Boolean = false) {
+    fun stop(force: Boolean = false, callback: suspend () -> Unit) {
         if (state == EnumKServerState.STOPPED)
             return
 
-        process.interrupt(force)
-        state = EnumKServerState.STOPPED
-        Katan.logger.info("Server [$id] stopped.")
+        process.interrupt(force) {
+            state = EnumKServerState.STOPPED
+            callback()
+        }
     }
 
     fun write(command: String) {
+        if (!process.isReady())
+            return
+
         process.write(command)
-        Katan.logger.info("Writting \"/$command\" to [$id]...")
     }
 
 }
-
