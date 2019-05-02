@@ -1,5 +1,6 @@
 # Katan
 Katan is a simple Minecraft server management panel built with Ktor and VueJS.\
+The current version is **1.0.0-ALPHA**, and is under constant development.
 
 
 ## Table of contents
