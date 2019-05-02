@@ -1,0 +1,8 @@
+{
+  "katan.home.version": "Version",
+  "katan.home.welcome": "Welcome to Katan",
+  "katan.home.welcome.subtitle": "A simple Minecraft server management panel.",
+  "katan.home.servers": "Server list",
+  "katan.home.create-server": "Create server",
+  "katan.home.refresh": "Refresh"
+}
