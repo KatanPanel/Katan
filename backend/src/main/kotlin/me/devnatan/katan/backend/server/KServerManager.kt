@@ -1,26 +1,24 @@
 package me.devnatan.katan.backend.server
 
-import io.ktor.http.cio.websocket.Frame
 import io.netty.util.internal.ConcurrentSet
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.channels.sendBlocking
 import me.devnatan.katan.backend.Katan
 import me.devnatan.katan.backend.io.createProcess
 import me.devnatan.katan.backend.util.asJsonString
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileNotFoundException
-import java.util.*
 
-class KServerManager {
+class KServerManager(private val katan: Katan) {
 
-    private val logger: Logger = LoggerFactory.getLogger(this::class.simpleName)
-    private val servers = ConcurrentSet<KServer>()
+    companion object {
 
-    fun getServers(): Set<KServer> {
-        return Collections.unmodifiableSet(servers)
+        private val LOGGER = LoggerFactory.getLogger("ServerManager")!!
+
     }
+
+    val servers: ConcurrentSet<KServer> = ConcurrentSet()
 
     fun getServer(id: String): KServer? = servers.find { it.id.equals(id, true) }
 
@@ -35,18 +33,18 @@ class KServerManager {
 
             val serverId = serverPath.name
             if (serverId.startsWith("-")) {
-                logger.info("Ignoring server \"$serverId\".")
+                LOGGER.info("Ignoring server \"$serverId\".")
                 continue
             }
 
             if (!serverPath.canRead()) {
-                logger.error("Access denied to read files in \"$serverId\".")
+                LOGGER.error("Access denied to read files in \"$serverId\".")
                 continue
             }
 
             loadServer(coroutine, serverId, serverPath)
         }
-        logger.info("Loaded ${servers.size} servers.")
+        LOGGER.info("Loaded ${servers.size} servers.")
     }
 
     fun loadServer(coroutine: CoroutineScope, id: String, path: File): KServer {
@@ -58,16 +56,15 @@ class KServerManager {
             id,
             KServerPath(path.absolutePath, jar.name),
             createProcess(coroutine, path, "java", "-Xms256M", "-Xmx512M", "-jar", jar.name, "-o", "FALSE"),
-            EnumKServerState.STOPPED
+            EnumKServerState.STOPPED,
+            KServerQuery.offline()
         ).apply {
             onMessage = { message ->
-                runBlocking {
-                    Katan.webSocket.outgoing.send(Frame.Text(mapOf(
-                        "type" to "server-log",
-                        "server" to id,
-                        "message" to message
-                    ).asJsonString()))
-                }
+                katan.actor.sendBlocking(mapOf(
+                    "type" to "server-log",
+                    "server" to id,
+                    "message" to message
+                ).asJsonString())
             }
         }
 
