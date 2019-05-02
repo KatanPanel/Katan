@@ -19,11 +19,13 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.mapNotNull
 import me.devnatan.katan.backend.http.HttpError
 import me.devnatan.katan.backend.http.HttpResponse
-import me.devnatan.katan.backend.server.EnumKServerState
+import me.devnatan.katan.backend.message.IncomingMessage
+import me.devnatan.katan.backend.message.MessageImpl
 import me.devnatan.katan.backend.server.KServer
 import me.devnatan.katan.backend.util.asJsonMap
-import me.devnatan.katan.backend.util.asJsonString
 import kotlin.system.measureTimeMillis
+
+val katan = Katan()
 
 private fun Application.hooks() {
     log.info("Setupping hooks...")
@@ -34,11 +36,8 @@ private fun Application.hooks() {
 
     install(ContentNegotiation) {
         gson {
-            setPrettyPrinting()
             disableInnerClassSerialization()
-            enableComplexMapKeySerialization()
-
-            Katan.gson = create()
+            katan.gson = create()
         }
     }
 
@@ -63,66 +62,37 @@ private fun Application.hooks() {
             )
         }
     }
+
     install(WebSockets)
 }
 
 private fun Routing.socket() {
     application.log.info("Initializing WebSocket server...")
     webSocket("/") {
-        Katan.webSocket = this
-        incoming.mapNotNull { it as? Frame.Text }.consumeEach { frame ->
-            val map = frame.readText().asJsonMap()
-            if (map["type"] == "command") {
-                when (map["command"]) {
-                    "input-server" -> {
-                        val server = map["server"]!! as String
-                        val serverObj = Katan.serverManager.getServer(server)!!
-                        if (serverObj.state == EnumKServerState.RUNNING) {
-                            serverObj.write(map["input"] as String)
-                            outgoing.send(Frame.Text(mapOf(
-                                "type" to "message",
-                                "message" to "Command ${map["input"]} written to [$server]."
-                            ).asJsonString()))
-                        }
-                    }
-                    "start-server" -> {
-                        val server = map["server"]!! as String
-                        val serverObj = Katan.serverManager.getServer(server)!!
-                        if (serverObj.state == EnumKServerState.STOPPED) {
-                            serverObj.startAsync()
-                            outgoing.send(Frame.Text(mapOf(
-                                "type" to "message",
-                                "message" to "Server [$server] started."
-                            ).asJsonString()))
-                        } else {
-                            outgoing.send(Frame.Text(mapOf(
-                                "type" to "message",
-                                "message" to "Server [$server] already is started."
-                            ).asJsonString()))
-                        }
-                    }
-                    else -> {
+        katan.socketServer.connect(this)
 
-                    }
-                }
-            } else if(map["type"] == "server-log") {
-                val server = map["server"]!! as String
-                val serverObj = Katan.serverManager.getServer(server)!!
-                outgoing.send(Frame.Text(mapOf(
-                    "type" to "server-log",
-                    "server" to server,
-                    "message" to serverObj.process.output
-                ).asJsonString()))
+        try {
+            incoming.mapNotNull { it as? Frame.Text }.consumeEach { frame ->
+                val map = frame.readText().asJsonMap() ?: return@consumeEach
+                val message = MessageImpl.fromMap(map) ?: throw IllegalArgumentException("Couldn't handle invalid message")
+
+                katan.messenger.handle(IncomingMessage(message, this))
             }
+        } finally {
+            katan.socketServer.disconnect(this)
         }
     }
 }
 
 private fun Routing.routes() {
     application.log.info("Creating routes...")
+    get("/locale") {
+        call.respond(HttpResponse("ok", katan.locale))
+    }
+
     route("/listServers") {
         get("/") {
-            call.respond(HttpResponse("ok", Katan.serverManager.getServers()))
+            call.respond(HttpResponse("ok", katan.serverManager.servers))
         }
     }
 
@@ -130,7 +100,7 @@ private fun Routing.routes() {
         var server: KServer? = null
         intercept(ApplicationCallPipeline.Features) {
             val serverId = call.parameters["serverId"]
-            server = Katan.serverManager.getServer(serverId!!)
+            server = katan.serverManager.getServer(serverId!!)
             if (server == null) {
                 context.respond(HttpStatusCode.BadRequest, HttpResponse("error", "Server [$serverId] not found."))
                 finish()
@@ -141,29 +111,8 @@ private fun Routing.routes() {
             call.respond(HttpResponse("ok", server))
         }
 
-        get("start") {
-            when (server!!.state) {
-                EnumKServerState.RUNNING -> call.respond(HttpResponse("error", "Server is already started."))
-                EnumKServerState.STARTING -> call.respond(HttpResponse("error", "Server already is starting."))
-                else -> {
-                    server!!.startAsync()
-                    call.respond(HttpResponse("ok"))
-                }
-            }
-        }
-
-        get("stop") {
-            if (server!!.state == EnumKServerState.STOPPED)
-                call.respond(HttpResponse("error", "Server is not running"))
-            else {
-                val force = call.request.queryParameters.contains("force")
-                server!!.stop(force)
-                call.respond(HttpResponse("ok", mapOf("force" to force)))
-            }
-        }
-
-        get("restart") {
-            call.respond(HttpResponse("ok"))
+        get("/logs") {
+            call.respond(HttpResponse("ok", server!!.process.output))
         }
     }
 }
@@ -177,7 +126,7 @@ fun Application.main() {
         }
 
         log.info("Starting...")
-        Katan.init()
+        katan.init()
     }
 
     log.info("Katan started took ${String.format("%.2f", l.toFloat())}ms")
