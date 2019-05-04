@@ -1,17 +1,16 @@
 package me.devnatan.katan.backend
 
+import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.gson.gson
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.cio.websocket.Frame
 import io.ktor.http.cio.websocket.readText
+import io.ktor.jackson.jackson
+import io.ktor.request.receive
 import io.ktor.response.respond
-import io.ktor.routing.Routing
-import io.ktor.routing.get
-import io.ktor.routing.route
-import io.ktor.routing.routing
+import io.ktor.routing.*
 import io.ktor.util.error
 import io.ktor.websocket.WebSockets
 import io.ktor.websocket.webSocket
@@ -35,9 +34,9 @@ private fun Application.hooks() {
     install(AutoHeadResponse)
 
     install(ContentNegotiation) {
-        gson {
-            disableInnerClassSerialization()
-            katan.gson = create()
+        jackson {
+            enable(SerializationFeature.INDENT_OUTPUT)
+            katan.json = this
         }
     }
 
@@ -87,12 +86,26 @@ private fun Routing.socket() {
 private fun Routing.routes() {
     application.log.info("Creating routes...")
     get("/locale") {
-        call.respond(HttpResponse("ok", katan.locale))
+        call.respond(HttpResponse("ok", "", katan.locale))
     }
 
     route("/listServers") {
         get("/") {
-            call.respond(HttpResponse("ok", katan.serverManager.servers))
+            call.respond(HttpResponse("ok", "", katan.serverManager.servers))
+        }
+    }
+
+    post("/createServer") {
+        val data = call.receive() as Map<*, *>
+        val name = (data["serverName"] as? String)?.trim()
+        if (name.isNullOrBlank())
+            call.respond(HttpStatusCode.BadRequest, HttpResponse("error", "No server name speficied."))
+        else {
+            katan.serverManager.getServer(name)?.let {
+                call.respond(HttpStatusCode.Conflict, HttpResponse("error", "Server [$name] already exists."))
+            } ?: run { val id = katan.serverManager.createServer(katan.coroutine, name, data["address"] as String, (data["port"].toString()).toInt(), (data["memory"].toString()).toInt())
+                call.respond(HttpResponse("ok", "Server [$name] created.", mapOf("id" to id)))
+            }
         }
     }
 
@@ -100,7 +113,7 @@ private fun Routing.routes() {
         var server: KServer? = null
         intercept(ApplicationCallPipeline.Features) {
             val serverId = call.parameters["serverId"]
-            server = katan.serverManager.getServer(serverId!!)
+            server = katan.serverManager.getServer(serverId!!.toInt())
             if (server == null) {
                 context.respond(HttpStatusCode.BadRequest, HttpResponse("error", "Server [$serverId] not found."))
                 finish()
