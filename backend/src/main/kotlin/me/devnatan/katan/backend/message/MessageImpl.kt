@@ -1,7 +1,6 @@
 package me.devnatan.katan.backend.message
 
 import io.ktor.http.cio.websocket.Frame
-import kotlinx.coroutines.channels.SendChannel
 import me.devnatan.katan.backend.util.asJsonString
 
 class MessageImpl(
@@ -42,6 +41,4 @@ class MessageImpl(
 }
 
 val Message.frame: Frame.Text
-    get() = Frame.Text(builder.asJsonString())
-
-suspend fun SendChannel<Frame>.send(message: Message) = send(message.frame)
+    get() = Frame.Text(builder.asJsonString()!!)
