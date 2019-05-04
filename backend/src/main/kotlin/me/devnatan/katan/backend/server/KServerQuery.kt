@@ -1,7 +1,8 @@
 package me.devnatan.katan.backend.server
 
 data class KServerQuery(
-    val address: Pair<String, Int>,
+    val address: String,
+    val port: Int,
     val version: String,
     val motd: String,
     val players: Int,
@@ -13,7 +14,7 @@ data class KServerQuery(
     companion object {
 
         @JvmStatic
-        fun offline() = KServerQuery("" to 0, "", "", 0, 0, 0, false)
+        fun offline() = KServerQuery("", 0, "", "", 0, 0, 0, false)
 
     }
 
