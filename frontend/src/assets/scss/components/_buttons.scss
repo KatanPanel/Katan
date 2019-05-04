@@ -2,12 +2,14 @@
   border-radius: .4rem;
   cursor: pointer;
   text-decoration: none;
-  font-size: 13px;
-  padding: 6px 18px;
+  font-size: 16px;
+  padding: 0 18px;
   outline: none;
   background-color: #404552;
   font-weight: 500;
   color: rgba(255, 255, 255, .8);
+  height: 37px;
+  line-height: 37px;
   -webkit-transition: background-color 200ms;
   -moz-transition: background-color 200ms;
   -ms-transition: background-color 200ms;
@@ -23,9 +25,16 @@
 
   &.danger {
     color: #ff6b6b !important;
+    &:not(.disabled):hover { color: #ee5253 !important; }
+  }
+
+  &.info {
+    &.full { background-color: #54a0ff }
+    &:not(.full) { color: #54a0ff !important }
 
     &:not(.disabled):hover {
-      color: #ee5253 !important;
+      &.full { background-color: #2e86de }
+      &:not(.full) { color: #2e86de !important }
     }
   }
 }
