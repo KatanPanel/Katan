@@ -4,7 +4,8 @@
   justify-content: center;
   height: 120px;
   padding: 2rem;
-  background-color: map_get($colors, 'd');
+  background-color: rgba(0, 0, 0, .1);
+  text-align: center;
 
   h1, h2, h3, h4 {
     font-weight: 500;
@@ -13,10 +14,20 @@
 
   p {
     margin-top: .2rem;
+    opacity: .7;
+    font-size: 14px;
+  }
+
+  span:not(:last-child) {
+    &::after {
+      content: '•';
+      opacity: .47;
+      margin-right: 5px;
+      margin-left: 5px;
+    }
   }
 
   svg {
     vertical-align: middle;
-    margin-right: 5px;
   }
 }
