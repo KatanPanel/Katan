@@ -7,15 +7,19 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 
-suspend fun readFile(coroutine: CoroutineScope, file: File, block: (ByteArray) -> Unit) {
+suspend fun readFileAsync(coroutine: CoroutineScope, file: File, block: (ByteArray) -> Unit) {
     coroutine.launch {
-        val bytes = withContext(Dispatchers.IO) {
+        val b = withContext(Dispatchers.IO) {
             FileInputStream(file).use {
                 it.readBytes()
             }
         }
-        block(bytes)
+        block(b)
     }
+}
+
+fun readFile(file: File): ByteArray {
+    return FileInputStream(file).use { it.readBytes() }
 }
 
 fun createProcess(coroutine: CoroutineScope, dir: File, vararg args: String): KProcess {
