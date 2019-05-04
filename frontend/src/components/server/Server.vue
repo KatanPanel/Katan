@@ -3,17 +3,12 @@
     <Menu />
     <div class="inner">
       <header class="header">
-        <h4>{{ serverId }}</h4>
+        <h3>{{ server.name }}</h3>
         <p>
-          <span
-            ><i data-feather="x"></i
-            >{{ server.state === "STOPPED" ? "Offline" : "Online" }}</span
-          >
-          <span> • </span>
-          <span
-            ><i data-feather="play"></i
-            >{{ server.query.players + "/" + server.query.maxPlayers }}</span
-          >
+          <span>
+            <XIcon v-if="server.state !== 'RUNNING'" />
+            <CheckIcon v-else /> Server is {{ server.state }}
+          </span>
         </p>
       </header>
       <div class="m2">
@@ -28,8 +23,14 @@ import { Component, Vue } from "vue-property-decorator";
 import Header from "@/components/static/Header.vue";
 import Menu from "@/components/static/Menu.vue";
 
+// @ts-ignore
+import { XIcon, PlayIcon, CheckIcon } from "vue-feather-icons/icons";
+
 @Component({
   components: {
+    CheckIcon,
+    PlayIcon,
+    XIcon,
     Header,
     Menu
   }
@@ -40,11 +41,14 @@ export default class Server extends Vue {
 
   server?: any = null;
 
+  get getServerMemory() {
+    return this.server.initParams.toString().match("Xmx(.*\\d)M")[0];
+  }
+
   created() {
     this.serverId = this.$route.params.serverId;
     this.searchServer(() => {
-      const vm = Vue.prototype;
-      vm.$socket.on("message", (data: any) => {
+      this.$socket.on("message", (data: any) => {
         if (data.reason == "server_updated") {
           this.server = data.content.server;
           return;
@@ -52,7 +56,7 @@ export default class Server extends Vue {
 
         switch (data.type) {
           case "server-log": {
-            Vue.prototype.$bus.emit("server-log", data);
+            this.$bus.emit("server-log", data);
             break;
           }
           default:
@@ -63,11 +67,10 @@ export default class Server extends Vue {
   }
 
   private searchServer(callback: () => void) {
-    Vue.prototype
-      .$http({
-        method: "GET",
-        url: "server/" + this.serverId
-      })
+    this.$http({
+      method: "GET",
+      url: "server/" + this.serverId
+    })
       .then((response: any) => {
         if (response.status === 200) {
           this.server = response.data.message;
