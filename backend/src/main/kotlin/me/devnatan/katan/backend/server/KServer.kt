@@ -1,18 +1,21 @@
 package me.devnatan.katan.backend.server
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import me.devnatan.katan.backend.io.KProcess
 
 class KServer(
-    val id: String,
+    val id: Int,
+    val name: String,
     val path: KServerPath,
-    @Transient val process: KProcess,
+    @Transient @JsonIgnore val process: KProcess,
     var state: EnumKServerState,
-    var query: KServerQuery
+    var query: KServerQuery,
+    var initParams: String
 ) {
 
-    @Transient var onMessage: ((String) -> Unit)? = null
+    @Transient @JsonIgnore var onMessage: ((String) -> Unit)? = null
 
     fun startAsync(callback: suspend () -> Unit): Deferred<Unit> {
         state = EnumKServerState.STARTING
