@@ -18,7 +18,7 @@ object StartServerHandler : MessageHandler {
     override suspend fun handle(message: IncomingMessage) {
         if (!message.isCommand("start-server")) return
 
-        katan.serverManager.getServer(message["server"] as String)?.let {
+        katan.serverManager.getServer((message["server"] as Double).toInt())?.let {
             if (it.state == EnumKServerState.STOPPED)
                 it.startAsync {
                     katan.socketServer.broadcast(MessageImpl(
@@ -43,7 +43,7 @@ object StopServerHandler : MessageHandler {
     override suspend fun handle(message: IncomingMessage) {
         if (!message.isCommand("stop-server")) return
 
-        katan.serverManager.getServer(message["server"] as String)?.let {
+        katan.serverManager.getServer((message["server"] as Double).toInt())?.let {
             if (it.state != EnumKServerState.STOPPED) {
                 it.stop {
                     katan.socketServer.broadcast(MessageImpl(
@@ -63,7 +63,7 @@ object InputServerHandler : MessageHandler {
     override suspend fun handle(message: IncomingMessage) {
         if (!message.isCommand("input-server")) return
 
-        katan.serverManager.getServer(message["server"] as String)?.let {
+        katan.serverManager.getServer((message["server"] as Double).toInt())?.let {
             if (it.state == EnumKServerState.RUNNING) {
                 it.write(message["input"] as String)
             }
