@@ -29,7 +29,8 @@ object Minecraft {
                 }
 
                 KServerQuery(
-                    address.hostName to address.port,
+                    address.hostName,
+                    address.port,
                     response[2],
                     response[3],
                     response[4].toInt(),
