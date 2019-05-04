@@ -1,7 +1,7 @@
 <template>
   <div class="console">
-    <div class="flex flex-center mb2">
-      <h5 class="flex-child">Console</h5>
+    <div class="flex flex-center mb1">
+      <h4 class="flex-child">Console</h4>
       <div>
         <button @click="startServer" :class="server.state === 'RUNNING' || server.state === 'STARTING' ? 'disabled' : ''" class="btn mr1">Start</button>
         <button @click="stopServer" :class="server.state === 'STOPPED' ? 'disabled' : ''" class="btn danger">Stop server</button>
@@ -91,7 +91,7 @@
     }
 
     created() {
-      Vue.prototype.$http({
+      this.$http({
         method: "GET",
         url: "server/" + this.server.id + "/logs"
       }).then((response: any) => {
@@ -107,7 +107,7 @@
         console.error(error);
       }).then(() => {
         // handle server-log received from "Server" component
-        Vue.prototype.$bus.on("server-log", (data: any) => {
+        this.$bus.on("server-log", (data: any) => {
             this.serverLogs.push(data.message);
             setTimeout(() => this.scrollDownConsoleOutput(), 50);
         });
