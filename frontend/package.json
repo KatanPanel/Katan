@@ -15,9 +15,11 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "chart.js": "^2.8.0",
     "core-js": "^2.6.5",
     "vue": "^2.6.10",
     "vue-class-component": "^7.0.2",
+    "vue-feather-icons": "^4.10.0",
     "vue-property-decorator": "^8.1.0",
     "vue-router": "^3.0.3"
   },
