@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css?family=Raleway:400,500,700,900');
-@import url('https://fonts.googleapis.com/css?family=Titillium+Web:500,700');
+@import url('https://fonts.googleapis.com/css?family=Titillium+Web:400,500,700');
 
 * {
   margin: 0;
@@ -31,13 +31,13 @@ body {
   color: #FFF;
 }
 
-html, body {
+html, body, #app {
   height: 100%;
   width: 100%;
 }
 
-#app {
-  height: 100%;
+a {
+  color: #FFF;
 }
 
 .main {
@@ -50,9 +50,7 @@ html, body {
   .inner {
     flex: 1 0 auto;
     max-width: 92%;
+    position: relative;
+    left: 8%;
   }
-}
-
-a {
-  color: #FFF;
 }
