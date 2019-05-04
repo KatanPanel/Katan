@@ -4,9 +4,7 @@
 
 @import
   'base/base',
-  'base/flex',
-  'base/typography',
-  'base/form';
+  'base/typography';
 
 @import
   'layout/header',
@@ -14,9 +12,12 @@
 
 @import
   'components/buttons',
-  'components/box';
+  'components/box',
+  'components/form',
+  'components/progress';
 
 @import
+  'utilities/flex',
   'utilities/padding',
   'utilities/margin',
   'utilities/border',
