@@ -1,9 +1,9 @@
 .menu {
-  position: relative;
-  height: auto;
+  position: fixed;
   width: 8%;
+  height: 100%;
   padding-bottom: 1rem;
-  background-color: map_get($colors, 'b');
+  background-color: $blue_color;
 
   .klogo {
     color: #FFF;
@@ -14,8 +14,9 @@
     align-items: center;
     justify-content: center;
     font-size: 5em;
+    font-weight: 700;
     font-family: 'Titillium Web', sans-serif;
-    background-color: $blue_color;
+    background-color: rgba(0, 0, 0, .1);
     user-select: none;
 
     span {
@@ -27,19 +28,19 @@
   ul {
     position: relative;
     list-style: none;
-    text-align: center;
-    margin: 3rem 0;
+    margin: 2rem 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 
     li {
       position: relative;
+      height: 100px;
 
       &:hover .tooltip {
         visibility: visible;
         opacity: 1;
-      }
-
-      &:not(:last-child) {
-        margin-bottom: 3rem;
       }
 
       &.disabled a {
@@ -76,19 +77,37 @@
       }
 
       a {
-        color: #FFF;
-        opacity: .7;
         cursor: pointer;
         transition: opacity 200ms;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
 
         &:hover {
           opacity: 1;
+          span {
+            display: inline;
+          }
         }
 
         svg {
           width: 32px;
           height: 32px;
+          vertical-align: middle;
         }
+
+        span {
+          font-weight: 500;
+          text-transform: uppercase;
+          font-size: 14px;
+          margin-top: 5px;
+          display: none;
+        }
+      }
+
+      &.bottom {
+        transform: translateY(100%);
       }
     }
   }
