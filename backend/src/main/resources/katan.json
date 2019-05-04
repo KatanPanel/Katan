@@ -1,0 +1,8 @@
+{
+  "mysql": {
+    "url": "jdbc:mysql://localhost:3306/katan?useSSL=false",
+    "driver": "com.mysql.jdbc.Driver",
+    "user": "root",
+    "password": ""
+  }
+}
