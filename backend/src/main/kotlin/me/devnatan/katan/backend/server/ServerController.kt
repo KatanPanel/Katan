@@ -1,20 +1,22 @@
 package me.devnatan.katan.backend.server
 
-import io.netty.util.internal.ConcurrentSet
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.sendBlocking
+import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.api.server.ServerPath
 import me.devnatan.katan.backend.Katan
-import me.devnatan.katan.backend.io.createProcess
-import me.devnatan.katan.backend.sql.Server
+import me.devnatan.katan.backend.impl.server.ServerImpl
+import me.devnatan.katan.backend.sql.server.ServerEntity
 import me.devnatan.katan.backend.util.asJsonString
+import me.devnatan.katan.backend.util.createProcess
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileNotFoundException
+import java.util.concurrent.CopyOnWriteArraySet
 
-class KServerManager(private val katan: Katan) {
+class ServerController(private val katan: Katan) {
 
     companion object {
 
@@ -28,24 +30,25 @@ class KServerManager(private val katan: Katan) {
             serversFolder.mkdir()
         serversFolder
     }
+
     private val idCounter: AtomicInt = atomic(0)
-    val servers: ConcurrentSet<KServer> = ConcurrentSet()
+    val servers = CopyOnWriteArraySet<Server>()
 
-    fun getServer(id: Int): KServer? = servers.find { it.id == id }
-    fun getServer(name: String): KServer? = servers.find { it.name.equals(name, true) }
+    fun getServer(id: Int): Server? = servers.find { it.id == id }
+    fun getServer(name: String): Server? = servers.find { it.name.equals(name, true) }
 
-    fun load(coroutine: CoroutineScope) {
+    fun load() {
         transaction {
-            Server.all().forEach {
-                servers.add(loadServer(coroutine, it))
+            ServerEntity.all().forEach {
+                servers.add(loadServer(it))
             }
         }
 
-        idCounter.value = servers.size
+        idCounter.value = servers.last().id
         LOGGER.info("Loaded ${servers.size} servers.")
     }
 
-    fun loadServer(coroutine: CoroutineScope, server: Server): KServer? {
+    fun loadServer(server: ServerEntity): Server? {
         val folder = File(serversFolder, "server${server.serverId}")
         if (folder.name.startsWith("-")) {
             LOGGER.info("Ignoring server \"${server.name}\".")
@@ -53,7 +56,7 @@ class KServerManager(private val katan: Katan) {
         }
 
         if (!folder.exists()) {
-            LOGGER.error("Access denied to read files in \"${server.name}\".")
+            LOGGER.error("Server folder of \"${server.name}\" doesn't exists.")
             return null
         }
 
@@ -62,14 +65,9 @@ class KServerManager(private val katan: Katan) {
             return null
         }
 
-        val kserver = KServer(server.serverId, server.name,
-            KServerPath(server.pathRoot, server.jarFile),
-            createProcess(coroutine, folder, server.initParams),
-            EnumKServerState.STOPPED,
-            KServerQuery.offline(),
-            server.initParams
-        ).apply {
-            onMessage = { message ->
+        val kserver = ServerImpl(server.serverId, server.name, ServerPath(server.pathRoot, server.jarFile)).apply {
+            process = createProcess(folder, *server.initParams.split(" ").toTypedArray())
+            process.handler.onMessage = { message ->
                 katan.actor.sendBlocking(
                     mapOf(
                         "type" to "server-log",
@@ -78,16 +76,18 @@ class KServerManager(private val katan: Katan) {
                     ).asJsonString()!!
                 )
             }
+            initParams = server.initParams
         }
+
         servers.add(kserver)
         return kserver
     }
 
-    fun createServer(coroutine: CoroutineScope, name: String, address: String, port: Int, memory: Int): Int {
+    fun createServer(name: String, address: String, port: Int, memory: Int): Int {
         val id = idCounter.incrementAndGet()
         val file = copyDefaultServerFolder(serversFolder, "server$id")
         val server = transaction {
-            Server.new {
+            ServerEntity.new {
                 this.serverId = id
                 this.name = name
                 this.address = address
@@ -96,10 +96,10 @@ class KServerManager(private val katan: Katan) {
                 this.jarFile = file.listFiles().firstOrNull {
                     it.name.endsWith(".jar")
                 }!!.name
-                this.initParams = "java -Xms1024M -Xmx${memory}M -jar ${this.jarFile} -o FALSE PAUSE"
+                this.initParams = "java -Xms128M -Xmx${memory}M -jar ${this.jarFile} -o FALSE"
             }
         }
-        loadServer(coroutine, server)
+        loadServer(server)
         return id
     }
 
