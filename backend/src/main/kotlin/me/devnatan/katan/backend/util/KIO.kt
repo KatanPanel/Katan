@@ -24,6 +24,6 @@ fun InputStream.readStream(): ByteArray = use {
  * @param directory = target directory
  * @param args      = startup parameters.
  */
-fun createProcess(directory: File, vararg args: String): Process {
-    return ProcessImpl(ProcessBuilder(*args).directory(directory))
+fun createProcess(directory: File, args: String): Process {
+    return ProcessImpl(ProcessBuilder(args.split(" ")).directory(directory))
 }

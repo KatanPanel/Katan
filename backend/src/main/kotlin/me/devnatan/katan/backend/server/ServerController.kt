@@ -66,7 +66,7 @@ class ServerController(private val katan: Katan) {
         }
 
         val kserver = ServerImpl(server.serverId, server.name, ServerPath(server.pathRoot, server.jarFile)).apply {
-            process = createProcess(folder, *server.initParams.split(" ").toTypedArray())
+            process = createProcess(folder, server.initParams)
             process.handler.onMessage = { message ->
                 katan.actor.sendBlocking(
                     mapOf(
