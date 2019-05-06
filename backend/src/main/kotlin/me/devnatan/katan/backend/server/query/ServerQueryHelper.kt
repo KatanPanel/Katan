@@ -1,6 +1,6 @@
-package me.devnatan.katan.backend.util
+package me.devnatan.katan.backend.server.query
 
-import me.devnatan.katan.backend.server.KServerQuery
+import me.devnatan.katan.api.server.ServerQuery
 import java.io.BufferedReader
 import java.io.DataOutputStream
 import java.io.InputStreamReader
@@ -9,9 +9,9 @@ import java.net.Socket
 import java.net.SocketException
 import kotlin.system.measureTimeMillis
 
-object Minecraft {
+object ServerQueryHelper {
 
-    fun query(address: InetSocketAddress): KServerQuery {
+    fun query(address: InetSocketAddress): ServerQuery? {
         val socket = Socket()
         return try {
             val latency = measureTimeMillis {
@@ -23,14 +23,12 @@ object Minecraft {
 
             socket.use {
                 writter.write(byteArrayOf(0xFE.toByte(), 0x01.toByte()))
-                val line = reader.readLine() ?: return KServerQuery.offline()
+                val line = reader.readLine() ?: return null
                 val response = line.split("\u0000\u0000\u0000").map {
                     it.replace("\u0000", "")
                 }
 
-                KServerQuery(
-                    address.hostName,
-                    address.port,
+                ServerQuery(address,
                     response[2],
                     response[3],
                     response[4].toInt(),
@@ -39,7 +37,7 @@ object Minecraft {
                 )
             }
         } catch (e: SocketException) {
-            KServerQuery.offline()
+            null
         }
     }
 
