@@ -1,4 +1,4 @@
-package me.devnatan.katan.backend.internal
+package me.devnatan.katan.backend.socket
 
 import io.ktor.http.cio.websocket.CloseReason
 import io.ktor.http.cio.websocket.Frame
@@ -8,7 +8,7 @@ import kotlinx.coroutines.channels.ClosedSendChannelException
 import me.devnatan.katan.backend.message.Message
 import me.devnatan.katan.backend.message.frame
 
-class SocketServer {
+class SocketController {
 
     private val clients = mutableListOf<WebSocketSession>()
 
