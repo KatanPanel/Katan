@@ -7,10 +7,23 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 
-fun File.readStream() = FileInputStream(this).readStream()
+/**
+ * Read the contents of the file.
+ */
+fun File.readStream(): ByteArray = FileInputStream(this).readStream()
 
-fun InputStream.readStream() = use { it.readBytes() }
+/**
+ * Read the contents of the InputStream.
+ */
+fun InputStream.readStream(): ByteArray = use {
+    it.readBytes()
+}
 
+/**
+ * Creates a new process using the [args] startup arguments.
+ * @param directory = target directory
+ * @param args      = startup parameters.
+ */
 fun createProcess(directory: File, vararg args: String): Process {
     return ProcessImpl(ProcessBuilder(*args).directory(directory))
 }
