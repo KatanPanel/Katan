@@ -141,7 +141,7 @@ private fun Routing.routes() {
             intercept(ApplicationCallPipeline.Features) {
                 val serverId = call.parameters["server"]
                 try {
-                    server = katan.serverController.getServer(serverId!!.toInt())
+                    server = katan.serverController.getServer(serverId?.toInt()!!)
                     if (server == null) {
                         context.respond(HttpStatusCode.NotFound, HttpResponse("error", "Server [$serverId] not found."))
                         finish()
@@ -152,15 +152,15 @@ private fun Routing.routes() {
             }
 
             get {
-                call.respond(HttpResponse("ok", content = server!!))
+                call.respond(HttpResponse("ok", content = server))
             }
 
             get("/logs") {
-                call.respond(HttpResponse("ok", content = server!!.process.output))
+                call.respond(HttpResponse("ok", content = server?.process!!.output))
             }
 
             get("/ftp") {
-                val file = File(server!!.path.root, call.parameters["path"] ?: "/")
+                val file = File(server?.path!!.root, call.parameters["path"] ?: "/")
                 when {
                     !file.exists() -> call.respond(
                         HttpStatusCode.NotFound,
@@ -168,7 +168,7 @@ private fun Routing.routes() {
                     )
                     file.isDirectory -> call.respond(HttpResponse("ok", content = katan.ftp.listFiles(file)))
                     else -> {
-                        val io = katan.ftp.fs.readFile(File(server!!.path.root, call.parameters["path"]), 0)
+                        val io = katan.ftp.fs.readFile(File(server?.path!!.root, call.parameters["path"]), 0)
                         val data = String(io.readStream(), StandardCharsets.UTF_8).trim()
                         call.respond(HttpResponse("ok", content = data))
                     }
