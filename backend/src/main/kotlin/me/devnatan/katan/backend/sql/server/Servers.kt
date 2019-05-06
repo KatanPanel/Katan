@@ -1,4 +1,4 @@
-package me.devnatan.katan.backend.sql
+package me.devnatan.katan.backend.sql.server
 
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
@@ -17,8 +17,8 @@ object Servers : IntIdTable("katan_servers") {
 
 }
 
-class Server(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Server>(Servers)
+class ServerEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<ServerEntity>(Servers)
 
     var serverId    by Servers.serverId
     var name        by Servers.name
