@@ -38,6 +38,15 @@ html, body, #app {
 
 a {
   color: #FFF;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+code {
+  font-size: 14px
 }
 
 .main {

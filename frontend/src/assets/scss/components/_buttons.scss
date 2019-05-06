@@ -16,7 +16,9 @@
   -o-transition: background-color 200ms;
   transition: background-color 200ms;
 
-  &:not(.disabled):hover { background-color: rgba(0, 0, 0, .1) }
+  &:not(.disabled):hover {
+    background-color: rgba(0, 0, 0, .1)
+  }
 
   &.disabled {
     cursor: default;
@@ -25,16 +27,29 @@
 
   &.danger {
     color: #ff6b6b !important;
-    &:not(.disabled):hover { color: #ee5253 !important; }
+
+    &:not(.disabled):hover {
+      color: #ee5253 !important;
+    }
   }
 
   &.info {
-    &.full { background-color: #54a0ff }
-    &:not(.full) { color: #54a0ff !important }
+    &.full {
+      background-color: #54a0ff
+    }
+
+    &:not(.full) {
+      color: #54a0ff !important
+    }
 
     &:not(.disabled):hover {
-      &.full { background-color: #2e86de }
-      &:not(.full) { color: #2e86de !important }
+      &.full {
+        background-color: #2e86de
+      }
+
+      &:not(.full) {
+        color: #2e86de !important
+      }
     }
   }
 }

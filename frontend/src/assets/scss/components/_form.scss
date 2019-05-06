@@ -8,12 +8,11 @@
     color: rgba(255, 255, 255, .6);
   }
 
-  input {
+  input, textarea {
     cursor: text;
-    height: 38px;
     border-radius: .4rem;
     outline: none;
-    padding: 0 1rem;
+    padding: 1rem;
     font-size: 14px;
     width: 100%;
     color: #EEE;
@@ -24,6 +23,33 @@
       font-weight: 600;
       opacity: .47;
     }
+  }
+
+  textarea {
+    max-width: 100%;
+    min-width: 100%;
+    overflow-y: scroll;
+    resize: none;
+    height: 100vh;
+
+    &::-webkit-scrollbar {
+      width: 12px;
+      border-radius: .4rem;
+    }
+
+    &::-webkit-scrollbar-track {
+      border-radius: .4rem;
+      background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: .4rem;
+      background: rgba(0, 0, 0, .2);
+    }
+  }
+
+  input {
+    height: 38px;
 
     &[type=number] {
       -moz-appearance: textfield;
@@ -43,7 +69,9 @@
     display: -ms-flexbox;
     flex-direction: column;
 
-    &:not(:last-child) { margin-bottom: 2rem }
+    &:not(:last-child) {
+      margin-bottom: 2rem
+    }
   }
 
 }

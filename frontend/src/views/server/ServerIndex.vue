@@ -4,7 +4,9 @@
         <div class="flex flex-row mb1">
             <div class="flex-child mr1">
                 <div class="box box-icon flex flex-row">
-                    <div class="icon"><LayersIcon/></div>
+                    <div class="icon">
+                        <LayersIcon/>
+                    </div>
                     <div class="flex flex-center flex-child">
                         <div class="title flex-child">Memory</div>
                         <div class="value">448MB / {{ getServerMemory }}MB</div>
@@ -13,7 +15,9 @@
             </div>
             <div class="flex-child mr1">
                 <div class="box box-icon flex flex-row">
-                    <div class="icon"><HardDriveIcon/></div>
+                    <div class="icon">
+                        <HardDriveIcon/>
+                    </div>
                     <div class="flex flex-center flex-child">
                         <div class="title flex-child">Disk</div>
                         <div class="value">1.5GB / Unlimited</div>
@@ -22,7 +26,9 @@
             </div>
             <div class="flex-child">
                 <div class="box box-icon flex flex-row">
-                    <div class="icon"><CpuIcon/></div>
+                    <div class="icon">
+                        <CpuIcon/>
+                    </div>
                     <div class="flex flex-center flex-child">
                         <div class="title flex-child">CPU</div>
                         <div class="value">4 threads active</div>
@@ -52,12 +58,10 @@
 </template>
 <script lang="ts">
     import {Component, Vue} from "vue-property-decorator";
-
     // @ts-ignore
     import Chart from "chart.js";
-
     // @ts-ignore
-    import {CpuIcon, LayersIcon, HardDriveIcon} from "vue-feather-icons/icons";
+    import {CpuIcon, HardDriveIcon, LayersIcon} from "vue-feather-icons/icons";
 
     @Component({
         components: {HardDriveIcon, LayersIcon, CpuIcon}
@@ -132,13 +136,17 @@
 </script>
 <style lang="scss">
     .box {
-        &.box-dark { background-color: rgba(0, 0, 0, .1) }
+        &.box-dark {
+            background-color: rgba(0, 0, 0, .1)
+        }
+
         &.box-icon {
             padding: 1rem 0 !important;
             color: rgba(255, 255, 255, .8);
 
             .icon {
                 padding: 1rem;
+
                 svg {
                     width: 34px;
                     height: 34px;

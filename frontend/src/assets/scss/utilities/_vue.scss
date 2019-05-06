@@ -1,6 +1,20 @@
 .fade-enter-active, .fade-leave-active {
   transition: opacity .3s ease;
 }
+
 .fade-enter, .fade-leave-to {
   opacity: 0;
+}
+
+.table-item {
+  display: table-row-group;
+}
+
+.table-enter-active, .table-leave-active {
+  transition: all 1s;
+}
+
+.table-enter, .table-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
 }

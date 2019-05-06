@@ -1,24 +1,18 @@
-@import
-  'abstracts/variables',
-  'abstracts/functions';
-
-@import
-  'base/base',
-  'base/typography';
-
-@import
-  'layout/header',
-  'layout/menu';
-
-@import
-  'components/buttons',
-  'components/box',
-  'components/form',
-  'components/progress';
-
-@import
-  'utilities/flex',
-  'utilities/padding',
-  'utilities/margin',
-  'utilities/border',
-  'utilities/vue';
+@import 'abstracts/variables',
+'abstracts/functions';
+@import 'base/base',
+'base/typography';
+@import 'layout/header',
+'layout/menu';
+@import 'components/buttons',
+'components/box',
+'components/form',
+'components/progress',
+'components/table',
+'components/label';
+@import 'utilities/flex',
+'utilities/padding',
+'utilities/margin',
+'utilities/border',
+'utilities/vue',
+'utilities/text';

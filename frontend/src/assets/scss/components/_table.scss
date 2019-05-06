@@ -1,0 +1,43 @@
+table {
+  width: 100%;
+  text-align: left;
+  background-color: #4b5162;
+  border-radius: .4rem;
+
+  svg {
+    vertical-align: middle;
+    margin-right: 1rem;
+    opacity: .7;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+tbody tr {
+  -webkit-transition: all 200ms;
+  -moz-transition: all 200ms;
+  -ms-transition: all 200ms;
+  -o-transition: all 200ms;
+  transition: all 200ms;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, .1);
+  }
+}
+
+th {
+  font-size: 16px;
+  text-transform: uppercase;
+  opacity: .47;
+}
+
+td {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+th, td {
+  padding: 1rem;
+  height: 24px;
+  line-height: 24px;
+}
