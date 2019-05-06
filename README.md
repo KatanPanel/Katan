@@ -1,15 +1,23 @@
 # Katan
-Katan is a simple Minecraft server management panel built with Ktor and VueJS.\
-The current version is **1.0.0-ALPHA**, and is under constant development.
+> Katan is a simple Minecraft server management panel built with Ktor and VueJS.
 
+[![Open Source](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
+[![Stars](https://img.shields.io/github/stars/DevNatan/Katan.svg?color=1bcc1b)](https://github.com/DevNatan/Katan/stargazers)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a9844adeafb449f487368a84f5eb1df5)](https://www.codacy.com/app/DevNatan/Katan?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DevNatan/Katan&amp;utm_campaign=Badge_Grade)
 
 ## Table of contents
-* [Frontend](https://github.com/DevNatan/KaTan#frontend)
-  * [Dependencies](https://github.com/DevNatan/KaTan#project-setup)
-  * [Project setup](https://github.com/DevNatan/KaTan#project-setup)
-* [Contributing](https://github.com/DevNatan/KaTan#contributing)
-* [License](https://github.com/DevNatan/KaTan#license)
+  * [Status](https://github.com/DevNatan/KaTan#status)
+  * [Frontend](https://github.com/DevNatan/KaTan#frontend)
+    * [Dependencies](https://github.com/DevNatan/KaTan#project-setup)
+    * [Project setup](https://github.com/DevNatan/KaTan#project-setup)
+  * [Changelog](https://github.com/DevNatan/KaTan#changelog)
+  * [Contributing](https://github.com/DevNatan/KaTan#contributing)
+  * [Support](https://github.com/DevNatan/KaTan#support)
+  * [License](https://github.com/DevNatan/KaTan#license)
 
+## Status
+The current version of Katan is: **1.0.0-Alpha**\
+We are under constant development and a release will soon be released.
 
 ## Frontend
 The Katan frontend was developed under Vue JS using TypeScript as the basis for the code.\
@@ -43,6 +51,9 @@ npm run lint
 npm run test:unit
 ```
 
+## Changelog
+See the changelog in the [CHANGELOG](https://github.com/DevNatan/KaTan/blob/master/CHANGELOG) file.
+
 ## Contributing
 PR are totally accepted and thanks for doing them.\
 But, rather, it is necessary some requirements for it to be accepted:
@@ -50,9 +61,12 @@ But, rather, it is necessary some requirements for it to be accepted:
 * **Unit test** if any new feature.
 * Please, no [boilerplate](https://pt.wikipedia.org/wiki/Boilerplate_code).
 
+## Support
+You can get support by creating an [Issue](https://github.com/DevNatan/Katan/issues) or by joining our [Discord server](https://discord.gg/n4qn3FX).
+
 ## License
 Katan is released under [Apache License 2.0](https://github.com/DevNatan/KaTan/blob/master/LICENSE).
-```
+```text
 Copyright 2019 Natan Vieira.
 
 Licensed under the Apache License, Version 2.0 (the "License");
