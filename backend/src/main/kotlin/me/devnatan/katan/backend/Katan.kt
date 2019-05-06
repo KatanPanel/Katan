@@ -5,16 +5,17 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.channels.consumeEach
-import me.devnatan.katan.backend.internal.SocketServer
-import me.devnatan.katan.backend.io.readFile
 import me.devnatan.katan.backend.message.Messenger
 import me.devnatan.katan.backend.message.handler.InputServerHandler
 import me.devnatan.katan.backend.message.handler.ServerHandlerPredicate
 import me.devnatan.katan.backend.message.handler.StartServerHandler
 import me.devnatan.katan.backend.message.handler.StopServerHandler
-import me.devnatan.katan.backend.server.KServerManager
-import me.devnatan.katan.backend.sql.Servers
+import me.devnatan.katan.backend.server.ServerController
+import me.devnatan.katan.backend.server.query.ServerQueryTask
+import me.devnatan.katan.backend.socket.SocketController
+import me.devnatan.katan.backend.sql.server.Servers
 import me.devnatan.katan.backend.util.asJsonMap
+import me.devnatan.katan.backend.util.readStream
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
@@ -37,27 +38,35 @@ class Katan {
     val coroutine: CoroutineScope = CoroutineScope(CoroutineName("Katan"))
     val actor = CoroutineScope(CoroutineName("Katan:Logging")).actor<String> {
         consumeEach {
-            socketServer.broadcast(it)
+            socketController.broadcast(it)
         }
     }
 
+    // KATAN
+    val ftp: KatanFTP = KatanFTP()
     lateinit var json: ObjectMapper
     lateinit var locale: Map<*, *>
     lateinit var config: Map<*, *>
-
-    lateinit var socketServer: SocketServer
-    lateinit var serverManager: KServerManager
     lateinit var messenger: Messenger
 
+    // CONTROLLERS
+    lateinit var socketController: SocketController
+    lateinit var serverController: ServerController
+
+    // OTHER
+    private val query: ServerQueryTask = ServerQueryTask()
+
     internal fun init() {
-        locale = loadJsonResource("locale.json")
         config = loadJsonResource("katan.json")
-        setupDatabase()
-        load()
+        try {
+            setupDatabase()
+            locale = loadJsonResource("locale.json")
+            load()
+        } catch (e: Throwable) {}
     }
 
     private fun load() {
-        socketServer = SocketServer()
+        socketController = SocketController()
         messenger = Messenger().apply {
             addPredicate(
                 ServerHandlerPredicate,
@@ -67,20 +76,30 @@ class Katan {
             )
         }
 
-        serverManager = KServerManager(this)
-        serverManager.load(coroutine)
+        serverController = ServerController(this)
+        serverController.load()
+        query.run()
+        ftp.init()
     }
 
     private fun setupDatabase() {
         val mysql = config["mysql"] as Map<*, *>
-        Database.connect(mysql["url"] as String,
+        Database.connect(
+            mysql["url"] as String,
             mysql["driver"] as String,
             mysql["user"] as String,
-            mysql["password"] as String)
+            mysql["password"] as String
+        )
 
         transaction {
-            addLogger(StdOutSqlLogger)
-            SchemaUtils.create(Servers)
+            try {
+                addLogger(StdOutSqlLogger)
+                SchemaUtils.create(Servers)
+            } catch (e: Throwable) {
+                LOGGER.error("[SQL] Failed to create default schema.")
+                LOGGER.error("[SQL] Please verify your credentials.")
+                System.exit(1)
+            }
         }
     }
 
@@ -89,7 +108,7 @@ class Katan {
         if (!f.exists())
             throw FileNotFoundException("Couldn't find resource $resource")
 
-        return String(readFile(f), StandardCharsets.UTF_8).asJsonMap()
+        return String(f.readStream(), StandardCharsets.UTF_8).asJsonMap()
             ?: throw IllegalArgumentException("Couldn't load resource $resource")
     }
 
