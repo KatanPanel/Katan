@@ -4,12 +4,15 @@
         <div class="inner">
             <header class="header">
                 <h3>{{ server.name }}</h3>
-                <p>
-          <span>
-            <XIcon v-if="server.state !== 'RUNNING'"/>
-            <CheckIcon v-else/> Server is {{ server.state }}
-          </span>
-                </p>
+                <div class="flex flex-center mt1" style="opacity: .7">
+                    <div class="label">
+                        {{ server.query.players }}/{{ server.query.maxPlayers }} players online
+                    </div>
+                    <div class="label ml1">
+                        <BarChartIcon width="18px" height="18px"/>
+                        {{ server.query.latency }}ms
+                    </div>
+                </div>
             </header>
             <div class="m2">
                 <router-view :server="server"/>
@@ -22,11 +25,12 @@
     import {Component, Vue} from "vue-property-decorator";
     import Header from "@/components/static/Header.vue";
     import Menu from "@/components/static/Menu.vue";
-    // @ts-ignore
-    import {CheckIcon, PlayIcon, XIcon} from "vue-feather-icons/icons";
+
+    import {BarChartIcon, CheckIcon, PlayIcon, XIcon} from "vue-feather-icons/icons";
 
     @Component({
         components: {
+            BarChartIcon,
             CheckIcon,
             PlayIcon,
             XIcon,
@@ -40,47 +44,47 @@
 
         server?: any = null;
 
-        get getServerMemory() {
-            return this.server.initParams.toString().match("Xmx(.*\\d)M")[0];
-        }
-
         created() {
             this.serverId = this.$route.params.serverId;
             this.searchServer(() => {
+                this.isServerLoaded = true;
                 this.$socket.on("message", (data: any) => {
-                    if (data.reason == "server_updated") {
-                        this.server = data.content.server;
-                        return;
-                    }
-
                     switch (data.type) {
+                        case "server-updated" && "pong": {
+                            console.log("Server updated");
+                            this.server = data.content.server;
+                            break
+                        }
                         case "server-log": {
                             this.$bus.emit("server-log", data);
                             break;
                         }
-                        default:
-                            console.error("Failed to handle server message: ", data);
                     }
                 });
+
+                setInterval(() => {
+                    this.$socket.send({
+                        type: "command",
+                        content: {
+                            command: "ping-server",
+                            server: this.server.id
+                        }
+                    })
+                }, 5001)
             });
         }
 
         private searchServer(callback: () => void) {
             this.$http({
                 method: "GET",
-                url: "server/" + this.serverId
+                url: "servers/" + this.serverId
             })
                 .then((response: any) => {
-                    if (response.status === 200) {
-                        this.server = response.data.message;
-                        this.isServerLoaded = true;
-                        callback();
-                    } else {
-                        // TODO: show error
-                    }
+                    this.server = response.data.content;
+                    callback();
                 })
                 .catch((error: any) => {
-                    // TODO: redirect to server not found
+                    console.error(error);
                 });
         }
     }

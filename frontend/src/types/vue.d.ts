@@ -11,4 +11,5 @@ declare module "vue/types/vue" {
         $http: AxiosInstance;
         $utils: Utils
     }
+
 }
