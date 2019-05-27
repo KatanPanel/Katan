@@ -3,30 +3,23 @@
         <h4 class="flex-child mb2">Uploading files</h4>
         <div class="box">
             <div class="flex">
-                <div class="box box-dark flex-child mr1">
-                    <div class="box-title tl">Target path</div>
+                <form class="box box-dark upload-box tc flex mr1 flex-center flex-column flex-child" id="upload-form" enctype="multipart/form-data">
+                    <DownloadIcon/>
+                    <input style="display: none" multiple />
+                    <div class="box-title mt2" style="font-weight: 500;">Click to <b>choose a file</b>.</div>
+                </form>
+                <div class="box box-dark flex-child ml1">
+                    <div class="box-title tl">Target directory</div>
                     <form action="" class="form">
                         <div class="group">
-                            <input type="text" class="input" placeholder="/">
+                            <input type="text" class="input box box-dark" placeholder="">
                         </div>
                     </form>
                     <div class="box-title tl mt2">Restrictions</div>
-                    <ul style="list-style-type: none" class="box box-dark">
-                        <li>Max file size is 10MB</li>
+                    <ul style="color: rgba(255, 255, 255, 0.8)" class="box box-dark">
+                        <li>Max file size is 10MB.</li>
+                        <li class="mt1">Hentai aren't permitted.</li>
                     </ul>
-                </div>
-                <div class="box box-dark flex-child ml1">
-                    <div class="box-title">Put your files here</div>
-                    <div class="flex flex-row flex-wrap flex-center">
-                        <div class="upload-box" v-for="i in 5">
-                            <PlusIcon/>
-                        </div>
-                    </div>
-                    <div class="box-title mt2">
-                        Progress<br/>
-                        <span style="text-transform: none; font-weight: 500;">Uploaded 0 of 0 files</span>
-                    </div>
-                    <progress value="30" max="100"></progress>
                 </div>
             </div>
         </div>
@@ -34,23 +27,21 @@
 </template>
 <script lang="ts">
     import {Component, Vue} from "vue-property-decorator";
-    //@ts-ignore
-    import {CoffeeIcon, FileIcon, FileTextIcon, FolderIcon, PlusIcon} from "vue-feather-icons/icons/index";
+    import {CoffeeIcon, FileIcon, FileTextIcon, FolderIcon, PlusIcon, DownloadIcon} from "vue-feather-icons/icons";
 
     @Component({
-        components: {PlusIcon, CoffeeIcon, FileTextIcon, FileIcon, FolderIcon}
+        components: {DownloadIcon, PlusIcon, CoffeeIcon, FileTextIcon, FileIcon, FolderIcon}
     })
     export default class ServerFTPUpload extends Vue {
+        uploadingFiles: Array<any> = [];
+        private uploadForm!: HTMLFormElement;
+
         get path() {
             return this.$attrs.path
         }
 
         get fileList() {
             return this.$attrs.fileList
-        }
-
-        created() {
-            this.$bus.emit("ftp-change-path", "/");
         }
 
         private changePath(file: any) {
@@ -60,6 +51,17 @@
                 this.$bus.emit("ftp-write-file", file);
         }
 
+        created() {
+            this.$bus.emit("ftp-change-path", "/");
+        }
+
+        mounted() {
+            this.uploadForm = <HTMLFormElement> document.getElementById("upload-form")!!;
+            this.uploadForm.addEventListener("drag dragstart dragend dragover dragenter dragleave drop", e => {
+                var drag = <DragEvent> e;
+                console.log("DragEvent", drag)
+            })
+        }
     }
 </script>
 <style lang="scss" scoped>
@@ -69,18 +71,20 @@
         padding: 1rem;
         cursor: pointer;
 
+
         &:hover {
             background-color: rgba(0, 0, 0, .1);
         }
 
-        &:not(:last-child) {
-            margin-right: 1rem;
-        }
-
         svg {
             opacity: .47;
-            width: 64px;
-            height: 64px;
+            width: 72px;
+            height: 72px;
         }
+    }
+
+    ul {
+        list-style-type: none;
+
     }
 </style>

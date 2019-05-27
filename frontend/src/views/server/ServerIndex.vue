@@ -57,10 +57,8 @@
     </div>
 </template>
 <script lang="ts">
+    const Chart = require('chart.js');
     import {Component, Vue} from "vue-property-decorator";
-    // @ts-ignore
-    import Chart from "chart.js";
-    // @ts-ignore
     import {CpuIcon, HardDriveIcon, LayersIcon} from "vue-feather-icons/icons";
 
     @Component({
@@ -69,6 +67,10 @@
     export default class ServerIndex extends Vue {
         private cpuChart!: HTMLCanvasElement;
         private memoryChart!: HTMLCanvasElement;
+
+        get getServerMemory() {
+            return (<any> this.$attrs.server).initParams.toString().match("Xmx(.*\\d)M")[1];
+        }
 
         private loadGraph() {
             Chart.defaults.global.defaultFontColor = "rgba(255, 255, 255, .47)";
