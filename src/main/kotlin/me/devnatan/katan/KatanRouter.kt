@@ -119,7 +119,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 val username = (data["username"]!! as String).trim()
                 if ((username.isBlank()) || !katan.accountManager.existsAccount(username)) {
                     call.respond(
-                        HttpStatusCode.NotFound,
+                        HttpStatusCode.BadRequest,
                         KHttpResponse.Error(ACCOUNT_NOT_EXISTS)
                     )
                     return@post
@@ -222,7 +222,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                         server = katan.serverManager.getServer(serverId.toUInt())
                     } catch (e: IllegalArgumentException) {
                         context.respond(
-                            HttpStatusCode.NotFound,
+                            HttpStatusCode.BadRequest,
                             KHttpResponse.Error(SERVER_NOT_FOUND)
                         )
                         finish()
