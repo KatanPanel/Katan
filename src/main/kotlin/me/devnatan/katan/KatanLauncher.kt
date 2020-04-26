@@ -63,7 +63,7 @@ class KatanLauncher(private val app: Application) {
         install(StatusPages) {
             exception<Throwable> { cause ->
                 environment.log.error(cause)
-                call.respond(HttpStatusCode.InternalServerError, KHttpResponse.Error(cause.toString()))
+                call.respond(HttpStatusCode.InternalServerError, KHttpResponse.Error(500, cause.toString()))
             }
         }
 
