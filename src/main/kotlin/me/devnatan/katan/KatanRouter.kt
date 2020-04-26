@@ -129,14 +129,14 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (password.isBlank()) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        ACCOUNT_WRONG_PASSWORD
+                        ACCOUNT_NOT_VALID
                     )
                     return@post
                 }
 
                 try {
                     val token = katan.accountManager.auth(username, password)
-                    call.respond(HttpStatusCode.OK, KHttpResponse.Ok(token))
+                    call.respond(HttpStatusCode.OK, KHttpResponse.Ok(mapOf("token" to token)))
                 } catch (e: IllegalArgumentException) {
                     call.respond(
                         HttpStatusCode.BadRequest,
@@ -162,7 +162,7 @@ class KatanRouter(katan: Katan, router: Routing) {
 
                 try {
                     val account = katan.accountManager.verify(data["token"]!! as String)
-                    call.respond(HttpStatusCode.OK, KHttpResponse.Ok(account))
+                    call.respond(HttpStatusCode.OK, KHttpResponse.Ok(mapOf("account" to account)))
                 } catch (e: IllegalArgumentException) {
                     call.respond(
                         HttpStatusCode.BadRequest,
@@ -181,7 +181,7 @@ class KatanRouter(katan: Katan, router: Routing) {
 
             post {
                 val data = call.receive() as Map<*, *>
-                if (!data.containsKey("name") || !data.containsKey("port")) {
+                if (!data.containsKey("name") || !data.containsKey("port") || !data.containsKey("owner")) {
                     call.respond(
                         HttpStatusCode.BadRequest,
                         SERVER_UNSPECIFIED_NOP
@@ -199,8 +199,8 @@ class KatanRouter(katan: Katan, router: Routing) {
                 }
 
                 try {
-                    val server = katan.serverManager.createServer(name, (data["port"]!! as Int).toShort())
-                    call.respond(HttpStatusCode.Created, KHttpResponse.Ok(server))
+                    val server = katan.serverManager.createServer(name, (data["port"]!! as String).toShort(), data["owner"]!! as String)
+                    call.respond(HttpStatusCode.Created, KHttpResponse.Ok(mapOf("server" to server)))
                 } catch (e: IllegalArgumentException) {
                     call.respond(
                         HttpStatusCode.Conflict,
