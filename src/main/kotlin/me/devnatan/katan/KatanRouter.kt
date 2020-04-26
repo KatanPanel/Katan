@@ -35,18 +35,18 @@ class KatanRouter(katan: Katan, router: Routing) {
 
     companion object Errors {
 
-        const val INVALID_ACCESS_TOKEN      = "Invalid access token"
+        val INVALID_ACCESS_TOKEN      = KHttpResponse.Error(1000, "Invalid access token")
 
-        const val ACCOUNT_NOT_SPECIFIED     = "Username or password not specified"
-        const val ACCOUNT_NOT_VALID         = "Invalid account"
-        const val ACCOUNT_INVALID_USERNAME  = "Invalid account username"
-        const val ACCOUNT_WRONG_PASSWORD    = "Incorrect account password"
-        const val ACCOUNT_ALREADY_EXISTS    = "This account already exists"
-        const val ACCOUNT_NOT_EXISTS        = "Account not found"
+        val ACCOUNT_NOT_SPECIFIED     = KHttpResponse.Error(2000, "Username or password not specified")
+        val ACCOUNT_NOT_VALID         = KHttpResponse.Error(2001, "Invalid account")
+        val ACCOUNT_INVALID_USERNAME  = KHttpResponse.Error(2002, "Invalid account username")
+        val ACCOUNT_WRONG_PASSWORD    = KHttpResponse.Error(2003, "Incorrect account password")
+        val ACCOUNT_ALREADY_EXISTS    = KHttpResponse.Error(2004, "This account already exists")
+        val ACCOUNT_NOT_EXISTS        = KHttpResponse.Error(2005, "Account not found")
 
-        const val SERVER_CONFLICT           = "Server conflict"
-        const val SERVER_NOT_FOUND          = "Server not found"
-        const val SERVER_UNSPECIFIED_NOP    = "Server name or port not specified."
+        val SERVER_CONFLICT           = KHttpResponse.Error(3000, "Server conflict")
+        val SERVER_NOT_FOUND          = KHttpResponse.Error(3001, "Server not found")
+        val SERVER_UNSPECIFIED_NOP    = KHttpResponse.Error(3002, "Server name or port not specified.")
 
     }
 
@@ -70,7 +70,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (!data.containsKey("username") || !data.containsKey("password")) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(ACCOUNT_NOT_SPECIFIED)
+                        ACCOUNT_NOT_SPECIFIED
                     )
                     return@post
                 }
@@ -79,7 +79,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (username.isBlank()) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(ACCOUNT_INVALID_USERNAME)
+                        ACCOUNT_INVALID_USERNAME
                     )
                     return@post
                 }
@@ -87,7 +87,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (katan.accountManager.existsAccount(username)) {
                     call.respond(
                         HttpStatusCode.Conflict,
-                        KHttpResponse.Error(ACCOUNT_ALREADY_EXISTS)
+                        ACCOUNT_ALREADY_EXISTS
                     )
                     return@post
                 }
@@ -96,7 +96,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (username.isBlank() && password.isBlank()) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(ACCOUNT_NOT_VALID)
+                        ACCOUNT_NOT_VALID
                     )
                     return@post
                 }
@@ -111,7 +111,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (!data.containsKey("username") || !data.containsKey("password")) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(ACCOUNT_NOT_SPECIFIED)
+                        ACCOUNT_NOT_SPECIFIED
                     )
                     return@post
                 }
@@ -120,7 +120,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if ((username.isBlank()) || !katan.accountManager.existsAccount(username)) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(ACCOUNT_NOT_EXISTS)
+                        ACCOUNT_NOT_EXISTS
                     )
                     return@post
                 }
@@ -129,7 +129,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (password.isBlank()) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(ACCOUNT_WRONG_PASSWORD)
+                        ACCOUNT_WRONG_PASSWORD
                     )
                     return@post
                 }
@@ -140,12 +140,12 @@ class KatanRouter(katan: Katan, router: Routing) {
                 } catch (e: IllegalArgumentException) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(ACCOUNT_NOT_EXISTS)
+                        ACCOUNT_NOT_EXISTS
                     )
                 } catch (e: IllegalAccessError) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(ACCOUNT_WRONG_PASSWORD)
+                        ACCOUNT_WRONG_PASSWORD
                     )
                 }
             }
@@ -155,7 +155,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (!data.containsKey("token")) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(INVALID_ACCESS_TOKEN)
+                        INVALID_ACCESS_TOKEN
                     )
                     return@post
                 }
@@ -166,7 +166,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 } catch (e: IllegalArgumentException) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(INVALID_ACCESS_TOKEN)
+                        INVALID_ACCESS_TOKEN
                     )
                 }
             }
@@ -184,7 +184,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (!data.containsKey("name") || !data.containsKey("port")) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(SERVER_UNSPECIFIED_NOP)
+                        SERVER_UNSPECIFIED_NOP
                     )
                     return@post
                 }
@@ -193,7 +193,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if (name.isNullOrBlank()) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        KHttpResponse.Error(SERVER_UNSPECIFIED_NOP)
+                        SERVER_UNSPECIFIED_NOP
                     )
                     return@post
                 }
@@ -204,7 +204,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 } catch (e: IllegalArgumentException) {
                     call.respond(
                         HttpStatusCode.Conflict,
-                        KHttpResponse.Ok(SERVER_CONFLICT)
+                        SERVER_CONFLICT
                     )
                     return@post
                 }
@@ -226,7 +226,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                     } catch (e: IllegalArgumentException) {
                         context.respond(
                             HttpStatusCode.BadRequest,
-                            KHttpResponse.Error(SERVER_NOT_FOUND)
+                            SERVER_NOT_FOUND
                         )
                         finish()
                         return@intercept

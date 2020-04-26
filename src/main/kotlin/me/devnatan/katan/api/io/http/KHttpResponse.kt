@@ -20,7 +20,7 @@ sealed class KHttpResponse(
      * @property message any message that the response may have, usually used for error messages.
      */
     class Error(
-        val code: String,
+        val code: Number,
         val message: String
     ) : KHttpResponse("error")
 
