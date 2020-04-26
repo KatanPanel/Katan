@@ -134,16 +134,20 @@ class KatanRouter(katan: Katan, router: Routing) {
                     return@post
                 }
 
-                val token = katan.accountManager.auth(username, password)
-                if (token == null) {
+                try {
+                    val token = katan.accountManager.auth(username, password)
+                    call.respond(HttpStatusCode.OK, KHttpResponse.Ok(token))
+                } catch (e: IllegalArgumentException) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        KHttpResponse.Error(ACCOUNT_NOT_EXISTS)
+                    )
+                } catch (e: IllegalAccessError) {
                     call.respond(
                         HttpStatusCode.BadRequest,
                         KHttpResponse.Error(ACCOUNT_WRONG_PASSWORD)
                     )
-                    return@post
                 }
-
-                call.respond(HttpStatusCode.OK, KHttpResponse.Ok(token))
             }
 
             post("/verify") {
@@ -156,16 +160,15 @@ class KatanRouter(katan: Katan, router: Routing) {
                     return@post
                 }
 
-                val account = katan.accountManager.verify(data["token"]!! as String)
-                if (account == null) {
+                try {
+                    val account = katan.accountManager.verify(data["token"]!! as String)
+                    call.respond(HttpStatusCode.OK, KHttpResponse.Ok(account))
+                } catch (e: IllegalArgumentException) {
                     call.respond(
                         HttpStatusCode.BadRequest,
                         KHttpResponse.Error(INVALID_ACCESS_TOKEN)
                     )
-                    return@post
                 }
-
-                call.respond(HttpStatusCode.OK, KHttpResponse.Ok(account))
             }
         }
 
