@@ -6,11 +6,13 @@ import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientBuilder
 import io.ktor.application.Application
 import io.ktor.application.log
+import me.devnatan.katan.api.account.KUserAccount
 import me.devnatan.katan.core.manager.AccountManager
 import me.devnatan.katan.core.manager.ServerManager
 import me.devnatan.katan.core.manager.WSManager
 import me.devnatan.katan.core.sql.AccountEntity
 import me.devnatan.katan.core.sql.AccountsTable
+import me.devnatan.katan.core.sql.ServerHoldersTable
 import me.devnatan.katan.core.sql.ServersTable
 import me.devnatan.katan.core.util.fromString
 import me.devnatan.katan.core.util.readResource
@@ -62,7 +64,8 @@ class Katan(private val app: Application) {
                 addLogger(Slf4jSqlDebugLogger)
                 SchemaUtils.create(
                     AccountsTable,
-                    ServersTable
+                    ServersTable,
+                    ServerHoldersTable
                 )
             } catch (e: Throwable) {
                 app.log.error("Couldn't connect to database, please verify your credentials.")
@@ -78,9 +81,9 @@ class Katan(private val app: Application) {
 
     private fun loadAccounts() {
         accountManager = AccountManager(this)
-        transaction {
+        transaction(database) {
             for (account in AccountEntity.all()) {
-                accountManager.createAccount(account.username, account.password)
+                accountManager.registerAccount(KUserAccount(account.id.value, account.username, account.password))
             }
         }
     }

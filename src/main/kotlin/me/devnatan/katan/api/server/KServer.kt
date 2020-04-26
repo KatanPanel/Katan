@@ -2,6 +2,8 @@
 @file:JvmName("KServerInfo")
 package me.devnatan.katan.api.server
 
+import me.devnatan.katan.api.account.KAccount
+
 interface KServer {
 
     /**
@@ -18,6 +20,11 @@ interface KServer {
      * Remote port from server address.
      */
     val port: Short
+
+    /**
+     * Accounts that have permissions on that server.
+     */
+    var holders: MutableList<out KAccount>
 
     /**
      * Data from the Docker container linked to the server.

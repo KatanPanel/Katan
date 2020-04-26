@@ -19,5 +19,6 @@ class ServerEntity(id: EntityID<Int>) : IntEntity(id) {
     var name        by ServersTable.name
     var containerId by ServersTable.containerId
     var port        by ServersTable.port
+    val holders     by ServerHolderEntity referrersOn ServerHoldersTable.server
 
 }
