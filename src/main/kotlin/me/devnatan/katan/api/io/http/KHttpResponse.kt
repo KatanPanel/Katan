@@ -16,8 +16,12 @@ sealed class KHttpResponse(
     ) : KHttpResponse("success")
 
     /**
+     * @property code error code to better identify it.
      * @property message any message that the response may have, usually used for error messages.
      */
-    class Error(val message: String) : KHttpResponse("error")
+    class Error(
+        val code: String,
+        val message: String
+    ) : KHttpResponse("error")
 
 }
