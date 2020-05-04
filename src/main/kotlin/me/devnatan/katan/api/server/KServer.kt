@@ -2,14 +2,12 @@
 @file:JvmName("KServerInfo")
 package me.devnatan.katan.api.server
 
-import me.devnatan.katan.api.account.KAccount
-
 interface KServer {
 
     /**
      * Number for unique server identification.
      */
-    val id: UInt
+    val id: Int
 
     /**
      * Server name.
@@ -24,7 +22,7 @@ interface KServer {
     /**
      * Accounts that have permissions on that server.
      */
-    var holders: MutableList<out KAccount>
+    var holders: MutableList<KServerHolder>
 
     /**
      * Data from the Docker container linked to the server.

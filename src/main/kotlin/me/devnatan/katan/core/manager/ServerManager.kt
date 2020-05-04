@@ -10,20 +10,21 @@ import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.isActive
 import me.devnatan.katan.Katan
 import me.devnatan.katan.api.io.websocket.KWSSession
-import me.devnatan.katan.api.server.KServer
-import me.devnatan.katan.api.server.KServerContainer
-import me.devnatan.katan.api.server.KServerQuery
-import me.devnatan.katan.api.server.address
+import me.devnatan.katan.api.server.*
 import me.devnatan.katan.core.impl.server.KServerImpl
+import me.devnatan.katan.core.sql.AccountsTable
 import me.devnatan.katan.core.sql.ServerEntity
+import me.devnatan.katan.core.sql.ServerHolderEntity
+import me.devnatan.katan.core.sql.ServersTable
 import me.devnatan.katan.core.util.ServerQuery
+import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.net.InetSocketAddress
 import java.util.concurrent.ConcurrentHashMap
 
-@ExperimentalUnsignedTypes
+@UseExperimental(ExperimentalUnsignedTypes::class)
 class ServerManager(private val core: Katan) {
 
     private val logger  = LoggerFactory.getLogger(ServerManager::class.java)!!
@@ -43,7 +44,7 @@ class ServerManager(private val core: Katan) {
      * @throws IllegalArgumentException if the server is not found
      */
     @Throws(IllegalArgumentException::class)
-    fun getServer(id: UInt): KServer {
+    fun getServer(id: Int): KServer {
         return servers.find { it.id == id } ?: throw IllegalArgumentException(id.toString())
     }
 
@@ -53,26 +54,48 @@ class ServerManager(private val core: Katan) {
      * @param port remote server port
      */
     fun createServer(name: String, port: Short): KServer {
-        // if there is a server with the same port it returns the same
-        servers.find { it.port == port }?.let {
-            return it
-        }
-
         val id = lastId.incrementAndGet()
         val containerId = "katan-server-$id"
         createContainer(containerId, port.toInt())
-        transaction {
+        transaction(core.database) {
             ServerEntity.new(id) {
                 this.name = name
                 this.port = port.toInt()
                 this.containerId = containerId
             }
+
         }
 
-        val server = KServerImpl(id.toUInt(), name, port, KServerContainer(containerId), KServerQuery.Empty)
+        val server = KServerImpl(id, name, port, arrayListOf(), KServerContainer(containerId), KServerQuery.Empty)
         inspectServer(server)
         servers.add(server)
         return server
+    }
+
+    /**
+     * Adds new holder for the specified server.
+     * @param server the server
+     * @param holderId holder account id
+     * @param permissions holder permissions level (-1 for owner)
+     * @throws IllegalArgumentException if the holder account doesn't exists
+     */
+    fun addServerHolder(server: KServer, holderId: String, permissions: Int): KServerHolder {
+        val account = core.accountManager.getAccountById(holderId)
+            ?: throw IllegalArgumentException("Account $holderId not found")
+
+        val holder = KServerHolder(account, permissions == -1).apply {
+            this.permissions = permissions
+        }
+        transaction(core.database) {
+            ServerHolderEntity.new {
+                this.account = EntityID(account.id, AccountsTable)
+                this.server = EntityID(server.id, ServersTable)
+                this.permissions = holder.permissions
+                this.isOwner = holder.isOwner
+            }
+        }
+        server.holders.add(holder)
+        return holder
     }
 
     /**
@@ -81,7 +104,7 @@ class ServerManager(private val core: Katan) {
      * @throws IllegalArgumentException if the server is not found
      */
     @Throws(IllegalArgumentException::class)
-    fun startServer(id: UInt): KServer {
+    fun startServer(id: Int): KServer {
         val server = getServer(id)
         core.docker.startContainerCmd(server.container.id).exec()
         return inspectServer(server)
@@ -93,7 +116,7 @@ class ServerManager(private val core: Katan) {
      * @throws IllegalArgumentException if the server is not found
      */
     @Throws(IllegalArgumentException::class)
-    fun stopServer(id: UInt): KServer {
+    fun stopServer(id: Int): KServer {
         val server = getServer(id)
         core.docker.stopContainerCmd(server.container.id).exec()
         return inspectServer(server)
@@ -106,7 +129,7 @@ class ServerManager(private val core: Katan) {
      * @throws IllegalArgumentException if the server is not found
      */
     @Throws(IllegalArgumentException::class)
-    fun logServer(id: UInt, input: String) {
+    fun logServer(id: Int, input: String) {
         core.docker.execCreateCmd(getServer(id).container.id).withCmd(*input.split(" ").toTypedArray()).exec()
     }
 
@@ -119,7 +142,7 @@ class ServerManager(private val core: Katan) {
      * @throws IllegalArgumentException if the server is not found
      */
     @Throws(IllegalArgumentException::class)
-    fun attachServer(id: UInt, session: WebSocketSession, block: KWSSession.(Frame) -> Unit) {
+    fun attachServer(id: Int, session: WebSocketSession, block: KWSSession.(Frame) -> Unit) {
         core.docker.attachContainerCmd(getServer(id).container.id)
             .withLogs(false)
             .withFollowStream(true)
@@ -179,7 +202,8 @@ class ServerManager(private val core: Katan) {
         val ports = Ports()
         ports.bind(mcport, Ports.Binding.bindPort(port))
 
-        core.docker.createContainerCmd("hsorg/katan-mc-image")
+        core.docker.createContainerCmd("itzg/minecraft-server:multiarch")
+            .withCmd("-v", "/Katan/servers")
             .withName(containerId)
             .withExposedPorts(mcport)
             .withPortBindings(ports)
@@ -188,19 +212,25 @@ class ServerManager(private val core: Katan) {
             .withAttachStderr(true)
             .withStdinOpen(true)
             .withTty(true)
-            .withEnv("EULA=true", "ENABLE_RCON=false")
+            .withEnv("EULA=true", "TYPE=SPIGOT", "VERSION=1.8")
             .exec()
     }
 
     internal fun loadServers() {
-        transaction {
+        transaction(core.database) {
             for (server in ServerEntity.all()) {
                 lastId.value = server.id.value
-                val impl = KServerImpl(server.id.value.toUInt(), server.name, server.port.toShort(), KServerContainer(server.containerId), KServerQuery.Empty)
+                val impl = KServerImpl(server.id.value, server.name, server.port.toShort(), server.holders.mapNotNull {
+                    val account = core.accountManager.getAccountById(it.account.value.toString())
+                    if (account != null)
+                        KServerHolder(account, it.isOwner).apply {
+                            permissions = it.permissions
+                        }
+                    else null
+                }.toMutableList(), KServerContainer(server.containerId), KServerQuery.Empty)
                 try {
                     inspectServer(impl)
                 } catch (e: NotFoundException) {
-                    this@ServerManager.logger.info("Container ${server.containerId} not found, creating a new one...")
                     createContainer(server.containerId, server.port)
                 }
 

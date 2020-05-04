@@ -1,5 +1,6 @@
 package me.devnatan.katan
 
+import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.model.StreamType
 import com.github.dockerjava.core.command.LogContainerResultCallback
 import io.ktor.application.ApplicationCallPipeline
@@ -14,14 +15,18 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.websocket.webSocket
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.mapNotNull
+import me.devnatan.katan.api.account.KAccount
 import me.devnatan.katan.api.io.http.KHttpResponse
 import me.devnatan.katan.api.io.websocket.message.KWSBaseMessage
 import me.devnatan.katan.api.server.KServer
 import me.devnatan.katan.core.util.fromString
 import org.greenrobot.eventbus.EventBus
+import java.io.Closeable
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.TimeUnit
 
 @ExperimentalUnsignedTypes
 class KatanRouter(katan: Katan, router: Routing) {
@@ -42,7 +47,7 @@ class KatanRouter(katan: Katan, router: Routing) {
         val ACCOUNT_INVALID_USERNAME  = KHttpResponse.Error(2002, "Invalid account username")
         val ACCOUNT_WRONG_PASSWORD    = KHttpResponse.Error(2003, "Incorrect account password")
         val ACCOUNT_ALREADY_EXISTS    = KHttpResponse.Error(2004, "This account already exists")
-        val ACCOUNT_NOT_EXISTS        = KHttpResponse.Error(2005, "Account not found")
+        val ACCOUNT_NOT_FOUND         = KHttpResponse.Error(2005, "Account not found")
 
         val SERVER_CONFLICT           = KHttpResponse.Error(3000, "Server conflict")
         val SERVER_NOT_FOUND          = KHttpResponse.Error(3001, "Server not found")
@@ -120,7 +125,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 if ((username.isBlank()) || !katan.accountManager.existsAccount(username)) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        ACCOUNT_NOT_EXISTS
+                        ACCOUNT_NOT_FOUND
                     )
                     return@post
                 }
@@ -140,7 +145,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                 } catch (e: IllegalArgumentException) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        ACCOUNT_NOT_EXISTS
+                        ACCOUNT_NOT_FOUND
                     )
                 } catch (e: IllegalAccessError) {
                     call.respond(
@@ -168,6 +173,35 @@ class KatanRouter(katan: Katan, router: Routing) {
                         HttpStatusCode.BadRequest,
                         INVALID_ACCESS_TOKEN
                     )
+                }
+            }
+
+            route("/{account}") {
+                lateinit var account: KAccount
+
+                intercept(ApplicationCallPipeline.Features) {
+                    val accountId = call.parameters["account"]
+                    if (accountId == null) {
+                        finish()
+                        return@intercept
+                    }
+
+                    try {
+                        account = katan.accountManager.getAccountById(accountId) ?: throw IllegalArgumentException()
+                    } catch (e: IllegalArgumentException) {
+                        context.respond(
+                            HttpStatusCode.BadRequest,
+                            ACCOUNT_NOT_FOUND
+                        )
+                        finish()
+                        return@intercept
+                    }
+                }
+
+                get("/permissions") {
+                    context.respond(KHttpResponse.Ok(mapOf("permissions" to KAccount.ALL.map {
+                        it.name to account.hasPermission(it.permission)
+                    })))
                 }
             }
         }
@@ -199,7 +233,8 @@ class KatanRouter(katan: Katan, router: Routing) {
                 }
 
                 try {
-                    val server = katan.serverManager.createServer(name, (data["port"]!! as String).toShort(), data["owner"]!! as String)
+                    val server = katan.serverManager.createServer(name, (data["port"]!! as String).toShort())
+                    katan.serverManager.addServerHolder(server, data["owner"]!! as String, -1)
                     call.respond(HttpStatusCode.Created, KHttpResponse.Ok(mapOf("server" to server)))
                 } catch (e: IllegalArgumentException) {
                     call.respond(
@@ -222,7 +257,7 @@ class KatanRouter(katan: Katan, router: Routing) {
                     }
 
                     try {
-                        server = katan.serverManager.getServer(serverId.toUInt())
+                        server = katan.serverManager.getServer(serverId.toInt())
                     } catch (e: IllegalArgumentException) {
                         context.respond(
                             HttpStatusCode.BadRequest,
@@ -255,8 +290,37 @@ class KatanRouter(katan: Katan, router: Routing) {
                                     }
                                 }
                             }
-                        }).awaitCompletion();
+                        }).awaitCompletion(5, TimeUnit.SECONDS)
                     call.respond(KHttpResponse.Ok(logs))
+                }
+
+                get("/files") {
+                    val execId = katan.docker.execCreateCmd(server.container.id)
+                        .withAttachStdin(true)
+                        .withTty(true)
+                        .withCmd("ls")
+                        .exec().id
+
+                    val job = CompletableDeferred<List<Map<String, Any>>>()
+                    katan.docker.execStartCmd(execId).exec(object: ResultCallback<com.github.dockerjava.api.model.Frame> {
+                            var files = mutableListOf<Map<String, Any>>()
+                            var prepend = ""
+                            override fun onError(error: Throwable) {}
+
+                            override fun onNext(frame: com.github.dockerjava.api.model.Frame) {
+                                val payload = frame.payload.toString(StandardCharsets.UTF_8)
+                                files.add(mapOf("value" to payload))
+                            }
+
+                            override fun onStart(stream: Closeable?) {}
+
+                            override fun onComplete() {
+                                job.complete(files)
+                            }
+
+                            override fun close() {}
+                        })
+                    call.respond(KHttpResponse.Ok(job.await()))
                 }
             }
         }

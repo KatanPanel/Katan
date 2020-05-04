@@ -2,6 +2,7 @@ package me.devnatan.katan.core.manager
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTDecodeException
 import me.devnatan.katan.Katan
 import me.devnatan.katan.api.account.KAccount
 import me.devnatan.katan.api.account.KUserAccount
@@ -13,15 +14,17 @@ import java.util.concurrent.ConcurrentHashMap
 
 class AccountManager(private val core: Katan) {
 
-    private val logger      = LoggerFactory.getLogger(AccountManager::class.java)!!
-    private val accounts    = ConcurrentHashMap.newKeySet<KAccount>()
+    private companion object {
+        val logger = LoggerFactory.getLogger(AccountManager::class.java)!!
+    }
+
+    internal val accounts   = ConcurrentHashMap.newKeySet<KAccount>()!!
     private val algorithm   = Algorithm.HMAC256(core.config.get<String>("auth", "secret"))
     private val verifier    = JWT.require(algorithm).withIssuer("auth0").build()
 
     /**
      * Returns an existing account in the database with the specified username.
      * @param username account username
-     * @return [KAccount] | `null`
      */
     fun getAccount(username: String): KAccount? {
         return accounts.find { it.username == username }
@@ -30,7 +33,6 @@ class AccountManager(private val core: Katan) {
     /**
      * Returns an existing account in the database with the specified id.
      * @param id account id
-     * @return [KAccount] | `null`
      */
     fun getAccountById(id: String): KAccount? {
         return accounts.find { it.id.toString() == id }
@@ -51,11 +53,13 @@ class AccountManager(private val core: Katan) {
 
     /**
      * Register an account in the database.
+     * @param account the account to register
      */
     fun registerAccount(account: KAccount) = transaction(core.database) {
-        AccountEntity.new {
+        AccountEntity.new(account.id) {
             this.username = account.username
-            this.password = account.password
+            this.password = (account as KUserAccount).password
+            this.permissions = 0
         }
     }.also { logger.debug("Account $account registered") }
 
@@ -73,9 +77,8 @@ class AccountManager(private val core: Katan) {
      * @throws IllegalArgumentException if the account does not exist
      * @throws IllegalAccessError if the password is incorrect
      */
-    @Throws(IllegalArgumentException::class, IllegalAccessError::class)
     fun auth(username: String, password: String): String {
-        val account = getAccount(username) ?: throw IllegalArgumentException()
+        val account = getAccount(username) as? KUserAccount ?: throw IllegalArgumentException()
         if (account.password != password)
             throw IllegalAccessError()
 
@@ -87,15 +90,21 @@ class AccountManager(private val core: Katan) {
     /**
      * Checks whether the specified token is valid,
      * if it contains any content and returns the account linked to it.
-     * @throws IllegalArgumentException if there is no account linked to it.
+     * @throws IllegalArgumentException if token is empty or haven't any account linked to it.
      */
-    @Throws(IllegalArgumentException::class)
     fun verify(token: String): KAccount {
-        val claim = verifier.verify(token).getClaim("id")
-        if (claim.isNull)
-            throw IllegalArgumentException(token)
+        if (token.isBlank())
+            throw IllegalArgumentException("Empty token")
 
-        return getAccountById(claim.asString())!!.also { it.password = "<hidden>" }
+        try {
+            val claim = verifier.verify(token).getClaim("id")
+            if (claim.isNull)
+                throw IllegalArgumentException(token)
+
+            return (getAccountById(claim.asString()) ?: throw IllegalArgumentException("null"))
+        } catch (e: JWTDecodeException) {
+            throw IllegalArgumentException(e.message)
+        }
     }
 
 }
