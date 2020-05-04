@@ -22,6 +22,7 @@ import me.devnatan.katan.api.account.KAccount
 import me.devnatan.katan.api.io.http.KHttpResponse
 import me.devnatan.katan.api.io.websocket.message.KWSBaseMessage
 import me.devnatan.katan.api.server.KServer
+import me.devnatan.katan.api.server.KServerHolder
 import me.devnatan.katan.core.util.fromString
 import org.greenrobot.eventbus.EventBus
 import java.io.Closeable
@@ -51,7 +52,8 @@ class KatanRouter(katan: Katan, router: Routing) {
 
         val SERVER_CONFLICT           = KHttpResponse.Error(3000, "Server conflict")
         val SERVER_NOT_FOUND          = KHttpResponse.Error(3001, "Server not found")
-        val SERVER_UNSPECIFIED_NOP    = KHttpResponse.Error(3002, "Server name or port not specified.")
+        val SERVER_UNSPECIFIED_NOP    = KHttpResponse.Error(3002, "Server name or port not specified")
+        val SERVER_HOLDER_NOT_FOUND   = KHttpResponse.Error(3003, "Server holder not found")
 
     }
 
@@ -321,6 +323,22 @@ class KatanRouter(katan: Katan, router: Routing) {
                             override fun close() {}
                         })
                     call.respond(KHttpResponse.Ok(job.await()))
+                }
+
+                get("/permissions/{account}") {
+                    val accountId = call.parameters["account"]
+                    if (server.holders.none { it.account.id.toString() == accountId }) {
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            SERVER_HOLDER_NOT_FOUND
+                        )
+                        return@get
+                    }
+
+                    val holder = server.holders.first { it.account.id.toString() == accountId }
+                    context.respond(KHttpResponse.Ok(mapOf("permissions" to KServerHolder.ALL.map {
+                        it.name to holder.hasPermission(it.permission)
+                    })))
                 }
             }
         }
