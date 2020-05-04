@@ -1,6 +1,6 @@
 package me.devnatan.katan
 
-internal class KatanConfig(private val config: Map<*, *>) {
+class KatanConfig(private val config: Map<*, *>) {
 
     operator fun <T> get(vararg keys: String): T {
         return split(0, config, keys) as T

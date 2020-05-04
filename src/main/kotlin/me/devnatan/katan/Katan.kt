@@ -22,6 +22,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Slf4jSqlDebugLogger
 import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.io.File
 import kotlin.system.exitProcess
 
 class Katan(private val app: Application) {
@@ -29,11 +30,11 @@ class Katan(private val app: Application) {
     val webSocketManager = WSManager(this)
     lateinit var accountManager: AccountManager
     lateinit var serverManager: ServerManager
-
-    internal lateinit var config: KatanConfig
+    lateinit var config: KatanConfig
+    lateinit var router: KatanRouter
+    lateinit var fs: KatanFS
     internal lateinit var database: Database
     private lateinit var environment: String
-    lateinit var router: KatanRouter
     lateinit var docker: DockerClient
     lateinit var jsonMapper: ObjectMapper
 
@@ -46,8 +47,9 @@ class Katan(private val app: Application) {
         environment = config["env"]
         docker = DockerClientBuilder.getInstance(DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerHost(config.get<String>("docker", "host")).build()).build();
         connectDatabase()
-        loadServers()
-        loadAccounts()
+        load()
+        fs = KatanFS(File(System.getProperty("user.dir")))
+        fs.listen(21)
     }
 
     private fun connectDatabase() {
@@ -68,24 +70,24 @@ class Katan(private val app: Application) {
                     ServerHoldersTable
                 )
             } catch (e: Throwable) {
-                app.log.error("Couldn't connect to database, please verify your credentials.")
+                app.log.error("Couldn't connect to database, please check your credentials and try again.")
                 exitProcess(0)
             }
         }
     }
 
-    private fun loadServers() {
-        serverManager = ServerManager(this)
-        serverManager.loadServers()
-    }
-
-    private fun loadAccounts() {
+    private fun load() {
         accountManager = AccountManager(this)
         transaction(database) {
             for (account in AccountEntity.all()) {
-                accountManager.registerAccount(KUserAccount(account.id.value, account.username, account.password))
+                accountManager.accounts.add(KUserAccount(account.id.value, account.username, account.password).apply {
+                    permissions = account.permissions
+                })
             }
         }
+
+        serverManager = ServerManager(this)
+        serverManager.loadServers()
     }
 
 }
