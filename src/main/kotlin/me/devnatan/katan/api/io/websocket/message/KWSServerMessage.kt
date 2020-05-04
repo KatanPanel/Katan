@@ -10,7 +10,7 @@ class KWSServerMessage(
 
     interface Message {
 
-        val serverId: UInt
+        val serverId: Int
 
     }
 
