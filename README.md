@@ -57,10 +57,10 @@ There is no explanation of the configuration in the configuration file so we wil
 | mysql.url | protocol//\[hosts]\[/database]\[?properties] | jdbc:mysql://localhost:3306/katan?useSSL=true | MySQL server URL. |
 | mysql.driver | [Java package naming](https://docs.oracle.com/javase/tutorial/java/package/namingpkgs.html) | com.mysql.jdbc.Driver | MySQL connector. |
 | mysql.user | | root | MySQL server username credential. |
-| mysql.password | | MySQL server password credential. |
+| mysql.password | | "" | MySQL server password credential. |
 | docker.host | [protocol]//\[host](:port) | tcp://localhost:2375 | Docker host protocol address. |
 
-There are other flat files within the Katan JAR like `logback.xml` and `application.conf` but it is not recommended to modify them.
+> **Attention:** There are other flat files within the Katan JAR like `logback.xml` and `application.conf` but it is not recommended to modify them.
 
 ## Contributing
 Pull requests are totally accepted and thanks for doing them.\
@@ -73,7 +73,7 @@ You can get support by creating an [issue](https://github.com/hs-org/Katan/issue
 ## License
 Katan is released under [Apache License 2.0](/LICENSE).
 ```text
-Copyright 2019 Natan Vieira.
+Copyright 2019-2020 Happy Shop.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
