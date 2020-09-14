@@ -41,6 +41,7 @@ private class KatanLauncher(
                 try {
                     Katan(KatanConfiguration(config), objectMapper).start()
                 } catch (e: RuntimeException) {
+                    e.printStackTrace()
                     exitProcess(0)
                 }
             }
