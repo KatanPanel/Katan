@@ -3,8 +3,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "5.0.0"
 }
 dependencies {
-    implementation("io.ktor:ktor-jackson:1.4.0")
-    implementation(project(":api"))
     implementation(project(":core"))
 }
 

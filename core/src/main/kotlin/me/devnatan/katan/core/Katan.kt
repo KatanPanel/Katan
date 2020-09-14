@@ -55,7 +55,7 @@ class Katan(val config: KatanConfiguration, val objectMapper: ObjectMapper) :
                     ServerHoldersTable
                 )
             } catch (e: Throwable) {
-                logger.error("Couldn't connect to database, please check your credentials and try again.", e)
+                logger.error("Couldn't connect to database, please check your credentials and try again.")
                 end(e)
             }
         }
