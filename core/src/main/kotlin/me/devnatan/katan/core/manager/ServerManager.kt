@@ -5,36 +5,40 @@ import com.github.dockerjava.api.exception.NotFoundException
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.api.model.Ports
-import io.ktor.http.cio.websocket.WebSocketSession
+import io.ktor.http.cio.websocket.*
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.isActive
-import me.devnatan.katan.Katan
-import me.devnatan.katan.api.io.websocket.KWSSession
-import me.devnatan.katan.api.server.*
-import me.devnatan.katan.core.impl.server.KServerImpl
-import me.devnatan.katan.core.sql.AccountsTable
-import me.devnatan.katan.core.sql.ServerEntity
-import me.devnatan.katan.core.sql.ServerHolderEntity
-import me.devnatan.katan.core.sql.ServersTable
-import me.devnatan.katan.core.util.ServerQuery
-import org.jetbrains.exposed.dao.EntityID
+import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.api.server.ServerContainer
+import me.devnatan.katan.api.server.ServerHolder
+import me.devnatan.katan.core.Katan
+import me.devnatan.katan.core.impl.server.ServerHolderImpl
+import me.devnatan.katan.core.impl.server.ServerImpl
+import me.devnatan.katan.core.sql.dao.AccountsTable
+import me.devnatan.katan.core.sql.dao.ServerEntity
+import me.devnatan.katan.core.sql.dao.ServerHolderEntity
+import me.devnatan.katan.core.sql.dao.ServersTable
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.io.Closeable
-import java.net.InetSocketAddress
 import java.util.concurrent.ConcurrentHashMap
 
-@UseExperimental(ExperimentalUnsignedTypes::class)
 class ServerManager(private val core: Katan) {
 
-    private val logger  = LoggerFactory.getLogger(ServerManager::class.java)!!
-    private val lastId  = atomic(0)
-    private val servers = ConcurrentHashMap.newKeySet<KServer>()!!
+    private companion object {
+
+        const val CONTAINER_NAME_SCHEMA = "katan::server-%d"
+
+        private val logger = LoggerFactory.getLogger(ServerManager::class.java)!!
+    }
+
+    private val lastId = atomic(0)
+    private val servers = ConcurrentHashMap.newKeySet<Server>()!!
 
     /**
      * Returns all currently registered servers.
      */
-    fun getServers(): Set<KServer> {
+    fun getServers(): Set<Server> {
         return servers
     }
 
@@ -44,29 +48,32 @@ class ServerManager(private val core: Katan) {
      * @throws IllegalArgumentException if the server is not found
      */
     @Throws(IllegalArgumentException::class)
-    fun getServer(id: Int): KServer {
+    fun getServer(id: Int): Server {
         return servers.find { it.id == id } ?: throw IllegalArgumentException(id.toString())
     }
 
     /**
      * Create and register a new server with the specified name and port.
      * @param name server name
+     * @param address server host name
      * @param port remote server port
      */
-    fun createServer(name: String, port: Short): KServer {
+    fun createServer(name: String, address: String, port: Short): Server {
         val id = lastId.incrementAndGet()
-        val containerId = "katan-server-$id"
+        val containerId = CONTAINER_NAME_SCHEMA.format(id)
+
         createContainer(containerId, port.toInt())
         transaction(core.database) {
             ServerEntity.new(id) {
                 this.name = name
+                this.address = address
                 this.port = port.toInt()
                 this.containerId = containerId
             }
 
         }
 
-        val server = KServerImpl(id, name, port, arrayListOf(), KServerContainer(containerId), KServerQuery.Empty)
+        val server = ServerImpl(id, name, address, port, ServerContainer(containerId))
         inspectServer(server)
         servers.add(server)
         return server
@@ -76,22 +83,17 @@ class ServerManager(private val core: Katan) {
      * Adds new holder for the specified server.
      * @param server the server
      * @param holderId holder account id
-     * @param permissions holder permissions level (-1 for owner)
      * @throws IllegalArgumentException if the holder account doesn't exists
      */
-    fun addServerHolder(server: KServer, holderId: String, permissions: Int): KServerHolder {
+    fun addServerHolder(server: Server, holderId: String): ServerHolder {
         val account = core.accountManager.getAccountById(holderId)
             ?: throw IllegalArgumentException("Account $holderId not found")
 
-        val holder = KServerHolder(account, permissions == -1).apply {
-            this.permissions = permissions
-        }
+        val holder = ServerHolderImpl(account, server)
         transaction(core.database) {
             ServerHolderEntity.new {
                 this.account = EntityID(account.id, AccountsTable)
                 this.server = EntityID(server.id, ServersTable)
-                this.permissions = holder.permissions
-                this.isOwner = holder.isOwner
             }
         }
         server.holders.add(holder)
@@ -103,8 +105,7 @@ class ServerManager(private val core: Katan) {
      * @param id server id
      * @throws IllegalArgumentException if the server is not found
      */
-    @Throws(IllegalArgumentException::class)
-    fun startServer(id: Int): KServer {
+    fun startServer(id: Int): Server {
         val server = getServer(id)
         core.docker.startContainerCmd(server.container.id).exec()
         return inspectServer(server)
@@ -115,8 +116,7 @@ class ServerManager(private val core: Katan) {
      * @param id server id
      * @throws IllegalArgumentException if the server is not found
      */
-    @Throws(IllegalArgumentException::class)
-    fun stopServer(id: Int): KServer {
+    fun stopServer(id: Int): Server {
         val server = getServer(id)
         core.docker.stopContainerCmd(server.container.id).exec()
         return inspectServer(server)
@@ -128,7 +128,6 @@ class ServerManager(private val core: Katan) {
      * @param input the command
      * @throws IllegalArgumentException if the server is not found
      */
-    @Throws(IllegalArgumentException::class)
     fun logServer(id: Int, input: String) {
         core.docker.execCreateCmd(getServer(id).container.id).withCmd(*input.split(" ").toTypedArray()).exec()
     }
@@ -141,35 +140,23 @@ class ServerManager(private val core: Katan) {
      * @param block     the executor for each result
      * @throws IllegalArgumentException if the server is not found
      */
-    @Throws(IllegalArgumentException::class)
-    fun attachServer(id: Int, session: WebSocketSession, block: KWSSession.(Frame) -> Unit) {
+    fun attachServer(id: Int, session: WebSocketSession, block: WebSocketSession.(Frame) -> Unit) {
         core.docker.attachContainerCmd(getServer(id).container.id)
             .withLogs(false)
             .withFollowStream(true)
             .withTimestamps(true)
             .withStdOut(true)
             .withStdErr(true)
-            .exec(object: ResultCallback<Frame> {
-                lateinit var attach: KWSSession
+            .exec(object : ResultCallback<Frame> {
+                lateinit var attached: WebSocketSession
 
-                override fun onNext(frame: Frame) {
-                    if (!session.isActive) {
-                        attach.close()
-                        return
-                    }
-
-                    block(attach, frame)
-                }
+                override fun onNext(frame: Frame) {}
 
                 override fun onComplete() {}
 
                 override fun onError(error: Throwable) {}
 
                 override fun onStart(stream: Closeable) {
-                    attach = KWSSession(session, stream)
-                    /**
-                     * @TODO ping pong
-                     */
                 }
 
                 override fun close() {}
@@ -180,21 +167,11 @@ class ServerManager(private val core: Katan) {
      * Inspects the internal process of the specified server container.
      * @param server the server
      */
-    fun inspectServer(server: KServer): KServer {
+    fun inspectServer(server: Server): Server {
         val container = server.container
         container.inspection = core.docker.inspectContainerCmd(container.id).exec()
         container.isInspected = true
         return server
-    }
-
-    /**
-     * Searches through the IP address of the specified server.
-     * @param server the server
-     */
-    fun queryServer(server: KServer): KServer {
-        return server.apply {
-            ServerQuery.query(InetSocketAddress(server.address, server.port.toInt()))?.let { query = it }
-        }
     }
 
     private fun createContainer(containerId: String, port: Int) {
@@ -216,18 +193,19 @@ class ServerManager(private val core: Katan) {
             .exec()
     }
 
-    internal fun loadServers() {
+    init {
         transaction(core.database) {
             for (server in ServerEntity.all()) {
                 lastId.value = server.id.value
-                val impl = KServerImpl(server.id.value, server.name, server.port.toShort(), server.holders.mapNotNull {
-                    val account = core.accountManager.getAccountById(it.account.value.toString())
-                    if (account != null)
-                        KServerHolder(account, it.isOwner).apply {
-                            permissions = it.permissions
-                        }
-                    else null
-                }.toMutableList(), KServerContainer(server.containerId), KServerQuery.Empty)
+                val impl = ServerImpl(server.id.value,
+                    server.name,
+                    server.address,
+                    server.port.toShort(),
+                    ServerContainer(server.containerId))
+                impl.holders.addAll(server.holders.map {
+                    ServerHolderImpl(core.accountManager.getAccountById(it.account.value.toString())!!, getServer(it.server.value))
+                }.toMutableList())
+
                 try {
                     inspectServer(impl)
                 } catch (e: NotFoundException) {
@@ -237,8 +215,6 @@ class ServerManager(private val core: Katan) {
                 servers.add(impl)
             }
         }
-
-        logger.info("Loaded ${servers.size} servers.")
     }
 
 }

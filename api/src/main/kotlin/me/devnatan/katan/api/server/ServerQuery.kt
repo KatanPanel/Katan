@@ -6,6 +6,6 @@ interface ServerQuery {
 
     var latency: Long
 
-    var lastQueriedAt: Instant
+    var lastQueriedAt: Instant?
 
 }

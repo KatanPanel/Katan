@@ -13,6 +13,6 @@ interface ServerHolder : PermissionHolder {
     /**
      * The server that this holder is linked to.
      */
-    val server: KServer
+    val server: Server
 
 }
