@@ -2,16 +2,15 @@ package me.devnatan.katan.core
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.KeystoreSSLConfig
 import com.github.dockerjava.core.LocalDirectorySSLConfig
+import com.github.dockerjava.jaxrs.JerseyDockerHttpClient
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.core.manager.AccountManager
 import me.devnatan.katan.core.manager.ServerManager
 import me.devnatan.katan.core.manager.WebSocketManager
-import me.devnatan.katan.core.sql.GlobalSQLLogger
 import me.devnatan.katan.core.sql.dao.AccountsTable
 import me.devnatan.katan.core.sql.dao.ServerHoldersTable
 import me.devnatan.katan.core.sql.dao.ServersTable
@@ -19,8 +18,10 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
+import java.net.URI
 import java.security.KeyStore
 import java.security.Security
+import kotlin.system.measureTimeMillis
 
 class Katan(val config: KatanConfiguration, val objectMapper: ObjectMapper) :
     CoroutineScope by CoroutineScope(CoroutineName("Katan")) {
@@ -37,35 +38,37 @@ class Katan(val config: KatanConfiguration, val objectMapper: ObjectMapper) :
     lateinit var serverManager: ServerManager
 
     fun start() {
-        config.get<Map<*, *>>("mysql").let {
-            database = Database.connect(
-                it["url"] as String,
-                it["driver"] as String,
-                it["user"] as String,
-                it["password"] as String
-            )
-        }
+        val mysql = config.get<Map<*, *>>("mysql")
+        database = Database.connect(
+            mysql["url"] as String,
+            mysql["driver"] as String,
+            mysql["user"] as String,
+            mysql["password"] as String
+        )
 
-        transaction(database) {
-            try {
-                registerInterceptor(GlobalSQLLogger(logger))
-                SchemaUtils.create(
-                    AccountsTable,
-                    ServersTable,
-                    ServerHoldersTable
-                )
-            } catch (e: Throwable) {
-                logger.error("Couldn't connect to database, please check your credentials and try again.")
-                end(e)
+        logger.info("[Database] Connecting to {}...", mysql["url"])
+
+        val took = measureTimeMillis {
+            transaction(database) {
+                try {
+                    SchemaUtils.create(
+                        AccountsTable,
+                        ServersTable,
+                        ServerHoldersTable
+                    )
+                } catch (e: Throwable) {
+                    logger.error("Couldn't connect to database, please check your credentials and try again.")
+                    end(e)
+                }
             }
         }
 
-        val dockerConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost(config.get<String>("docker.host"))
+        logger.info("[Database] Connected successfully, took {}ms.", String.format("%.2f", took.toFloat()))
+        val jerseyClient = JerseyDockerHttpClient.Builder().dockerHost(URI(config.get<String>("docker.host")))
 
         if (config.getOrDefault("docker.ssl.enabled", false)) {
             logger.info("[SSL] Configuring...")
-            dockerConfig.withCustomSslConfig(
+            jerseyClient.sslConfig(
                 when (config.get<String>("docker.ssl.provider")) {
                     "CERT" -> {
                         val path: String = config["docker.ssl.cert.path"]
@@ -87,7 +90,7 @@ class Katan(val config: KatanConfiguration, val objectMapper: ObjectMapper) :
             )
         }
 
-        docker = DockerClientBuilder.getInstance(dockerConfig.build()).build()
+        docker = DockerClientBuilder.getInstance().withDockerHttpClient(jerseyClient.build()).build()
         accountManager = AccountManager(this)
         serverManager = ServerManager(this)
         webSocketManager = WebSocketManager(this)
