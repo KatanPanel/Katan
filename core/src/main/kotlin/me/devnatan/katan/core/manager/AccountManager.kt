@@ -130,8 +130,7 @@ class AccountManager(
         return getAccountById(claim.asString()) ?: throw NoSuchElementException()
     }
 
-    /* INTERNAL */
-    internal fun loadAccounts() {
+    init {
         transaction(core.database) {
             for (account in AccountEntity.all()) {
                 accounts.add(AccountImpl(account.id.value, account.username, account.password).apply {

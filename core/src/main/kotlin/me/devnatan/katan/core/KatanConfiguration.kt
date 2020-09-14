@@ -13,12 +13,12 @@ class KatanConfiguration(private val values: Map<*, *>) {
     operator fun <T> get(key: String): T {
         synchronized(values) {
             val entry = split(0, values, key.split(SECTION_DELIMITER), true)
-            return entry.value as? T ?: throw NoSuchElementException("Configuration key ${entry.key} not found")
+            return entry.value as? T ?: throw NoSuchElementException("Configuration key \"${entry.key}\" not found")
         }
     }
 
     fun <T> getOrNull(key: String): T? {
-        return runCatching { get<T>(key) }.getOrNull() ?: null
+        return runCatching { get<T>(key) }.getOrNull()
     }
 
     fun <T> getOrDefault(key: String, defaultValue: T): T {

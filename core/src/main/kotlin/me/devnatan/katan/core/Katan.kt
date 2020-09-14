@@ -9,6 +9,7 @@ import com.github.dockerjava.core.LocalDirectorySSLConfig
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.core.manager.AccountManager
+import me.devnatan.katan.core.manager.ServerManager
 import me.devnatan.katan.core.manager.WebSocketManager
 import me.devnatan.katan.core.sql.GlobalSQLLogger
 import me.devnatan.katan.core.sql.dao.AccountsTable
@@ -33,6 +34,7 @@ class Katan(val config: KatanConfiguration, val objectMapper: ObjectMapper) :
 
     lateinit var accountManager: AccountManager
     lateinit var webSocketManager: WebSocketManager
+    lateinit var serverManager: ServerManager
 
     fun start() {
         config.get<Map<*, *>>("mysql").let {
@@ -80,13 +82,14 @@ class Katan(val config: KatanConfiguration, val objectMapper: ObjectMapper) :
 
                         KeystoreSSLConfig(keystore, config["docker.ssl.key-store.password"])
                     }
-                    else -> end(throw IllegalArgumentException("Unrecognized SSL provider. Must be: CERT or KEY_STORE"))
+                    else -> end(IllegalArgumentException("Unrecognized SSL provider. Must be: CERT or KEY_STORE"))
                 }
             )
         }
 
         docker = DockerClientBuilder.getInstance(dockerConfig.build()).build()
-        accountManager = AccountManager(this).also { it.loadAccounts() }
+        accountManager = AccountManager(this)
+        serverManager = ServerManager(this)
         webSocketManager = WebSocketManager(this)
     }
 
