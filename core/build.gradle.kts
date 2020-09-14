@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val ktorVersion = "1.4.0"
 var exposedVersion = "0.27.1"
+var log4jVersion = "2.13.3"
 
 repositories {
     maven("https://dl.bintray.com/kotlin/exposed")
@@ -19,6 +20,10 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-core:2.10.2")
     implementation("br.com.devsrsouza.eventkt:eventkt-core-jvm:0.1.0-SNAPSHOT") // jvm only!!
     implementation("org.jetbrains.kotlinx:atomicfu:0.14.4")
+    implementation("mysql:mysql-connector-java:8.0.21")
+    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
 }
 
 tasks.withType<KotlinCompile> {
