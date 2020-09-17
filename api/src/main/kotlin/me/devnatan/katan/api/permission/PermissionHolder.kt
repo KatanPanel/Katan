@@ -4,7 +4,7 @@ import java.util.*
 
 interface PermissionHolder {
 
-    var permissions: EnumMap<Permission, Int>
+    var permissions: EnumMap<Permission, PermissionFlag>
 
     /**
      * Checks whether we have a specific permission.
@@ -17,7 +17,7 @@ interface PermissionHolder {
         if (!permissions.containsKey(permission))
             return false;
 
-        return permissions[permission]!! != PermissionFlag.UNALLOWED
+        return permissions[permission]!! != PermissionFlags.NOT_ALLOWED
     }
 
 }

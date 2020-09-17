@@ -1,11 +1,15 @@
 package me.devnatan.katan.api.permission
 
-object PermissionFlag {
+typealias PermissionFlag = Int
 
-    const val UNALLOWED = 0
+object PermissionFlags {
 
-    const val ALLOWED = 1
+    val ALL: Array<PermissionFlag> by lazy {
+        arrayOf(NOT_ALLOWED, ALLOWED, INHERIT)
+    }
 
-    const val INHERIT = 2
+    const val NOT_ALLOWED: Int = 0
+    const val ALLOWED: Int = 1
+    const val INHERIT: Int = 2
 
 }
