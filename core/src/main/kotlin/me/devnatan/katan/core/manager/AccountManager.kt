@@ -3,64 +3,71 @@ package me.devnatan.katan.core.manager
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTDecodeException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.core.Katan
-import me.devnatan.katan.core.sql.dao.AccountEntity
 import me.devnatan.katan.core.impl.account.AccountImpl
+import me.devnatan.katan.core.dao.AccountEntity
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.NoSuchElementException
-import kotlin.jvm.Throws
 
-class AccountManager(
-    private val core: Katan,
-    private val jwtTokenLifetime: Duration = Duration.ofMinutes(10)
-) {
+class AccountManager(private val core: Katan) {
 
     private companion object {
 
-        const val JWT_ISSUER = "katan"
         const val JWT_ACCOUNT_ID_FIELD = "id"
+        const val JWT_ISSUER = "Katan"
+        const val JWT_AUDIENCE = "Katan"
+        val JWT_TOKEN_LIFETIME = Duration.ofMinutes(10)
 
         val logger = LoggerFactory.getLogger(AccountManager::class.java)!!
 
     }
 
-    private val accounts  = ConcurrentHashMap.newKeySet<Account>()!!
-    private val algorithm = Algorithm.HMAC256(core.config.get<String>("security.jwt-secret"))
-    private val verifier  = JWT.require(algorithm).withIssuer(JWT_ISSUER).build()
+    private val accounts: HashSet<Account> = hashSetOf()
+    private val algorithm = Algorithm.HMAC256(core.config.getString("security.authentication.secret"))
+    private val verifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).withAudience(JWT_AUDIENCE).build()!!
 
     /**
      * Returns an existing account in the database with the specified username.
      * @param username account username
      */
     fun getAccount(username: String): Account? {
-        return accounts.find { it.username == username }
+        return synchronized(accounts) {
+            accounts.find { it.username == username }
+        }
     }
 
     /**
      * Returns an existing account in the database with the specified id.
      * @param id account id
      */
-    fun getAccountById(id: String): Account? {
-        return accounts.find { it.id.toString() == id }
+    fun getAccount(id: UUID): Account? {
+        return synchronized(accounts) {
+            accounts.find { it.id == id }
+        }
     }
 
     /**
      * Create a new account with the specified
      * username and password and add it to the account list.
      * @param username account username
-     * @return [KAccount]
+     * @throws IllegalArgumentException if account already exists.
+     * @return the created account.
      */
     fun createAccount(username: String, password: String): Account {
         val account = AccountImpl(UUID.randomUUID(), username, password)
-        if (accounts.add(account))
-            logger.debug("Account $username created")
+        synchronized(accounts) {
+            if (!accounts.add(account))
+                throw IllegalArgumentException(username)
+        }
 
+        logger.debug("Account $username created")
         return account
     }
 
@@ -68,14 +75,14 @@ class AccountManager(
      * Register an account in the database.
      * @param account the account to register
      */
-    fun registerAccount(account: Account) {
-        transaction {
+    fun registerAccountAsync(account: Account) = core.async(Dispatchers.IO) {
+        transaction(core.database) {
             AccountEntity.new(account.id) {
                 this.username = account.username
                 this.password = account.password
                 this.permissions = 0
             }
-            logger.debug("Account $account registered")
+            account
         }
     }
 
@@ -99,9 +106,11 @@ class AccountManager(
         if (account.password != password)
             throw IllegalArgumentException()
 
-        val token = JWT.create().withIssuer(JWT_ISSUER)
+        val token = JWT.create()
+            .withIssuer(JWT_ISSUER)
+            .withAudience(JWT_AUDIENCE)
             .withClaim(JWT_ACCOUNT_ID_FIELD, account.id.toString())
-            .withExpiresAt(Date.from(Instant.now().plus(jwtTokenLifetime)))
+            .withExpiresAt(Date.from(Instant.now().plus(JWT_TOKEN_LIFETIME)))
             .sign(algorithm)
         logger.debug("Account $username successfully authenticated")
         return token
@@ -120,23 +129,21 @@ class AccountManager(
             throw IllegalArgumentException("Empty token")
 
         val payload = verifier.verify(token)
-        if (payload.issuer != JWT_ISSUER)
-            throw IllegalArgumentException("Unknown issuer: ${payload.issuer}")
 
         val claim = payload.getClaim("id")
         if (claim.isNull)
             throw IllegalArgumentException(token)
 
-        return getAccountById(claim.asString()) ?: throw NoSuchElementException()
+        return getAccount(claim.asString()) ?: throw NoSuchElementException()
     }
 
     init {
         transaction(core.database) {
-            for (account in AccountEntity.all()) {
-                accounts.add(AccountImpl(account.id.value, account.username, account.password).apply {
+            accounts.addAll(AccountEntity.all().map {
+                AccountImpl(it.id.value, it.username, it.password).apply {
                     // TODO: set permissions
-                })
-            }
+                }
+            })
         }
     }
 

@@ -9,13 +9,13 @@ class ServerImpl(
     override val id: Int,
     override var name: String,
     override var address: String,
-    override var port: Short,
+    override var port: Int,
     override val container: ServerContainer
 ) : Server {
 
-    @Transient
     override val query: ServerQuery = MinecraftServerQuery(this)
 
+    @Transient
     override val holders: MutableSet<ServerHolder> = hashSetOf()
 
 }

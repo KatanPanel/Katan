@@ -1,22 +1,25 @@
 package me.devnatan.katan.api.server
 
-import com.github.dockerjava.api.command.InspectContainerResponse
-
 /**
  * @property id the container identification.
  */
-class ServerContainer(
-    val id: String
-) {
+class ServerContainer(val id: String) {
 
     /**
-     * Results of the inspection of this container, defined late.
+     * Results of the inspection of this container.
      */
-    lateinit var inspection: InspectContainerResponse
+    var inspection: ServerInspection = ServerInspection.Uninspected
 
-    /**
-     * If the container has already been inspected.
-     */
-    var isInspected: Boolean = false
+}
 
+interface ServerInspection {
+
+    object Uninspected : ServerInspection
+
+}
+
+fun ServerContainer.isInspected(): Boolean {
+    return synchronized(inspection) {
+        inspection !is ServerInspection.Uninspected
+    }
 }

@@ -1,5 +1,3 @@
-@file:JvmMultifileClass
-@file:JvmName("KServerInfo")
 package me.devnatan.katan.api.server
 
 interface Server {
@@ -22,7 +20,7 @@ interface Server {
     /**
      * Remote port from server address.
      */
-    var port: Short
+    var port: Int
 
     /**
      * Accounts that have permissions on that server.
@@ -30,7 +28,7 @@ interface Server {
     val holders: MutableSet<ServerHolder>
 
     /**
-     * Data from the Docker container linked to the server.
+     * The container linked to the server.
      */
     val container: ServerContainer
 

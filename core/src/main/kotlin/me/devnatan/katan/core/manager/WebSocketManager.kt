@@ -4,14 +4,17 @@ import br.com.devsrsouza.eventkt.listen
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
 import br.com.devsrsouza.eventkt.scopes.asSimple
 import io.ktor.http.cio.websocket.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.isActive
 import me.devnatan.katan.api.io.websocket.WebSocketHandler
 import me.devnatan.katan.api.io.websocket.WebSocketMessage
 import me.devnatan.katan.core.Katan
 import me.devnatan.katan.core.websocket.MutableWebSocketMessage
+import java.nio.channels.ClosedChannelException
 import java.util.concurrent.CopyOnWriteArrayList
 
 class WebSocketManager(private val core: Katan) {
@@ -19,11 +22,7 @@ class WebSocketManager(private val core: Katan) {
     private val sessions = CopyOnWriteArrayList<WebSocketSession>()
     private val handlers = mutableListOf<WebSocketHandler<WebSocketMessage, *>>()
     private val eventbus = LocalEventScope().asSimple()
-    private val scope = CoroutineScope(Dispatchers.IO + CoroutineName(WebSocketManager::class.simpleName!!))
-
-    companion object {
-        val ABNORMAL_CLOSE = CloseReason(CloseReason.Codes.PROTOCOL_ERROR, "Protocol Error")
-    }
+    private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("Katan::WebSocketManager"))
 
     init {
         eventbus.listen<WebSocketMessage>().transform { message ->
@@ -46,14 +45,18 @@ class WebSocketManager(private val core: Katan) {
         }.launchIn(scope)
     }
 
+    fun emitEvent(event: WebSocketMessage) {
+        eventbus.publish(event)
+    }
+
     fun registerEventHandler(vararg handlers: WebSocketHandler<WebSocketMessage, *>) {
-        synchronized (this.handlers) {
+        synchronized(this.handlers) {
             this.handlers.addAll(handlers)
         }
     }
 
     fun unregisterEventHandler(handler: WebSocketHandler<WebSocketMessage, *>) {
-        synchronized (handlers) {
+        synchronized(handlers) {
             handlers.remove(handler)
         }
     }
@@ -69,30 +72,24 @@ class WebSocketManager(private val core: Katan) {
      * Detaches an connected client from the list of connected clients list.
      */
     suspend fun detachSession(
-        session: WebSocketSession, reason: (() -> CloseReason)? = null
+        session: WebSocketSession,
+        reason: CloseReason = CloseReason(CloseReason.Codes.NORMAL, ""),
     ): Boolean {
-        if (sessions.remove(session) && session.isActive) {
-            session.close(reason?.invoke() ?: ABNORMAL_CLOSE)
-            return true
-        }
-        return false
-    }
-
-    suspend fun writePacket(session: WebSocketSession, frame: Frame) {
         try {
-            session.send(frame.copy())
-        } catch (e: Throwable) {
-            try {
-                session.close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, e.toString()))
-            } catch (_: ClosedSendChannelException) {
-                // due to use of CopyOnWriteArrayList we must ignore it
-            }
+            session.close(reason)
+        } catch (_: ClosedChannelException) {
         }
+
+        return sessions.remove(session)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun writePacket(session: WebSocketSession, content: Map<*, *>) {
-        writePacket(session, Frame.Text(core.objectMapper.writeValueAsString(content)))
+    @Suppress("BlockingMethodInNonBlockingContext")
+    suspend fun writePacket(session: WebSocketSession, packet: Any) {
+        try {
+            session.send(Frame.Text(core.objectMapper.writeValueAsString(packet)).copy())
+        } catch (e: Throwable) {
+            detachSession(session, CloseReason(CloseReason.Codes.INTERNAL_ERROR, e.toString()))
+        }
     }
 
 }

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("jvm") version "1.4.10"
 }
@@ -10,9 +12,16 @@ allprojects {
         maven("https://dl.bintray.com/kotlin/exposed")
         maven("http://nexus.devsrsouza.com.br/repository/maven-public/")
     }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
+            jvmTarget = "1.8"
+        }
+    }
 }
 
-var log4jVersion = "2.13.3"
+val log4jVersion = "2.13.3"
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")

@@ -2,188 +2,222 @@ package me.devnatan.katan.core.manager
 
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
-import com.github.dockerjava.api.model.ExposedPort
-import com.github.dockerjava.api.model.Frame
-import com.github.dockerjava.api.model.Ports
-import io.ktor.http.cio.websocket.*
+import com.github.dockerjava.api.model.*
+import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.*
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerContainer
-import me.devnatan.katan.api.server.ServerHolder
+import me.devnatan.katan.api.server.ServerInspection
 import me.devnatan.katan.core.Katan
+import me.devnatan.katan.core.dao.ServerEntity
+import me.devnatan.katan.core.impl.server.DockerServerContainerInspection
 import me.devnatan.katan.core.impl.server.ServerHolderImpl
 import me.devnatan.katan.core.impl.server.ServerImpl
-import me.devnatan.katan.core.sql.dao.AccountsTable
-import me.devnatan.katan.core.sql.dao.ServerEntity
-import me.devnatan.katan.core.sql.dao.ServerHolderEntity
-import me.devnatan.katan.core.sql.dao.ServersTable
-import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
-import java.io.Closeable
-import java.util.concurrent.ConcurrentHashMap
+import java.time.Duration
+import java.util.concurrent.Executors
 
 class ServerManager(private val core: Katan) {
 
-    private companion object {
+    companion object {
 
-        const val CONTAINER_NAME_SCHEMA = "katan::server-%d"
+        val logger = LoggerFactory.getLogger(ServerManager::class.java)!!
 
-        private val logger = LoggerFactory.getLogger(ServerManager::class.java)!!
     }
 
-    private val lastId = atomic(0)
-    private val servers = ConcurrentHashMap.newKeySet<Server>()!!
+    private val lastId: AtomicInt
+    private val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName("Katan::SM"))
+    private val dispatcher: CoroutineDispatcher = Executors.newCachedThreadPool().asCoroutineDispatcher()
+    private val servers: MutableSet<Server> = hashSetOf()
 
-    /**
-     * Returns all currently registered servers.
-     */
-    fun getServers(): Set<Server> {
-        return servers
-    }
-
-    /**
-     * Returns a server that contains the specified id.
-     * @param id server id
-     * @throws IllegalArgumentException if the server is not found
-     */
-    @Throws(IllegalArgumentException::class)
-    fun getServer(id: Int): Server {
-        return servers.find { it.id == id } ?: throw IllegalArgumentException(id.toString())
-    }
-
-    /**
-     * Create and register a new server with the specified name and port.
-     * @param name server name
-     * @param address server host name
-     * @param port remote server port
-     */
-    fun createServer(name: String, address: String, port: Short): Server {
-        val id = lastId.incrementAndGet()
-        val containerId = CONTAINER_NAME_SCHEMA.format(id)
-
-        createContainer(containerId, port.toInt())
+    init {
         transaction(core.database) {
-            ServerEntity.new(id) {
-                this.name = name
-                this.address = address
-                this.port = port.toInt()
-                this.containerId = containerId
-            }
+            ServerEntity.all().forEach { entity ->
+                val server = ServerImpl(entity.id.value,
+                    entity.name,
+                    entity.address,
+                    entity.port,
+                    ServerContainer(entity.containerId))
 
-        }
+                server.holders.addAll(entity.holders.mapNotNull {
+                    /*
+                        If the account is null this is a database synchronization error
+                        we can ignore this, but in the future we should alert that kind of thing.
+                     */
+                    core.accountManager.getAccount(it.account.value.toString())
+                }.map {
+                    ServerHolderImpl(it, server)
+                })
 
-        val server = ServerImpl(id, name, address, port, ServerContainer(containerId))
-        inspectServer(server)
-        servers.add(server)
-        return server
-    }
+                /*
+                    We do an initial inspection to ensure that the server will have a container.
+                    since this is the boot process it runs on the main thread
+                    we can use the dispatcher confined here without any problems.
+                 */
+                val inspection = coroutineScope.launch(Dispatchers.Unconfined + CoroutineName("Katan::SM-II-${server.container.id}")) {
+                        inspectServer(server)
+                    }
 
-    /**
-     * Adds new holder for the specified server.
-     * @param server the server
-     * @param holderId holder account id
-     * @throws IllegalArgumentException if the holder account doesn't exists
-     */
-    fun addServerHolder(server: Server, holderId: String): ServerHolder {
-        val account = core.accountManager.getAccountById(holderId)
-            ?: throw IllegalArgumentException("Account $holderId not found")
+                inspection.invokeOnCompletion {
+                    when (it) {
+                        is NotFoundException -> {
+                            logger.warn("Server container {} not found, creating a new one with the default settings.",
+                                server.name)
+                            createContainer(server.container.id, server.address, server.port)
+                            return@invokeOnCompletion
+                        }
 
-        val holder = ServerHolderImpl(account, server)
-        transaction(core.database) {
-            ServerHolderEntity.new {
-                this.account = EntityID(account.id, AccountsTable)
-                this.server = EntityID(server.id, ServersTable)
-            }
-        }
-        server.holders.add(holder)
-        return holder
-    }
-
-    /**
-     * Starts the server that has the specified id.
-     * @param id server id
-     * @throws IllegalArgumentException if the server is not found
-     */
-    fun startServer(id: Int): Server {
-        val server = getServer(id)
-        core.docker.startContainerCmd(server.container.id).exec()
-        return inspectServer(server)
-    }
-
-    /**
-     * Stops the server that has the specified id.
-     * @param id server id
-     * @throws IllegalArgumentException if the server is not found
-     */
-    fun stopServer(id: Int): Server {
-        val server = getServer(id)
-        core.docker.stopContainerCmd(server.container.id).exec()
-        return inspectServer(server)
-    }
-
-    /**
-     * Executes the [input] command on the internal server process with the specified id.
-     * @param id    server id
-     * @param input the command
-     * @throws IllegalArgumentException if the server is not found
-     */
-    fun logServer(id: Int, input: String) {
-        core.docker.execCreateCmd(getServer(id).container.id).withCmd(*input.split(" ").toTypedArray()).exec()
-    }
-
-    /**
-     * Attach the session to the server records that
-     * have the specified id by calling [block] to each result.
-     * @param id        server id
-     * @param session   the current websocket session
-     * @param block     the executor for each result
-     * @throws IllegalArgumentException if the server is not found
-     */
-    fun attachServer(id: Int, session: WebSocketSession, block: WebSocketSession.(Frame) -> Unit) {
-        core.docker.attachContainerCmd(getServer(id).container.id)
-            .withLogs(false)
-            .withFollowStream(true)
-            .withTimestamps(true)
-            .withStdOut(true)
-            .withStdErr(true)
-            .exec(object : ResultCallback<Frame> {
-                lateinit var attached: WebSocketSession
-
-                override fun onNext(frame: Frame) {}
-
-                override fun onComplete() {}
-
-                override fun onError(error: Throwable) {}
-
-                override fun onStart(stream: Closeable) {
+                        // We will not interrupt the loading, the container can be inspected later.
+                        else -> {
+                            logger.error("It was not possible to inspect the {} container.",
+                                server.container.id,
+                                server.name)
+                            logger.error(it.toString())
+                        }
+                    }
                 }
 
-                override fun close() {}
-            })
+                servers.add(server)
+            }
+        }
+
+        // Ensuring that the next id is after the id of any server
+        // already registered this will prevent future collisions.
+        lastId = synchronized(servers) {
+            atomic(servers.maxOf { it.id })
+        }
     }
 
     /**
-     * Inspects the internal process of the specified server container.
-     * @param server the server
+     * Returns a server with the specified [id].
+     *
+     * @param id the server id
+     * @throws NoSuchElementException if the server in question does not exist.
      */
-    fun inspectServer(server: Server): Server {
-        val container = server.container
-        container.inspection = core.docker.inspectContainerCmd(container.id).exec()
-        container.isInspected = true
-        return server
+    fun getServer(id: Int): Server {
+        return servers.first { it.id == id }
     }
 
-    private fun createContainer(containerId: String, port: Int) {
-        val mcport = ExposedPort.tcp(port)
-        val ports = Ports()
-        ports.bind(mcport, Ports.Binding.bindPort(port))
+    /**
+     * Adds a server to the list of available servers.
+     *
+     * @param server the server to be added
+     * @return whether the server was successfully added
+     */
+    fun addServer(server: Server): Boolean {
+        return servers.add(server)
+    }
 
+    /**
+     * Register a new server in the database.
+     *
+     * This method does not add the server to the list of available servers, this must be done before that.
+     * The server object will be preserved so that there are no synchronization
+     * problems due to diverging information such as: inspection.
+     *
+     * Similar to other methods that involve operations in the database or completely blocking
+     * functions, this method will be suspended and will only be resumed at the end of the operation.
+     *
+     * @param server the server to be registered
+     */
+    suspend fun registerServerAsync(server: Server): Deferred<Unit> {
+        val serverId = lastId.incrementAndGet()
+        val containerId = "katan::Server-$serverId".format(serverId)
+
+        return suspendedTransactionAsync(dispatcher, core.database) {
+            ServerEntity.new(server.id) {
+                this.name = name
+                this.address = address
+                this.port = port
+                this.containerId = containerId
+            }
+        }
+    }
+
+    /**
+     * Starts a server without blocking the current thread.
+     *
+     * It is possible to know if the server was started successfully
+     * through [Job.invokeOnCompletion], or using [Job.join] with try-with-resources directly.
+     *
+     * @param server the server to be started
+     */
+    fun startServer(server: Server) = coroutineScope.launch(
+        Dispatchers.IO + CoroutineName("Katan::SM-#startServer-${server.container.id}")
+    ) {
+        core.docker.startContainerCmd(server.container.id).exec()
+    }
+
+    /**
+     * Stops a server without blocking the current thread.
+     *
+     * It is possible to know if the server was stopped successfully
+     * through [Job.invokeOnCompletion], or using [Job.join] with try-with-resources directly.
+     *
+     * @param server the server to be stopped
+     * @param killAfter maximum execution time until force to kill the server (default: 10 seconds)
+     */
+    fun stopServer(server: Server, killAfter: Duration = Duration.ofSeconds(10)) = coroutineScope.launch(
+        Dispatchers.IO + CoroutineName("Katan::SM-#stopServer-${server.container.id}")
+    ) {
+        core.docker.stopContainerCmd(server.container.id).withTimeout(killAfter.seconds.toInt()).exec()
+    }
+
+    /**
+     * Sends a signal to the server to execute the specified [command].
+     *
+     * @param server the command to be executed
+     * @param input the command
+     */
+    suspend fun executeServerCommand(server: Server, command: String): Deferred<Frame> {
+        val defer = CompletableDeferred<Frame>()
+        core.docker.execStartCmd(withContext(Dispatchers.IO + CoroutineName("Katan::SM-#executeServerCommand-${server.container.id}")
+        ) {
+            core.docker.execCreateCmd(server.container.id).withCmd(*command.split(" ").toTypedArray()).exec().id
+        }).exec(object: ResultCallback.Adapter<Frame>() {
+            override fun onNext(frame: Frame) {
+                defer.complete(frame)
+                close()
+            }
+        })
+        return defer
+    }
+
+    /**
+     * Inspect the specified server container.
+     *
+     * This is a cancellable process, and it can be asynchronous,
+     * this function will be suspended until the inspection operation ends.
+     *
+     * By the Katan Web server this function can be called via WebSocket or via HTTP request,
+     * if the request is HTTP due to its asynchronous nature, there will be no response to the request.
+     *
+     * The supposed response to the request,
+     * which is not guaranteed, must be made through the server's query method.
+     *
+     * @param server the server to be inspected
+     * @return the inspection result.
+     */
+    suspend fun inspectServer(server: Server) = suspendCancellableCoroutine<ServerInspection> {
+        try {
+            it.resumeWith(Result.success(DockerServerContainerInspection(core.docker.inspectContainerCmd(server.container.id)
+                .exec())))
+        } catch (e: Throwable) {
+            it.cancel(e)
+        }
+    }
+
+    /* internal */
+    private fun createContainer(containerId: String, host: String, port: Int) {
         core.docker.createContainerCmd("itzg/minecraft-server:multiarch")
             .withCmd("-v", "/Katan/servers")
             .withName(containerId)
-            .withExposedPorts(mcport)
-            .withPortBindings(ports)
+            .withHostConfig(HostConfig.newHostConfig().withPortBindings(Ports().apply {
+                add(PortBinding(Ports.Binding.bindIpAndPort(host, port), ExposedPort.tcp(port)))
+            }))
             .withAttachStdin(true)
             .withAttachStdout(true)
             .withAttachStderr(true)
@@ -191,30 +225,6 @@ class ServerManager(private val core: Katan) {
             .withTty(true)
             .withEnv("EULA=true", "TYPE=SPIGOT", "VERSION=1.8")
             .exec()
-    }
-
-    init {
-        transaction(core.database) {
-            for (server in ServerEntity.all()) {
-                lastId.value = server.id.value
-                val impl = ServerImpl(server.id.value,
-                    server.name,
-                    server.address,
-                    server.port.toShort(),
-                    ServerContainer(server.containerId))
-                impl.holders.addAll(server.holders.map {
-                    ServerHolderImpl(core.accountManager.getAccountById(it.account.value.toString())!!, getServer(it.server.value))
-                }.toMutableList())
-
-                try {
-                    inspectServer(impl)
-                } catch (e: NotFoundException) {
-                    createContainer(server.containerId, server.port)
-                }
-
-                servers.add(impl)
-            }
-        }
     }
 
 }

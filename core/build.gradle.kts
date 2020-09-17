@@ -1,7 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 val ktorVersion = "1.4.0"
-var exposedVersion = "0.27.1"
+val exposedVersion = "0.27.1"
 
 dependencies {
     api(project(":api"))
@@ -17,11 +15,5 @@ dependencies {
     implementation("br.com.devsrsouza.eventkt:eventkt-core-jvm:0.1.0-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:atomicfu:0.14.4")
     api("mysql:mysql-connector-java:8.0.21")
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
-        jvmTarget = "1.8"
-    }
+    api("com.typesafe:config:1.4.0")
 }

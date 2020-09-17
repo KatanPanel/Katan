@@ -28,3 +28,10 @@ hs_err_pid*
 # Gradle
 .gradle/
 gradle/wrapper/gradle-wrapper.jar
+
+# Katan
+logs/
+katan.conf
+
+# Ktor
+application.conf

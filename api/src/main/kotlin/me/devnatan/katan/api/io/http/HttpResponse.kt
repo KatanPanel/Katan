@@ -1,10 +1,14 @@
 package me.devnatan.katan.api.io.http
 
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+
 /**
  * @property response the server's response, which can be "success" or "error"
  */
 sealed class HttpResponse(
-    private val response: String
+    private val response: String,
 ) {
 
     /**
@@ -12,7 +16,7 @@ sealed class HttpResponse(
      * @property data content of the response to the request
      */
     class Ok<out T : Any>(
-        val data: T
+        val data: T,
     ) : HttpResponse("success")
 
     /**
@@ -20,8 +24,8 @@ sealed class HttpResponse(
      * @property message any message that the response may have, usually used for error messages
      */
     class Error(
-        val code: Number,
-        val message: String
+        val code: Int,
+        val message: String,
     ) : HttpResponse("error")
 
 }
