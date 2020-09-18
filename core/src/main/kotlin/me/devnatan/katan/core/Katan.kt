@@ -25,37 +25,36 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
-import java.net.ConnectException
 import java.net.URI
 import java.security.KeyStore
-import java.time.Duration
 import kotlin.system.measureTimeMillis
 
 class Katan(val config: Config) :
     CoroutineScope by CoroutineScope(CoroutineName("Katan")) {
 
-    private companion object {
+    companion object {
         val logger = LoggerFactory.getLogger(Katan::class.java)!!
 
-        val connectors = arrayOf(mapOf(
+        private val connectors = arrayOf(mapOf(
             "name" to "MySQL",
             "driver" to "com.mysql.cj.jdbc.Driver",
             "url" to "jdbc:mysql://%s/%s"
         ))
-    }
 
-    val objectMapper by lazy {
-        jacksonObjectMapper().apply {
-            enable(SerializationFeature.INDENT_OUTPUT, SerializationFeature.CLOSE_CLOSEABLE)
-            disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-            setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            setDefaultPrettyPrinter(DefaultPrettyPrinter().apply {
-                indentArraysWith(DefaultPrettyPrinter.FixedSpaceIndenter.instance)
-                indentObjectsWith(DefaultIndenter("  ", "\n"))
-            })
-            propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
+        val objectMapper by lazy {
+            jacksonObjectMapper().apply {
+                enable(SerializationFeature.INDENT_OUTPUT, SerializationFeature.CLOSE_CLOSEABLE)
+                disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                setDefaultPrettyPrinter(DefaultPrettyPrinter().apply {
+                    indentArraysWith(DefaultPrettyPrinter.FixedSpaceIndenter.instance)
+                    indentObjectsWith(DefaultIndenter("  ", "\n"))
+                })
+                propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
+            }
         }
     }
+
     lateinit var database: Database
     lateinit var docker: DockerClient
 
@@ -74,7 +73,7 @@ class Katan(val config: Config) :
         val host = String.format(connector.getValue("url"), mysql.getString("host"), mysql.getString("database"))
         val url = QueryStringEncoder(host).apply {
             for ((name, value) in mysql.getConfig("properties").entrySet()) {
-                addParam(name, value.render())
+                addParam(name, value.unwrapped().toString())
             }
         }.toString()
         database = Database.connect(
@@ -84,9 +83,9 @@ class Katan(val config: Config) :
             mysql.getString("password")
         )
 
-        logger.info("[DB] Connecting to {} ({})...", mysql.getString("host"), url)
+        logger.info("[Database] Connecting to {}...", mysql.getString("host"))
 
-        val took = measureTimeMillis {
+        val time = measureTimeMillis {
             transaction(database) {
                 try {
                     SchemaUtils.create(
@@ -94,15 +93,15 @@ class Katan(val config: Config) :
                         ServersTable,
                         ServerHoldersTable
                     )
-                } catch (e: Exception) {
-                    logger.error("[DB] Couldn't connect to database, please check your credentials and try again.")
-                    logger.error("[DB] {}", e.toString())
-                    throw RuntimeException(e)
+                } catch (e: Throwable) {
+                    logger.error("[Database] Couldn't connect to database, please check your credentials and try again.")
+                    logger.error("[Database] {}", e.toString())
+                    throw e
                 }
             }
         }
-        logger.info("[DB] Connected successfully, took {}s.",
-            String.format("%.2f", Duration.ofMillis(took).seconds))
+
+        logger.info("[Database] Connected successfully, took {}s.", String.format("%.2f", time / 1000.0f))
     }
 
     private fun docker() {
@@ -112,7 +111,7 @@ class Katan(val config: Config) :
             .connectTimeout(properties.getInt("connectTimeout"))
             .readTimeout(properties.getInt("readTimeout"))
 
-        if (dockerConfig.getBoolean("ssl.enabled", false)) {
+        if (dockerConfig.get("ssl.enabled", false)) {
             jerseyClient.sslConfig(
                 when (dockerConfig.getString("ssl.provider")) {
                     "CERT" -> {
@@ -121,7 +120,7 @@ class Katan(val config: Config) :
                         LocalDirectorySSLConfig(path)
                     }
                     "KEY_STORE" -> {
-                        val type = dockerConfig.getString("keyStore.provider", null) ?: KeyStore.getDefaultType()
+                        val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
                         val keystore = KeyStore.getInstance(type)
                         logger.info(
                             "[Docker] Using {} as SSL key store type.",
