@@ -9,7 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.isActive
 import me.devnatan.katan.api.io.websocket.WebSocketHandler
 import me.devnatan.katan.api.io.websocket.WebSocketMessage
 import me.devnatan.katan.core.Katan
@@ -27,19 +26,22 @@ class WebSocketManager(private val core: Katan) {
     init {
         eventbus.listen<WebSocketMessage>().transform { message ->
             for (handler in handlers) {
-                val mappings = handler.mappings()
+                val mappings = handler.mappings
                 if (!mappings.containsKey(message.op))
                     continue
 
                 if (message is MutableWebSocketMessage) {
-                    val result = handler.next(message) ?: continue
-                    if (result is WebSocketHandler.NOTHING)
-                        continue
+                    try {
+                        val result = handler.next(message)
+                        if (result is WebSocketHandler.NOTHING)
+                            continue
 
-                    message.content = result
+                        message.content = result ?: WebSocketHandler.NULL
+                    } catch (e: NotImplementedError) {
+                    }
                 }
 
-                mappings.getValue(message.op)(message)
+                mappings.getValue(message.op).invoke(message)
                 emit(message.content)
             }
         }.launchIn(scope)

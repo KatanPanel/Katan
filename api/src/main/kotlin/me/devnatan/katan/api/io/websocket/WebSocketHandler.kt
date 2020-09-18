@@ -2,16 +2,16 @@ package me.devnatan.katan.api.io.websocket
 
 typealias WebSocketHandlerMapper<T> = (T).() -> Unit
 
-interface WebSocketHandler<T : Any, R> {
+interface WebSocketHandler<T : WebSocketMessage, R> {
+
+    object NULL
 
     object NOTHING
 
-    fun next(message: T): R
+    val mappings: Map<Int, WebSocketHandlerMapper<T>>
 
-    fun mappings(): Map<Int, WebSocketHandlerMapper<T>>
+    fun next(message: T): R {
+        throw NotImplementedError()
+    }
 
-}
-
-fun WebSocketHandler<*, *>.defaultMappingsHandler(message: WebSocketMessage): Boolean {
-    return mappings().any { it.key == message.op }
 }
