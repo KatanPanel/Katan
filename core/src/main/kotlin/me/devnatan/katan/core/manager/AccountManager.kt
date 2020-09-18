@@ -7,8 +7,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.core.Katan
-import me.devnatan.katan.core.impl.account.AccountImpl
 import me.devnatan.katan.core.dao.AccountEntity
+import me.devnatan.katan.core.impl.account.AccountImpl
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -23,14 +23,14 @@ class AccountManager(private val core: Katan) {
         const val JWT_ACCOUNT_ID_FIELD = "id"
         const val JWT_ISSUER = "Katan"
         const val JWT_AUDIENCE = "Katan"
-        val JWT_TOKEN_LIFETIME = Duration.ofMinutes(10)
+        val JWT_TOKEN_LIFETIME = Duration.ofMinutes(10)!!
 
         val logger = LoggerFactory.getLogger(AccountManager::class.java)!!
 
     }
 
-    private val accounts: HashSet<Account> = hashSetOf()
-    private val algorithm = Algorithm.HMAC256(core.config.getString("security.authentication.secret"))
+    private val accounts = hashSetOf<Account>()
+    private val algorithm = Algorithm.HMAC256(core.config.getString("web.security.authentication.secret"))
     private val verifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).withAudience(JWT_AUDIENCE).build()!!
 
     /**
