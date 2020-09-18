@@ -18,7 +18,6 @@ import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionA
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import java.util.concurrent.Executors
 
 class ServerManager(private val core: Katan) {
 
@@ -30,10 +29,10 @@ class ServerManager(private val core: Katan) {
 
     private val lastId: AtomicInt
     private val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName("Katan::SM"))
-    private val dispatcher: CoroutineDispatcher = Executors.newCachedThreadPool().asCoroutineDispatcher()
     private val servers: MutableSet<Server> = hashSetOf()
 
     init {
+        logger.info("Loading servers...")
         transaction(core.database) {
             ServerEntity.all().forEach { entity ->
                 val server = ServerImpl(entity.id.value,
@@ -52,12 +51,13 @@ class ServerManager(private val core: Katan) {
                     ServerHolderImpl(it, server)
                 })
 
+                servers.add(server)
+
                 /*
                     We do an initial inspection to ensure that the server will have a container.
-                    since this is the boot process it runs on the main thread
-                    we can use the dispatcher confined here without any problems.
                  */
-                val inspection = coroutineScope.launch(Dispatchers.Unconfined + CoroutineName("Katan::SM-II-${server.container.id}")) {
+                val inspection =
+                    coroutineScope.launch(Dispatchers.IO + CoroutineName("Katan::SM-II-${server.container.id}")) {
                         inspectServer(server)
                     }
 
@@ -79,15 +79,15 @@ class ServerManager(private val core: Katan) {
                         }
                     }
                 }
-
-                servers.add(server)
             }
         }
 
         // Ensuring that the next id is after the id of any server
         // already registered this will prevent future collisions.
         lastId = synchronized(servers) {
-            atomic(servers.maxOf { it.id })
+            atomic(runCatching {
+                servers.maxOf { it.id }
+            }.getOrNull() ?: 0)
         }
     }
 
@@ -127,7 +127,7 @@ class ServerManager(private val core: Katan) {
         val serverId = lastId.incrementAndGet()
         val containerId = "katan::Server-$serverId".format(serverId)
 
-        return suspendedTransactionAsync(dispatcher, core.database) {
+        return suspendedTransactionAsync(Dispatchers.IO, core.database) {
             ServerEntity.new(server.id) {
                 this.name = name
                 this.address = address
