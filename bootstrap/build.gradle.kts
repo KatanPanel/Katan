@@ -17,7 +17,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "me.devnatan.katan.bootstrap.KatanBootstrapKt"
+    mainClassName = "me.devnatan.katan.bootstrap.KatanLauncher"
 }
 
 tasks {
