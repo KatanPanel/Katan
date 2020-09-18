@@ -1,9 +1,5 @@
 package me.devnatan.katan.api.io.http
 
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-
 /**
  * @property response the server's response, which can be "success" or "error"
  */

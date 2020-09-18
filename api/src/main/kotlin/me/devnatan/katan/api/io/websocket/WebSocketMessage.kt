@@ -1,7 +1,5 @@
 package me.devnatan.katan.api.io.websocket
 
-import io.ktor.http.cio.websocket.WebSocketSession
-
 interface WebSocketMessage {
 
     /**
