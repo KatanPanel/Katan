@@ -36,13 +36,11 @@ import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
 fun main() {
-    for ((export, clazz) in mapOf("katan.conf" to Katan::class, "application.conf" to KatanLauncher::class)) {
-        val file = File(export)
-        if (!file.exists())
-            Files.copy(clazz.java.classLoader.getResourceAsStream(file.name)!!, file.toPath())
-    }
+    val config = File("katan.conf")
+    if (!config.exists())
+        Files.copy(Katan::class.java.classLoader.getResourceAsStream(config.name)!!, config.toPath())
 
-    KatanLauncher(ConfigFactory.load("katan"))
+    KatanLauncher(ConfigFactory.parseFile(config))
 }
 
 private class KatanLauncher(config: Config) {

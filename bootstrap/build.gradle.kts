@@ -17,7 +17,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "io.ktor.server.netty.EngineMain"
+    mainClassName = "me.devnatan.katan.bootstrap.KatanBootstrapKt"
 }
 
 tasks {
