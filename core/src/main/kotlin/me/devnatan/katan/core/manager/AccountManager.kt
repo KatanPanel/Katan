@@ -4,11 +4,11 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTDecodeException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.core.Katan
 import me.devnatan.katan.core.dao.AccountEntity
 import me.devnatan.katan.core.impl.account.AccountImpl
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -27,6 +27,18 @@ class AccountManager(private val core: Katan) {
 
         val logger = LoggerFactory.getLogger(AccountManager::class.java)!!
 
+    }
+
+    init {
+        logger.info("Loading accounts...")
+        transaction(core.database) {
+            AccountEntity.all().forEach { entity ->
+                val account = AccountImpl(entity.id.value, entity.username, entity.password)
+                // TODO: set permissions
+
+                accounts.add(account)
+            }
+        }
     }
 
     private val accounts = hashSetOf<Account>()
@@ -62,27 +74,25 @@ class AccountManager(private val core: Katan) {
      */
     fun createAccount(username: String, password: String): Account {
         val account = AccountImpl(UUID.randomUUID(), username, password)
-        synchronized(accounts) {
+        return synchronized(accounts) {
             if (!accounts.add(account))
                 throw IllegalArgumentException(username)
-        }
 
-        logger.debug("Account $username created")
-        return account
+            account
+        }
     }
 
     /**
      * Register an account in the database.
      * @param account the account to register
      */
-    fun registerAccountAsync(account: Account) = core.async(Dispatchers.IO) {
-        transaction(core.database) {
+    suspend fun registerAccount(account: Account) {
+        newSuspendedTransaction(Dispatchers.Default, core.database) {
             AccountEntity.new(account.id) {
                 this.username = account.username
                 this.password = account.password
                 this.permissions = 0
             }
-            account
         }
     }
 
@@ -106,14 +116,12 @@ class AccountManager(private val core: Katan) {
         if (account.password != password)
             throw IllegalArgumentException()
 
-        val token = JWT.create()
+        return JWT.create()
             .withIssuer(JWT_ISSUER)
             .withAudience(JWT_AUDIENCE)
             .withClaim(JWT_ACCOUNT_ID_FIELD, account.id.toString())
             .withExpiresAt(Date.from(Instant.now().plus(JWT_TOKEN_LIFETIME)))
             .sign(algorithm)
-        logger.debug("Account $username successfully authenticated")
-        return token
     }
 
     /**
@@ -135,16 +143,6 @@ class AccountManager(private val core: Katan) {
             throw IllegalArgumentException(token)
 
         return getAccount(claim.asString()) ?: throw NoSuchElementException()
-    }
-
-    init {
-        transaction(core.database) {
-            accounts.addAll(AccountEntity.all().map {
-                AccountImpl(it.id.value, it.username, it.password).apply {
-                    // TODO: set permissions
-                }
-            })
-        }
     }
 
 }

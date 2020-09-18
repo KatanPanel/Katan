@@ -164,11 +164,9 @@ private class KatanLauncher(config: Config) {
                         return@post
                     }
 
-                    val job =
-                        katan.accountManager.registerAccountAsync(katan.accountManager.createAccount(account.username,
-                            account.password))
-                    job.join()
-                    call.respondWithOk(mapOf("account" to job.getCompleted()))
+                    val entity = katan.accountManager.createAccount(account.username, account.password)
+                    katan.accountManager.registerAccount(entity)
+                    call.respondWithOk(mapOf("account" to entity))
                 }
             }
 
