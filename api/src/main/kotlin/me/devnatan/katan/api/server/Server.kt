@@ -1,5 +1,9 @@
 package me.devnatan.katan.api.server
 
+/**
+ * @author Natan V.
+ * @since 0.1.0
+ */
 interface Server {
 
     /**
@@ -32,6 +36,14 @@ interface Server {
      */
     val container: ServerContainer
 
+    /**
+     * Remote server address search results.
+     */
     val query: ServerQuery
+
+    /**
+     * Current server state.
+     */
+    var state: ServerState
 
 }
