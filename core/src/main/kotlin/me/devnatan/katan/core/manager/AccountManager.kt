@@ -6,7 +6,8 @@ import com.auth0.jwt.exceptions.JWTDecodeException
 import kotlinx.coroutines.Dispatchers
 import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.core.Katan
-import me.devnatan.katan.core.dao.AccountEntity
+import me.devnatan.katan.core.database.jdbc.JDBCConnector
+import me.devnatan.katan.core.database.jdbc.entity.AccountEntity
 import me.devnatan.katan.core.impl.account.AccountImpl
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -31,7 +32,9 @@ class AccountManager(private val core: Katan) {
 
     init {
         logger.info("Loading accounts...")
-        transaction(core.database) {
+
+        // TODO: create accounts repository
+        transaction((core.database as JDBCConnector<*>).database) {
             AccountEntity.all().forEach { entity ->
                 val account = AccountImpl(entity.id.value, entity.username, entity.password)
                 // TODO: set permissions
@@ -87,7 +90,7 @@ class AccountManager(private val core: Katan) {
      * @param account the account to register
      */
     suspend fun registerAccount(account: Account) {
-        newSuspendedTransaction(Dispatchers.Default, core.database) {
+        newSuspendedTransaction(Dispatchers.Default, (core.database as JDBCConnector<*>).database) {
             AccountEntity.new(account.id) {
                 this.username = account.username
                 this.password = account.password

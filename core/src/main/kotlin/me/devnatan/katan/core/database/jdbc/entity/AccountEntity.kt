@@ -1,4 +1,4 @@
-package me.devnatan.katan.core.dao
+package me.devnatan.katan.core.database.jdbc.entity
 
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass

@@ -12,34 +12,26 @@ import com.github.dockerjava.core.KeystoreSSLConfig
 import com.github.dockerjava.core.LocalDirectorySSLConfig
 import com.github.dockerjava.jaxrs.JerseyDockerHttpClient
 import com.typesafe.config.Config
-import io.netty.handler.codec.http.QueryStringEncoder
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import me.devnatan.katan.core.dao.AccountsTable
-import me.devnatan.katan.core.dao.ServerHoldersTable
-import me.devnatan.katan.core.dao.ServersTable
+import me.devnatan.katan.common.get
+import me.devnatan.katan.common.getStringMap
+import me.devnatan.katan.core.database.DatabaseConnector
+import me.devnatan.katan.core.database.jdbc.*
+import me.devnatan.katan.core.exceptions.throwSilent
 import me.devnatan.katan.core.manager.AccountManager
-import me.devnatan.katan.core.manager.ServerManager
-import me.devnatan.katan.core.manager.WebSocketManager
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.transaction
+import me.devnatan.katan.core.manager.DockerServerManager
+import me.devnatan.katan.core.repository.JDBCServersRepository
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.security.KeyStore
-import kotlin.system.measureTimeMillis
 
 class Katan(val config: Config) :
     CoroutineScope by CoroutineScope(CoroutineName("Katan")) {
 
     companion object {
-        val logger = LoggerFactory.getLogger(Katan::class.java)!!
 
-        private val connectors = arrayOf(mapOf(
-            "name" to "MySQL",
-            "driver" to "com.mysql.cj.jdbc.Driver",
-            "url" to "jdbc:mysql://%s/%s"
-        ))
+        val logger = LoggerFactory.getLogger(Katan::class.java)!!
 
         val objectMapper by lazy {
             jacksonObjectMapper().apply {
@@ -50,61 +42,50 @@ class Katan(val config: Config) :
                     indentArraysWith(DefaultPrettyPrinter.FixedSpaceIndenter.instance)
                     indentObjectsWith(DefaultIndenter("  ", "\n"))
                 })
-                propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
+                propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
             }
         }
+
     }
 
-    lateinit var database: Database
+    lateinit var database: DatabaseConnector<*>
     lateinit var docker: DockerClient
 
     lateinit var accountManager: AccountManager
-    lateinit var webSocketManager: WebSocketManager
-    lateinit var serverManager: ServerManager
+    lateinit var serverManager: DockerServerManager
 
-    private fun database() {
-        val mysql = config.getConfig("storage")
-        val type = mysql.getString("type")
+    private suspend fun database() {
+        val db = config.getConfig("database")
+        val dialect = db.get("source", "H2")
+        logger.info("Using $dialect as database dialect.")
 
-        val connector = connectors.firstOrNull {
-            it.getValue("name") == type
-        } ?: throw IllegalArgumentException("Unknown database connector $type")
+        val dialectName = dialect.toLowerCase()
+        val settings = db.getConfig(dialectName)
 
-        val host = String.format(connector.getValue("url"), mysql.getString("host"), mysql.getString("database"))
-        val url = QueryStringEncoder(host).apply {
-            for ((name, value) in mysql.getConfig("properties").entrySet()) {
-                addParam(name, value.unwrapped().toString())
-            }
-        }.toString()
-        database = Database.connect(
-            url,
-            connector.getValue("driver"),
-            mysql.getString("user"),
-            mysql.getString("password")
-        )
-
-        logger.info("[Database] Connecting to {}...", mysql.getString("host"))
-
-        val time = measureTimeMillis {
-            transaction(database) {
-                try {
-                    SchemaUtils.create(
-                        AccountsTable,
-                        ServersTable,
-                        ServerHoldersTable
-                    )
-                } catch (e: Throwable) {
-                    logger.error("[Database] Couldn't connect to database, please check your credentials and try again.")
-                    logger.error("[Database] {}", e.toString())
-                    throw e
-                }
-            }
+        logger.info("Using $dialect as database dialect.")
+        suspend fun <C : JDBCConnector<S>, S : JDBCSettings> connectWith(connector: C, settings: S): C {
+            logger.info("Initializing connector ${connector::class.simpleName}.")
+            return connector.also { it.connect(settings) }
         }
 
-        logger.info("[Database] Connected successfully, took {}s.", String.format("%.2f", time / 1000.0f))
+        database = when (dialectName) {
+            "mysql" -> connectWith(MySQLConnector(), JDBCRemoteSettings(
+                settings.get("host", "localhost:3306"),
+                settings.get("user", "root"),
+                settings.getString("password"),
+                settings.get("database", "katan"),
+                settings.getStringMap("properties")
+            ))
+            "h2" -> connectWith(H2Connector(settings.get("inMemory", true)), JDBCLocalSettings(
+                settings.get("file", "./katan.db"),
+                settings.getStringMap("properties")
+            ))
+            else -> throwSilent(IllegalArgumentException("Database dialect $dialect is not supported"))
+        }
     }
 
     private fun docker() {
+        logger.info("Configuring Docker...")
         val dockerConfig = config.getConfig("docker")
         val properties = dockerConfig.getConfig("properties")
         val jerseyClient = JerseyDockerHttpClient.Builder().dockerHost(URI(dockerConfig.getString("host")))
@@ -116,20 +97,20 @@ class Katan(val config: Config) :
                 when (dockerConfig.getString("ssl.provider")) {
                     "CERT" -> {
                         val path = dockerConfig.getString("ssl.certPath")
-                        logger.info("[Docker] SSL certification path located at {}.", path)
+                        logger.info("Docker SSL certification path located at {}.", path)
                         LocalDirectorySSLConfig(path)
                     }
                     "KEY_STORE" -> {
                         val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
                         val keystore = KeyStore.getInstance(type)
                         logger.info(
-                            "[Docker] Using {} as SSL key store type.",
+                            "Using {} as Docker SSL key store type.",
                             type
                         )
 
                         KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
                     }
-                    else -> throw IllegalArgumentException("Unrecognized SSL provider. Must be: CERT or KEY_STORE")
+                    else -> throwSilent(IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE"))
                 }
             )
         }
@@ -137,12 +118,14 @@ class Katan(val config: Config) :
         docker = DockerClientBuilder.getInstance().withDockerHttpClient(jerseyClient.build()).build()
     }
 
-    fun start() {
+    suspend fun start() {
         database()
         docker()
         accountManager = AccountManager(this)
-        serverManager = ServerManager(this)
-        webSocketManager = WebSocketManager(this)
+        serverManager = DockerServerManager(this, when (database) {
+            is JDBCConnector -> JDBCServersRepository(this, database as JDBCConnector<*>)
+            else -> throwSilent(IllegalArgumentException("No servers repository available for $database"))
+        })
     }
 
 }
