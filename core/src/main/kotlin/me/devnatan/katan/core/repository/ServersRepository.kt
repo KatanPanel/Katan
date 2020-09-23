@@ -18,7 +18,7 @@ interface ServersRepository {
 
 }
 
-class JDBCServersRepository(private val core: Katan, private val connector: JDBCConnector<*>) : ServersRepository {
+class JDBCServersRepository(private val core: Katan, private val connector: JDBCConnector) : ServersRepository {
 
     override suspend fun listServers(): List<Server> {
         return ServerEntity.all().map { entity ->

@@ -6,8 +6,7 @@ import java.time.Instant
 
 class MinecraftServerQuery(val server: Server) : ServerQuery {
 
-    override var latency: Long = 0
-
+    override var latency: Long? = null
     override var lastQueriedAt: Instant? = null
 
 }

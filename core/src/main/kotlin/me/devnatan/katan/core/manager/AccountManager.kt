@@ -34,7 +34,7 @@ class AccountManager(private val core: Katan) {
         logger.info("Loading accounts...")
 
         // TODO: create accounts repository
-        transaction((core.database as JDBCConnector<*>).database) {
+        transaction((core.database as JDBCConnector).database) {
             AccountEntity.all().forEach { entity ->
                 val account = AccountImpl(entity.id.value, entity.username, entity.password)
                 // TODO: set permissions
@@ -45,7 +45,7 @@ class AccountManager(private val core: Katan) {
     }
 
     private val accounts = hashSetOf<Account>()
-    private val algorithm = Algorithm.HMAC256(core.config.getString("web.security.authentication.secret"))
+    private val algorithm = Algorithm.HMAC256(core.config.getString("security.crypto.auth.secret"))
     private val verifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).withAudience(JWT_AUDIENCE).build()!!
 
     /**
@@ -90,7 +90,7 @@ class AccountManager(private val core: Katan) {
      * @param account the account to register
      */
     suspend fun registerAccount(account: Account) {
-        newSuspendedTransaction(Dispatchers.Default, (core.database as JDBCConnector<*>).database) {
+        newSuspendedTransaction(Dispatchers.Default, (core.database as JDBCConnector).database) {
             AccountEntity.new(account.id) {
                 this.username = account.username
                 this.password = account.password

@@ -2,7 +2,7 @@ package me.devnatan.katan.core.database
 
 import java.io.Closeable
 
-interface DatabaseConnector<S : DatabaseSettings> : Closeable {
+interface DatabaseConnector : Closeable {
 
     val name: String
 
@@ -10,8 +10,8 @@ interface DatabaseConnector<S : DatabaseSettings> : Closeable {
 
     val url: String
 
-    suspend fun connect(settings: S)
+    suspend fun connect(settings: DatabaseSettings)
 
-    fun createConnectionUrl(settings: S): String
+    fun createConnectionUrl(settings: DatabaseSettings): String
 
 }

@@ -1,9 +1,6 @@
 package me.devnatan.katan.core.impl.server
 
-import me.devnatan.katan.api.server.Server
-import me.devnatan.katan.api.server.ServerContainer
-import me.devnatan.katan.api.server.ServerHolder
-import me.devnatan.katan.api.server.ServerQuery
+import me.devnatan.katan.api.server.*
 
 class ServerImpl(
     override val id: Int,
@@ -14,6 +11,8 @@ class ServerImpl(
 ) : Server {
 
     override val query: ServerQuery = MinecraftServerQuery(this)
+
+    override var state: ServerState = ServerState.UNKNOWN
 
     @Transient
     override val holders: MutableSet<ServerHolder> = hashSetOf()

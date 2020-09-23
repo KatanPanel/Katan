@@ -14,11 +14,12 @@ import com.github.dockerjava.jaxrs.JerseyDockerHttpClient
 import com.typesafe.config.Config
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import me.devnatan.katan.api.Version
 import me.devnatan.katan.common.get
-import me.devnatan.katan.common.getStringMap
 import me.devnatan.katan.core.database.DatabaseConnector
-import me.devnatan.katan.core.database.jdbc.*
-import me.devnatan.katan.core.exceptions.throwSilent
+import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
+import me.devnatan.katan.core.database.jdbc.JDBCConnector
+import me.devnatan.katan.core.exceptions.silent
 import me.devnatan.katan.core.manager.AccountManager
 import me.devnatan.katan.core.manager.DockerServerManager
 import me.devnatan.katan.core.repository.JDBCServersRepository
@@ -31,8 +32,10 @@ class Katan(val config: Config) :
 
     companion object {
 
-        val logger = LoggerFactory.getLogger(Katan::class.java)!!
+        const val DATABASE_DIALECT_FALLBACK = "H2"
 
+        val VERSION = Version(0, 1, 0)
+        val logger = LoggerFactory.getLogger(Katan::class.java)!!
         val objectMapper by lazy {
             jacksonObjectMapper().apply {
                 enable(SerializationFeature.INDENT_OUTPUT, SerializationFeature.CLOSE_CLOSEABLE)
@@ -48,7 +51,7 @@ class Katan(val config: Config) :
 
     }
 
-    lateinit var database: DatabaseConnector<*>
+    lateinit var database: DatabaseConnector
     lateinit var docker: DockerClient
 
     lateinit var accountManager: AccountManager
@@ -56,31 +59,38 @@ class Katan(val config: Config) :
 
     private suspend fun database() {
         val db = config.getConfig("database")
-        val dialect = db.get("source", "H2")
-        logger.info("Using $dialect as database dialect.")
+        val dialect = db.get("source", DATABASE_DIALECT_FALLBACK)
+        logger.info("Using $dialect as database dialect (fallback to ${DATABASE_DIALECT_FALLBACK}).")
 
+        val dialectSettings = runCatching {
+            db.getConfig(dialect.toLowerCase())
+        }.onFailure {
+            throw IllegalArgumentException("Dialect properties not found: $dialect.").silent()
+        }.getOrThrow()
+
+        connectWith(dialect, dialectSettings, db.get("strict", true))
+    }
+
+    private suspend fun connectWith(dialect: String, config: Config, strict: Boolean) {
         val dialectName = dialect.toLowerCase()
-        val settings = db.getConfig(dialectName)
+        if (!SUPPORTED_CONNECTORS.containsKey(dialectName))
+            throw IllegalArgumentException("Database dialect $dialect is not supported").silent()
 
-        logger.info("Using $dialect as database dialect.")
-        suspend fun <C : JDBCConnector<S>, S : JDBCSettings> connectWith(connector: C, settings: S): C {
-            logger.info("Initializing connector ${connector::class.simpleName}.")
-            return connector.also { it.connect(settings) }
-        }
+        val (connector, settings) = SUPPORTED_CONNECTORS.getValue(dialectName).invoke(config)
+        logger.info("Initializing connector ${connector::class.simpleName}.")
 
-        database = when (dialectName) {
-            "mysql" -> connectWith(MySQLConnector(), JDBCRemoteSettings(
-                settings.get("host", "localhost:3306"),
-                settings.get("user", "root"),
-                settings.getString("password"),
-                settings.get("database", "katan"),
-                settings.getStringMap("properties")
-            ))
-            "h2" -> connectWith(H2Connector(settings.get("inMemory", true)), JDBCLocalSettings(
-                settings.get("file", "./katan.db"),
-                settings.getStringMap("properties")
-            ))
-            else -> throwSilent(IllegalArgumentException("Database dialect $dialect is not supported"))
+        runCatching {
+            database = connector
+            connector.connect(settings)
+        }.onFailure {
+            logger.error("Unable to connect to $dialect database.")
+            if (strict || dialect.equals(DATABASE_DIALECT_FALLBACK, true)) {
+                logger.error("{}", it.toString())
+                throw it
+            }
+
+            logger.info("Strict mode is disabled, connecting again using fallback dialect $DATABASE_DIALECT_FALLBACK.")
+            connectWith(DATABASE_DIALECT_FALLBACK, config, strict)
         }
     }
 
@@ -93,26 +103,24 @@ class Katan(val config: Config) :
             .readTimeout(properties.getInt("readTimeout"))
 
         if (dockerConfig.get("ssl.enabled", false)) {
-            jerseyClient.sslConfig(
-                when (dockerConfig.getString("ssl.provider")) {
-                    "CERT" -> {
-                        val path = dockerConfig.getString("ssl.certPath")
-                        logger.info("Docker SSL certification path located at {}.", path)
-                        LocalDirectorySSLConfig(path)
-                    }
-                    "KEY_STORE" -> {
-                        val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
-                        val keystore = KeyStore.getInstance(type)
-                        logger.info(
-                            "Using {} as Docker SSL key store type.",
-                            type
-                        )
-
-                        KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
-                    }
-                    else -> throwSilent(IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE"))
+            jerseyClient.sslConfig(when (dockerConfig.getString("ssl.provider")) {
+                "CERT" -> {
+                    val path = dockerConfig.getString("ssl.certPath")
+                    logger.info("Docker SSL certification path located at {}.", path)
+                    LocalDirectorySSLConfig(path)
                 }
-            )
+                "KEY_STORE" -> {
+                    val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
+                    val keystore = KeyStore.getInstance(type)
+                    logger.info(
+                        "Using {} as Docker SSL key store type.",
+                        type
+                    )
+
+                    KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
+                }
+                else -> throw IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE").silent()
+            })
         }
 
         docker = DockerClientBuilder.getInstance().withDockerHttpClient(jerseyClient.build()).build()
@@ -123,8 +131,8 @@ class Katan(val config: Config) :
         docker()
         accountManager = AccountManager(this)
         serverManager = DockerServerManager(this, when (database) {
-            is JDBCConnector -> JDBCServersRepository(this, database as JDBCConnector<*>)
-            else -> throwSilent(IllegalArgumentException("No servers repository available for $database"))
+            is JDBCConnector -> JDBCServersRepository(this, database as JDBCConnector)
+            else -> throw IllegalArgumentException("No servers repository available for $database").silent()
         })
     }
 
