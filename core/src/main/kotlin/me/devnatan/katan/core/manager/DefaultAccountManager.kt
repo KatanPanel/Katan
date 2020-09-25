@@ -6,7 +6,7 @@ import com.auth0.jwt.exceptions.JWTDecodeException
 import kotlinx.coroutines.Dispatchers
 import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.api.manager.AccountManager
-import me.devnatan.katan.core.Katan
+import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.database.jdbc.entity.AccountEntity
 import me.devnatan.katan.core.impl.account.AccountImpl
@@ -18,7 +18,7 @@ import java.time.Instant
 import java.util.*
 import kotlin.NoSuchElementException
 
-class DefaultAccountManager(private val core: Katan) : AccountManager {
+class DefaultAccountManager(private val core: KatanCore) : AccountManager {
 
     private companion object {
 
@@ -27,9 +27,13 @@ class DefaultAccountManager(private val core: Katan) : AccountManager {
         const val JWT_AUDIENCE = "Katan"
         val JWT_TOKEN_LIFETIME = Duration.ofMinutes(10)!!
 
-        val logger = LoggerFactory.getLogger(DefaultAccountManager::class.java)!!
+        val logger = LoggerFactory.getLogger(AccountManager::class.java)!!
 
     }
+
+    private val accounts = hashSetOf<Account>()
+    private val algorithm = Algorithm.HMAC256(core.config.getString("security.crypto.auth.secret"))
+    private val verifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).withAudience(JWT_AUDIENCE).build()!!
 
     init {
         logger.info("Loading accounts...")
@@ -45,9 +49,9 @@ class DefaultAccountManager(private val core: Katan) : AccountManager {
         }
     }
 
-    private val accounts = hashSetOf<Account>()
-    private val algorithm = Algorithm.HMAC256(core.config.getString("security.crypto.auth.secret"))
-    private val verifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).withAudience(JWT_AUDIENCE).build()!!
+    override fun getAccounts(): List<Account> {
+        return accounts.toList()
+    }
 
     override suspend fun getAccount(username: String): Account? {
         return synchronized(accounts) {

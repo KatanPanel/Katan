@@ -3,7 +3,7 @@ package me.devnatan.katan.core.repository
 import kotlinx.coroutines.Dispatchers
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerContainer
-import me.devnatan.katan.core.Katan
+import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.database.jdbc.entity.ServerEntity
 import me.devnatan.katan.core.impl.server.ServerHolderImpl
@@ -18,7 +18,7 @@ interface ServersRepository {
 
 }
 
-class JDBCServersRepository(private val core: Katan, private val connector: JDBCConnector) : ServersRepository {
+class JDBCServersRepository(private val core: KatanCore, private val connector: JDBCConnector) : ServersRepository {
 
     override suspend fun listServers(): List<Server> {
         return ServerEntity.all().map { entity ->

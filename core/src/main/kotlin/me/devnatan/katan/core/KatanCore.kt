@@ -8,7 +8,9 @@ import com.github.dockerjava.jaxrs.JerseyDockerHttpClient
 import com.typesafe.config.Config
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import me.devnatan.katan.api.Version
+import me.devnatan.katan.api.Katan
+import me.devnatan.katan.api.manager.AccountManager
+import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
@@ -21,21 +23,21 @@ import org.slf4j.LoggerFactory
 import java.net.URI
 import java.security.KeyStore
 
-class Katan(val config: Config) :
-    CoroutineScope by CoroutineScope(CoroutineName("Katan")) {
+class KatanCore(val config: Config) :
+    CoroutineScope by CoroutineScope(CoroutineName("Katan")), Katan {
 
     companion object {
 
         const val DATABASE_DIALECT_FALLBACK = "H2"
-        val logger = LoggerFactory.getLogger(Katan::class.java)!!
+        val logger = LoggerFactory.getLogger(KatanCore::class.java)!!
 
     }
 
     lateinit var database: DatabaseConnector
     lateinit var docker: DockerClient
 
-    lateinit var accountManager: DefaultAccountManager
-    lateinit var serverManager: DockerServerManager
+    override lateinit var accountManager: AccountManager
+    override lateinit var serverManager: ServerManager
 
     private suspend fun database() {
         val db = config.getConfig("database")

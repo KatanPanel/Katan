@@ -1,14 +1,16 @@
 package me.devnatan.katan.cli
 
 import com.github.ajalt.clikt.core.PrintHelpMessage
+import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.output.CliktConsole
 import kotlinx.coroutines.*
+import me.devnatan.katan.api.Katan
 import me.devnatan.katan.common.KATAN_VERSION
 import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.util.concurrent.Executors
 
-class KatanCLI : Closeable {
+class KatanCLI(katan: Katan) : Closeable, Katan by katan {
 
     companion object {
         val logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
@@ -35,17 +37,17 @@ class KatanCLI : Closeable {
     }
 
     private var running = false
-    private var executor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-    private var scope = CoroutineScope(executor + CoroutineName("KatanCLI"))
-    private val command = KatanCommand()
+    var executor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    var coroutineScope = CoroutineScope(CoroutineName("KatanCLI"))
+    private val command = KatanCommand(this)
 
     suspend fun init() {
-        scope.launch {
+        coroutineScope.launch {
             var line: String?
             do {
                 line = readLine()
                 try {
-                    var args = line?.split(" ") ?: emptyList()
+                    val args = line?.split(" ") ?: emptyList()
                     if (!args[0].equals("katan", true))
                         continue
 
@@ -56,7 +58,9 @@ class KatanCLI : Closeable {
 
                     command.parse(args.subList(1, args.size))
                 } catch (e: PrintHelpMessage) {
-                    logger.info(command.getFormattedHelp())
+                    logger.info(e.command.getFormattedHelp())
+                } catch (e: UsageError) {
+                    logger.error(e.message)
                 } catch (e: Throwable) {
                     e.printStackTrace()
                 }
@@ -68,7 +72,7 @@ class KatanCLI : Closeable {
 
     override fun close() {
         executor.close()
-        scope.cancel()
+        coroutineScope.cancel()
     }
 
 }

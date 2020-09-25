@@ -6,6 +6,11 @@ import java.util.*
 interface AccountManager {
 
     /**
+     * Returns a copy of all registered accounts.
+     */
+    fun getAccounts(): List<Account>
+
+    /**
      * Returns an existing account in the database with the specified username.
      * @param username account username
      */

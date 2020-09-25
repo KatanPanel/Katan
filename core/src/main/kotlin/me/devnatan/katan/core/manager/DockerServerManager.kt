@@ -10,7 +10,7 @@ import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerInspection
 import me.devnatan.katan.api.server.ServerState
-import me.devnatan.katan.core.Katan
+import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.impl.server.DockerServerContainerInspection
 import me.devnatan.katan.core.repository.ServersRepository
 import org.slf4j.LoggerFactory
@@ -18,13 +18,13 @@ import java.time.Duration
 import java.util.regex.Pattern
 
 class DockerServerManager(
-    private val core: Katan,
+    private val core: KatanCore,
     private val repository: ServersRepository,
 ) : ServerManager {
 
     companion object {
 
-        val logger = LoggerFactory.getLogger(DockerServerManager::class.java)!!
+        val logger = LoggerFactory.getLogger(ServerManager::class.java)!!
 
     }
 
@@ -161,10 +161,10 @@ class DockerServerManager(
     }
 
     /* internal */
-    private fun createContainer(containerId: String, host: String, port: Int) {
-        core.docker.createContainerCmd("itzg/minecraft-server:multiarch")
+    private fun createContainer(containerName: String, host: String, port: Int): String {
+        return core.docker.createContainerCmd("itzg/minecraft-server:multiarch")
             .withCmd("-v", "/Katan/servers")
-            .withName(containerId)
+            .withName(containerName)
             .withHostConfig(HostConfig.newHostConfig().withPortBindings(Ports().apply {
                 add(PortBinding(Ports.Binding.bindIpAndPort(host, port), ExposedPort.tcp(port)))
             }))
@@ -174,7 +174,7 @@ class DockerServerManager(
             .withStdinOpen(true)
             .withTty(true)
             .withEnv("EULA=true", "TYPE=SPIGOT", "VERSION=1.8")
-            .exec()
+            .exec().id
     }
 
 }

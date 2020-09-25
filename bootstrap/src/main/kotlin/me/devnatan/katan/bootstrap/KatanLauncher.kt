@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory
 import kotlinx.coroutines.runBlocking
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.common.util.exportResource
-import me.devnatan.katan.core.Katan
+import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.webserver.KatanWebServer
 import kotlin.system.exitProcess
 
@@ -20,7 +20,7 @@ private class KatanLauncher(config: Config) {
 
     }
 
-    private val katan = Katan(config)
+    private val katan = KatanCore(config)
     private lateinit var cli: KatanCLI
     private lateinit var webServer: KatanWebServer
 
@@ -32,7 +32,7 @@ private class KatanLauncher(config: Config) {
                 it.printStackTrace()
                 exitProcess(0)
             }.onSuccess {
-                cli = KatanCLI()
+                cli = KatanCLI(katan)
                 webServer = KatanWebServer(katan.accountManager, katan.serverManager)
 
                 try {
