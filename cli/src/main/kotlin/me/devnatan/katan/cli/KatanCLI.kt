@@ -23,7 +23,9 @@ class KatanCLI(katan: Katan) : Closeable, Katan by katan {
     object Console : CliktConsole {
 
         private val console = System.console()
-        override val lineSeparator: String = System.lineSeparator()
+
+        // SLF4J logger already adds line break
+        override val lineSeparator: String = ""
 
         override fun print(text: String, error: Boolean) {
             if (error) logger.error(text)

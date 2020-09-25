@@ -29,9 +29,9 @@ class AccountsListCommand(private val cli: KatanCLI) : CliktCommand(
 
     override fun run() {
         val accounts = cli.accountManager.getAccounts()
-        echo("List of all accounts (${accounts.size}):", false)
+        echo("List of all accounts (${accounts.size}):")
         for (account in accounts) {
-            echo("${account.id} - ${account.username}", false)
+            echo("${account.id} - ${account.username}")
         }
     }
 
@@ -54,7 +54,7 @@ class AccountsCreateCommand(private val cli: KatanCLI) : CliktCommand(
         cli.coroutineScope.launch(cli.executor + CoroutineName("KatanCLI::account-create:$accountName")) {
             cli.accountManager.registerAccount(account)
         }.invokeOnCompletion {
-            echo("Account $accountName created successfully.", false)
+            echo("Account $accountName created successfully.")
         }
     }
 
