@@ -1,4 +1,4 @@
-package me.devnatan.katan.api.io.http
+package me.devnatan.katan.webserver.http
 
 /**
  * @property response the server's response, which can be "success" or "error"

@@ -1,4 +1,6 @@
-package me.devnatan.katan.api.io.websocket
+package me.devnatan.katan.webserver.websocket.handler
+
+import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
 
 typealias WebSocketHandlerMapper<T> = (T).() -> Unit
 

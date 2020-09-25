@@ -1,4 +1,4 @@
-package me.devnatan.katan.core.manager
+package me.devnatan.katan.webserver.websocket
 
 import br.com.devsrsouza.eventkt.listen
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
@@ -7,21 +7,28 @@ import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.transform
-import me.devnatan.katan.api.io.websocket.WebSocketHandler
-import me.devnatan.katan.api.io.websocket.WebSocketMessage
-import me.devnatan.katan.core.Katan
-import me.devnatan.katan.core.websocket.MutableWebSocketMessage
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import me.devnatan.katan.webserver.websocket.handler.WebSocketHandler
+import me.devnatan.katan.webserver.websocket.message.MutableWebSocketMessage
+import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
+import me.devnatan.katan.webserver.websocket.message.WebSocketMessageImpl
+import me.devnatan.katan.webserver.websocket.session.WebSocketSession
 import java.nio.channels.ClosedChannelException
 import java.util.concurrent.CopyOnWriteArrayList
 
-class WebSocketManager(private val core: Katan) {
+class WebSocketManager {
 
     private val sessions = CopyOnWriteArrayList<WebSocketSession>()
     private val handlers = mutableListOf<WebSocketHandler<WebSocketMessage, *>>()
     private val eventbus = LocalEventScope().asSimple()
     private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("Katan::WebSocketManager"))
+    private val mutex = Mutex()
 
     init {
         eventbus.listen<WebSocketMessage>().transform { message ->
@@ -47,6 +54,17 @@ class WebSocketManager(private val core: Katan) {
         }.launchIn(scope)
     }
 
+    suspend fun close() {
+        mutex.withLock(sessions) {
+            val iter = sessions.iterator()
+            while (iter.hasNext()) {
+                detachSession(iter.next(), false)
+            }
+        }
+        eventbus.cancel()
+        scope.cancel()
+    }
+
     fun emitEvent(event: WebSocketMessage) {
         eventbus.publish(event)
     }
@@ -66,31 +84,32 @@ class WebSocketManager(private val core: Katan) {
     /**
      * Attach the new incoming WebSocket client to the connected clients list.
      */
-    fun attachSession(session: WebSocketSession): Boolean {
-        return sessions.add(session)
+    suspend fun attachSession(session: WebSocketSession): Boolean {
+        return mutex.withLock { sessions.add(session) }
     }
 
     /**
      * Detaches an connected client from the list of connected clients list.
      */
-    suspend fun detachSession(
-        session: WebSocketSession,
-        reason: CloseReason = CloseReason(CloseReason.Codes.NORMAL, ""),
-    ): Boolean {
+    suspend fun detachSession(session: WebSocketSession, remove: Boolean = true): Boolean {
         try {
-            session.close(reason)
+            session.close()
         } catch (_: ClosedChannelException) {
         }
 
-        return sessions.remove(session)
+        return if (remove) mutex.withLock(sessions) {
+            sessions.remove(session)
+        } else remove
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    suspend fun writePacket(session: WebSocketSession, packet: Any) {
+    suspend fun writePacket(message: WebSocketMessage) {
         try {
-            session.send(Frame.Text(core.objectMapper.writeValueAsString(packet)).copy())
+            message.session.send(message.run {
+                WebSocketMessageImpl(op, Frame.Text(Json.encodeToString(content)).copy(), session)
+            })
         } catch (e: Throwable) {
-            detachSession(session, CloseReason(CloseReason.Codes.INTERNAL_ERROR, e.toString()))
+            detachSession(message.session)
         }
     }
 

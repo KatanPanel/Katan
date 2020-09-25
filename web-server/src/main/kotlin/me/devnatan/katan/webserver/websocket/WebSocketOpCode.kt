@@ -1,4 +1,4 @@
-package me.devnatan.katan.api.io.websocket
+package me.devnatan.katan.webserver.websocket
 
 object WebSocketOpCode {
 

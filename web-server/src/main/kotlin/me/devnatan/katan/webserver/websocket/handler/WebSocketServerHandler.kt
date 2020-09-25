@@ -1,8 +1,8 @@
-package me.devnatan.katan.core.websocket
+package me.devnatan.katan.webserver.websocket.handler
 
-import me.devnatan.katan.api.io.websocket.WebSocketHandler
-import me.devnatan.katan.api.io.websocket.WebSocketOpCode.SERVER_CREATE
-import me.devnatan.katan.api.io.websocket.WebSocketOpCode.SERVER_START
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_CREATE
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_START
+import me.devnatan.katan.webserver.websocket.message.WebSocketServerMessage
 
 class WebSocketServerHandler : WebSocketHandler<WebSocketServerMessage, Unit> {
 

@@ -1,8 +1,8 @@
 package me.devnatan.katan.core.database
 
 import com.typesafe.config.Config
-import me.devnatan.katan.common.get
-import me.devnatan.katan.common.getStringMap
+import me.devnatan.katan.common.util.get
+import me.devnatan.katan.common.util.getStringMap
 import me.devnatan.katan.core.database.jdbc.H2Connector
 import me.devnatan.katan.core.database.jdbc.JDBCLocalSettings
 import me.devnatan.katan.core.database.jdbc.JDBCRemoteSettings

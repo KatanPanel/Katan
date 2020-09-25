@@ -1,11 +1,5 @@
 package me.devnatan.katan.core
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.core.util.DefaultIndenter
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.KeystoreSSLConfig
@@ -15,12 +9,12 @@ import com.typesafe.config.Config
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Version
-import me.devnatan.katan.common.get
+import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.exceptions.silent
-import me.devnatan.katan.core.manager.AccountManager
+import me.devnatan.katan.core.manager.DefaultAccountManager
 import me.devnatan.katan.core.manager.DockerServerManager
 import me.devnatan.katan.core.repository.JDBCServersRepository
 import org.slf4j.LoggerFactory
@@ -33,28 +27,14 @@ class Katan(val config: Config) :
     companion object {
 
         const val DATABASE_DIALECT_FALLBACK = "H2"
-
-        val VERSION = Version(0, 1, 0)
         val logger = LoggerFactory.getLogger(Katan::class.java)!!
-        val objectMapper by lazy {
-            jacksonObjectMapper().apply {
-                enable(SerializationFeature.INDENT_OUTPUT, SerializationFeature.CLOSE_CLOSEABLE)
-                disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-                setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                setDefaultPrettyPrinter(DefaultPrettyPrinter().apply {
-                    indentArraysWith(DefaultPrettyPrinter.FixedSpaceIndenter.instance)
-                    indentObjectsWith(DefaultIndenter("  ", "\n"))
-                })
-                propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
-            }
-        }
 
     }
 
     lateinit var database: DatabaseConnector
     lateinit var docker: DockerClient
 
-    lateinit var accountManager: AccountManager
+    lateinit var accountManager: DefaultAccountManager
     lateinit var serverManager: DockerServerManager
 
     private suspend fun database() {
@@ -129,7 +109,7 @@ class Katan(val config: Config) :
     suspend fun start() {
         database()
         docker()
-        accountManager = AccountManager(this)
+        accountManager = DefaultAccountManager(this)
         serverManager = DockerServerManager(this, when (database) {
             is JDBCConnector -> JDBCServersRepository(this, database as JDBCConnector)
             else -> throw IllegalArgumentException("No servers repository available for $database").silent()

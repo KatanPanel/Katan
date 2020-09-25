@@ -2,7 +2,7 @@ package me.devnatan.katan.core.database.jdbc
 
 import io.netty.handler.codec.http.QueryStringEncoder
 import kotlinx.coroutines.Dispatchers
-import me.devnatan.katan.common.replaceEach
+import me.devnatan.katan.common.util.replaceEach
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.DatabaseSettings
 import me.devnatan.katan.core.database.jdbc.entity.AccountsTable

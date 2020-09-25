@@ -3,17 +3,10 @@ plugins {
     id("com.github.johnrengelman.shadow") version "5.0.0"
 }
 
-repositories {
-    maven("https://dl.bintray.com/marshallpierce/maven")
-}
-
-val ktorVersion = "1.4.0"
 dependencies {
     implementation(project(":core"))
-    implementation("io.ktor:ktor-locations:$ktorVersion")
-    implementation("io.ktor:ktor-auth-jwt:$ktorVersion")
-    implementation("io.ktor:ktor-server-cio:$ktorVersion")
-    implementation("org.mpierce.ktor.csrf:ktor-csrf:0.5.0")
+    implementation(project(":cli"))
+    implementation(project(":web-server"))
 }
 
 application {

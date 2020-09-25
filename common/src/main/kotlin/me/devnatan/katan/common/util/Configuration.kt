@@ -1,4 +1,4 @@
-package me.devnatan.katan.common
+package me.devnatan.katan.common.util
 
 import com.typesafe.config.Config
 

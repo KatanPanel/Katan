@@ -1,4 +1,4 @@
-package me.devnatan.katan.common
+package me.devnatan.katan.common.util
 
 class StringReplacer(value: String) {
 
