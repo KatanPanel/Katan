@@ -34,7 +34,7 @@ interface Server {
     /**
      * The container linked to the server.
      */
-    val container: ServerContainer
+    var container: ServerContainer
 
     /**
      * Remote server address search results.

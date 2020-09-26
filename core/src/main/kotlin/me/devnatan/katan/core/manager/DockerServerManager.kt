@@ -6,8 +6,14 @@ import com.github.dockerjava.api.model.*
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onEmpty
 import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.api.server.ServerContainer
 import me.devnatan.katan.api.server.ServerInspection
 import me.devnatan.katan.api.server.ServerState
 import me.devnatan.katan.core.KatanCore
@@ -24,13 +30,14 @@ class DockerServerManager(
 
     companion object {
 
+        const val SCOPE_NAME = "Katan::ServerManager"
         val logger = LoggerFactory.getLogger(ServerManager::class.java)!!
 
     }
 
     private object Docker {
 
-        private const val FORMAT = "Katan-%s-%s"
+        const val VOLUME_ENTRY_POINT = "/Katan/servers"
         private val PATTERN = Pattern.compile("Katan\\-(\\d+)\\-([a-z]+)")
 
         fun asKatanContainer(id: String): String {
@@ -44,7 +51,7 @@ class DockerServerManager(
     }
 
     private val lastId: AtomicInt
-    private val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName("Katan::SM"))
+    private val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName(SCOPE_NAME))
     private val servers: MutableSet<Server> = hashSetOf()
 
     init {
@@ -55,24 +62,28 @@ class DockerServerManager(
 
                 // We do an initial inspection to ensure that the server will have a container.
                 val inspection =
-                    coroutineScope.launch(Dispatchers.IO + CoroutineName("Katan::SM-II-${server.container.id}")) {
+                    coroutineScope.launch(Dispatchers.IO + CoroutineName("$SCOPE_NAME-${server.container.id}")) {
                         inspectServer(server)
                     }
 
                 inspection.invokeOnCompletion {
                     when (it) {
                         is NotFoundException -> {
-                            logger.warn("Server container {} not found, creating a new one with the default settings.",
-                                server.name)
-                            createContainer(server.container.id, server.address, server.port)
+                            logger.warn(
+                                "Server container {} not found, creating a new one with the default settings.",
+                                server.name
+                            )
+                            createServer0(server)
                             return@invokeOnCompletion
                         }
 
                         // We will not interrupt the loading, the container can be inspected later.
                         else -> {
-                            logger.error("It was not possible to inspect the {} container.",
+                            logger.error(
+                                "It was not possible to inspect the {} container.",
                                 server.container.id,
-                                server.name)
+                                server.name
+                            )
                             logger.error(it.toString())
                         }
                     }
@@ -97,41 +108,40 @@ class DockerServerManager(
         return servers.add(server)
     }
 
+    override suspend fun createServer(server: Server) {
+        coroutineScope.launch(
+            Dispatchers.IO + CoroutineName("$SCOPE_NAME-#createServer-${server.container.id}")
+        ) {
+            createServer0(server)
+        }.join()
+    }
+
+    private fun createServer0(server: Server) {
+        server.container = ServerContainer(core.docker.createContainerCmd("itzg/minecraft-server:multiarch")
+            .withCmd("-v", "/Katan/servers")
+            .withName(Docker.asKatanContainer(server.id.toString()))
+            .withHostConfig(HostConfig.newHostConfig().withPortBindings(Ports().apply {
+                add(PortBinding(Ports.Binding.bindIpAndPort(server.address, server.port), ExposedPort.tcp(server.port)))
+            }))
+            .withEnv("EULA=true", "TYPE=SPIGOT", "VERSION=1.8")
+            .exec().id)
+    }
+
     override suspend fun registerServer(server: Server) {
         repository.insertServer(server)
     }
 
     override suspend fun startServer(server: Server) = coroutineScope.launch(
-        Dispatchers.IO + CoroutineName("Katan::SM-#startServer-${server.container.id}")
+        Dispatchers.IO + CoroutineName("$SCOPE_NAME-#startServer-${server.id}")
     ) {
         core.docker.startContainerCmd(server.container.id).exec()
     }.join()
 
     override suspend fun stopServer(server: Server, killAfter: Duration) = coroutineScope.launch(
-        Dispatchers.IO + CoroutineName("Katan::SM-#stopServer-${server.container.id}")
+        Dispatchers.IO + CoroutineName("$SCOPE_NAME-#stopServer-${server.id}")
     ) {
         core.docker.stopContainerCmd(server.container.id).withTimeout(killAfter.seconds.toInt()).exec()
     }.join()
-
-    /**
-     * Sends a signal to the server to execute the specified [command].
-     *
-     * @param server the command to be executed
-     * @param input the command
-     */
-    suspend fun executeServerCommand(server: Server, command: String): Deferred<Frame> {
-        val defer = CompletableDeferred<Frame>()
-        core.docker.execStartCmd(withContext(Dispatchers.IO + CoroutineName("Katan::SM-#executeServerCommand-${server.container.id}")
-        ) {
-            core.docker.execCreateCmd(server.container.id).withCmd(*command.split(" ").toTypedArray()).exec().id
-        }).exec(object : ResultCallback.Adapter<Frame>() {
-            override fun onNext(frame: Frame) {
-                defer.complete(frame)
-                close()
-            }
-        })
-        return defer
-    }
 
     override suspend fun inspectServer(server: Server) {
         suspendCancellableCoroutine<ServerInspection> {
@@ -156,25 +166,33 @@ class DockerServerManager(
         }
     }
 
-    override suspend fun queryServer(server: Server) {
-        throw NotImplementedError()
-    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun runServer(server: Server, command: String): Flow<String> = callbackFlow {
+        val callback = object : ResultCallback.Adapter<Frame>() {
+            override fun onNext(frame: Frame) {
+                coroutineScope.launch(Dispatchers.Default) {
+                    send(frame.toString())
+                }
+            }
 
-    /* internal */
-    private fun createContainer(containerName: String, host: String, port: Int): String {
-        return core.docker.createContainerCmd("itzg/minecraft-server:multiarch")
-            .withCmd("-v", "/Katan/servers")
-            .withName(containerName)
-            .withHostConfig(HostConfig.newHostConfig().withPortBindings(Ports().apply {
-                add(PortBinding(Ports.Binding.bindIpAndPort(host, port), ExposedPort.tcp(port)))
-            }))
-            .withAttachStdin(true)
-            .withAttachStdout(true)
-            .withAttachStderr(true)
-            .withStdinOpen(true)
-            .withTty(true)
-            .withEnv("EULA=true", "TYPE=SPIGOT", "VERSION=1.8")
-            .exec().id
+            override fun onError(error: Throwable) {
+                super.onError(error)
+                channel.close(error)
+            }
+        }
+
+        core.docker.execStartCmd(
+            coroutineScope.async(
+                Dispatchers.IO + CoroutineName("$SCOPE_NAME-#runServer-${server.id}"),
+                CoroutineStart.LAZY
+            ) {
+                core.docker.execCreateCmd(server.container.id).withCmd(command).exec().id
+            }.await()
+        ).exec(callback)
+
+        awaitClose {
+            callback.close()
+        }
     }
 
 }

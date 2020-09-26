@@ -25,8 +25,7 @@ class JDBCServersRepository(private val core: KatanCore, private val connector: 
             ServerImpl(entity.id.value,
                 entity.name,
                 entity.address,
-                entity.port,
-                ServerContainer(entity.containerId)
+                entity.port
             ).apply {
                 holders.addAll(entity.holders.mapNotNull {
                     /*

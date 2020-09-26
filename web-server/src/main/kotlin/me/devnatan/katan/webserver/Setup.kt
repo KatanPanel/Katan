@@ -67,4 +67,5 @@ internal fun Application.installHooks() {
             logger.info("[CSRF] Allowed $protocol://$hostname:$port.")
         }
     }
+
 }

@@ -11,9 +11,10 @@ class ServerImpl(
     override var name: String,
     override var address: String,
     override var port: Int,
-    @Contextual
-    override val container: ServerContainer
 ) : Server {
+
+    @Contextual
+    override lateinit var container: ServerContainer
 
     override val query: ServerQuery = MinecraftServerQuery(this)
 

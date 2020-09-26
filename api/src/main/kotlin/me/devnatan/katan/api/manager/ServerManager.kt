@@ -1,7 +1,10 @@
 package me.devnatan.katan.api.manager
 
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.api.server.ServerContainer
 import java.time.Duration
 
 /**
@@ -26,6 +29,12 @@ interface ServerManager {
      * @return whether the server was successfully added
      */
     fun addServer(server: Server): Boolean
+
+    /**
+     * Initializes the attributes of a server (creates the container for example).
+     * @param server the server to be created
+     */
+    suspend fun createServer(server: Server)
 
     /**
      * Register a new server in the database.
@@ -76,10 +85,23 @@ interface ServerManager {
     suspend fun inspectServer(server: Server)
 
     /**
-     * Run a query in the specified server.
-     * @param server the server to be queried
+     * Lazily executes a [command] in the specified [server] container.
+     * Calling this function will not execute the command immediately,
+     * it will only prepare you for a post initialization, use [Deferred.start] to execute the command.
+     *
+     * Example of usage:
+     * ```
+     * runServerAsync(server, command, options).onCompletion {
+     *     println("Container detached")
+     * }.onEach { value ->
+     *     println("Output: $value")
+     * }
+     * ```
+     *
+     * @param server the server
+     * @param command the command to be executed
      */
-    suspend fun queryServer(server: Server)
+    fun runServer(server: Server, command: String): Flow<String>
 
 
 }
