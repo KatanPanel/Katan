@@ -1,5 +1,13 @@
 package me.devnatan.katan.core.exceptions
 
-class SilentException(cause: Throwable) : RuntimeException(cause)
+import org.slf4j.Logger
 
-fun Throwable.silent() = SilentException(this)
+class SilentException(cause: Throwable, val logger: Logger) : RuntimeException(cause)
+
+fun Throwable.asSilent(logger: Logger): SilentException {
+    return SilentException(this, logger)
+}
+
+fun throwSilent(exception: Throwable, logger: Logger): Nothing {
+    throw exception.asSilent(logger)
+}

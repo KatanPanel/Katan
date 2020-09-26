@@ -1,10 +1,11 @@
 package me.devnatan.katan.core
 
 import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.core.DockerClientBuilder
+import com.github.dockerjava.core.DefaultDockerClientConfig
+import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.core.KeystoreSSLConfig
 import com.github.dockerjava.core.LocalDirectorySSLConfig
-import com.github.dockerjava.jaxrs.JerseyDockerHttpClient
+import com.github.dockerjava.okhttp.OkDockerHttpClient
 import com.typesafe.config.Config
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -15,12 +16,13 @@ import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
-import me.devnatan.katan.core.exceptions.silent
+import me.devnatan.katan.core.exceptions.throwSilent
 import me.devnatan.katan.core.manager.DefaultAccountManager
 import me.devnatan.katan.core.manager.DockerServerManager
 import me.devnatan.katan.core.repository.JDBCServersRepository
 import org.slf4j.LoggerFactory
-import java.net.URI
+import java.io.UncheckedIOException
+import java.net.ConnectException
 import java.security.KeyStore
 
 class KatanCore(val config: Config) :
@@ -29,7 +31,7 @@ class KatanCore(val config: Config) :
     companion object {
 
         const val DATABASE_DIALECT_FALLBACK = "H2"
-        val logger = LoggerFactory.getLogger(KatanCore::class.java)!!
+        val logger = LoggerFactory.getLogger(Katan::class.java)!!
 
     }
 
@@ -47,7 +49,7 @@ class KatanCore(val config: Config) :
         val dialectSettings = runCatching {
             db.getConfig(dialect.toLowerCase())
         }.onFailure {
-            throw IllegalArgumentException("Dialect properties not found: $dialect.").silent()
+            throwSilent(IllegalArgumentException("Dialect properties not found: $dialect."), logger)
         }.getOrThrow()
 
         connectWith(dialect, dialectSettings, db.get("strict", true))
@@ -56,7 +58,7 @@ class KatanCore(val config: Config) :
     private suspend fun connectWith(dialect: String, config: Config, strict: Boolean) {
         val dialectName = dialect.toLowerCase()
         if (!SUPPORTED_CONNECTORS.containsKey(dialectName))
-            throw IllegalArgumentException("Database dialect $dialect is not supported").silent()
+            throwSilent(IllegalArgumentException("Database dialect $dialect is not supported"), logger)
 
         val (connector, settings) = SUPPORTED_CONNECTORS.getValue(dialectName).invoke(config)
         logger.info("Initializing connector ${connector::class.simpleName}.")
@@ -78,44 +80,78 @@ class KatanCore(val config: Config) :
 
     private fun docker() {
         logger.info("Configuring Docker...")
+        val dockerLogger = LoggerFactory.getLogger(DockerClient::class.java)
         val dockerConfig = config.getConfig("docker")
-        val properties = dockerConfig.getConfig("properties")
-        val jerseyClient = JerseyDockerHttpClient.Builder().dockerHost(URI(dockerConfig.getString("host")))
-            .connectTimeout(properties.getInt("connectTimeout"))
-            .readTimeout(properties.getInt("readTimeout"))
+        val tls = dockerConfig.get("tls.verify", false)
+        val clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
+            .withDockerHost(dockerConfig.getString("host"))
+            .withDockerTlsVerify(tls)
 
-        if (dockerConfig.get("ssl.enabled", false)) {
-            jerseyClient.sslConfig(when (dockerConfig.getString("ssl.provider")) {
-                "CERT" -> {
-                    val path = dockerConfig.getString("ssl.certPath")
-                    logger.info("Docker SSL certification path located at {}.", path)
-                    LocalDirectorySSLConfig(path)
-                }
-                "KEY_STORE" -> {
-                    val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
-                    val keystore = KeyStore.getInstance(type)
-                    logger.info(
-                        "Using {} as Docker SSL key store type.",
-                        type
-                    )
-
-                    KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
-                }
-                else -> throw IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE").silent()
-            })
+        if (tls) {
+            dockerLogger.info("TLS verification is enabled, will switching between HTTP protocols.")
+            clientConfig.withDockerCertPath(dockerConfig.getString("tls.certPath"))
         }
 
-        docker = DockerClientBuilder.getInstance().withDockerHttpClient(jerseyClient.build()).build()
+        if (dockerConfig.get("ssl.enabled", true)) {
+            clientConfig.withCustomSslConfig(
+                when (dockerConfig.getString("ssl.provider")) {
+                    "CERT" -> {
+                        val path = dockerConfig.getString("ssl.certPath")
+                        dockerLogger.info("Docker SSL certification path located at {}.", path)
+                        LocalDirectorySSLConfig(path)
+                    }
+                    "KEY_STORE" -> {
+                        val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
+                        val keystore = KeyStore.getInstance(type)
+                        dockerLogger.info(
+                            "Using {} as SSL key store type.",
+                            type
+                        )
+
+                        KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
+                    }
+                    else -> throwSilent(IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE"), logger)
+                }
+            )
+        }
+
+        val properties = dockerConfig.getConfig("properties")
+        val httpConfig = clientConfig.build()
+        docker = runCatching {
+            DockerClientImpl.getInstance(
+                httpConfig, OkDockerHttpClient.Builder()
+                    .dockerHost(httpConfig.dockerHost)
+                    .sslConfig(httpConfig.sslConfig)
+                    .connectTimeout(properties.getInt("connectTimeout"))
+                    .readTimeout(properties.getInt("readTimeout"))
+                    .build()
+            )
+        }.onFailure {
+            throwSilent(it, dockerLogger)
+        }.getOrThrow()
+
+        // sends a ping to see if the connection will be established.
+        try {
+            dockerLogger.info("Trying to connect to ${httpConfig.dockerHost}...")
+            docker.pingCmd().exec()
+        } catch (e: ConnectException) {
+            throwSilent(e, dockerLogger)
+        } catch (e: UncheckedIOException) {
+            throwSilent(e.cause!!, dockerLogger)
+        }
     }
 
     suspend fun start() {
+        logger.info("Platform: ${System.getProperty("os.name")} (${System.getProperty("os.arch")})")
         database()
         docker()
         accountManager = DefaultAccountManager(this)
-        serverManager = DockerServerManager(this, when (database) {
-            is JDBCConnector -> JDBCServersRepository(this, database as JDBCConnector)
-            else -> throw IllegalArgumentException("No servers repository available for $database").silent()
-        })
+        serverManager = DockerServerManager(
+            this, when (database) {
+                is JDBCConnector -> JDBCServersRepository(this, database as JDBCConnector)
+                else -> throwSilent(IllegalArgumentException("No servers repository available for $database"), logger)
+            }
+        )
     }
 
 }
