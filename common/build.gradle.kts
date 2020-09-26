@@ -7,4 +7,5 @@ dependencies {
     api("org.apache.logging.log4j:log4j-api:$log4jVersion")
     api("org.apache.logging.log4j:log4j-core:$log4jVersion")
     api("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+    api("redis.clients:jedis:3.3.0")
 }
