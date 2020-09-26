@@ -6,6 +6,7 @@ import kotlinx.coroutines.runBlocking
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.core.KatanCore
+import me.devnatan.katan.core.exceptions.SilentException
 import me.devnatan.katan.webserver.KatanWebServer
 import kotlin.system.exitProcess
 
@@ -29,7 +30,10 @@ private class KatanLauncher(config: Config) {
             runCatching {
                 katan.start()
             }.onFailure {
-                it.printStackTrace()
+                if (it is SilentException)
+                    it.logger.error(it.cause.toString())
+                else
+                    it.printStackTrace()
                 exitProcess(0)
             }.onSuccess {
                 cli = KatanCLI(katan)
