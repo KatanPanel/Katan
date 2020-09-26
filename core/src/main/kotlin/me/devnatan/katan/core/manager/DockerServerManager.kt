@@ -100,6 +100,12 @@ class DockerServerManager(
         }
     }
 
+    override fun getServerList(): Collection<Server> {
+        return synchronized (servers) {
+            servers.toCollection(hashSetOf())
+        }
+    }
+
     override fun getServer(id: Int): Server {
         return servers.first { it.id == id }
     }
@@ -118,7 +124,7 @@ class DockerServerManager(
 
     private fun createServer0(server: Server) {
         server.container = ServerContainer(core.docker.createContainerCmd("itzg/minecraft-server:multiarch")
-            .withCmd("-v", "/Katan/servers")
+            .withCmd("-v", Docker.VOLUME_ENTRY_POINT)
             .withName(Docker.asKatanContainer(server.id.toString()))
             .withHostConfig(HostConfig.newHostConfig().withPortBindings(Ports().apply {
                 add(PortBinding(Ports.Binding.bindIpAndPort(server.address, server.port), ExposedPort.tcp(server.port)))

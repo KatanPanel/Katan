@@ -4,7 +4,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import me.devnatan.katan.api.server.Server
-import me.devnatan.katan.api.server.ServerContainer
 import java.time.Duration
 
 /**
@@ -12,6 +11,11 @@ import java.time.Duration
  * @since 0.1.0
  */
 interface ServerManager {
+
+    /**
+     * Returns a copy of all registered servers.
+     */
+    fun getServerList(): Collection<Server>
 
     /**
      * Returns a server with the specified [id].
