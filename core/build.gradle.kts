@@ -1,4 +1,5 @@
 val exposedVersion = "0.27.1"
+val dockerJavaVersion = "3.2.5"
 
 dependencies {
     api(project(":common"))
@@ -8,7 +9,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("com.auth0:java-jwt:3.10.3")
     implementation("org.jetbrains.kotlinx:atomicfu:0.14.4")
-    implementation("com.github.docker-java:docker-java:3.2.5")
+    implementation("com.github.docker-java:docker-java-core:$dockerJavaVersion")
+    implementation("com.github.docker-java:docker-java-transport-okhttp:$dockerJavaVersion")
     implementation("com.h2database:h2:1.4.200")
     implementation("mysql:mysql-connector-java:8.0.21")
+    implementation("com.palominolabs.http:url-builder:1.1.2")
 }

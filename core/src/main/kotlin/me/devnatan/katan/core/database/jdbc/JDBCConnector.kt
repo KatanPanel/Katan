@@ -1,6 +1,6 @@
 package me.devnatan.katan.core.database.jdbc
 
-import io.netty.handler.codec.http.QueryStringEncoder
+import com.palominolabs.http.url.UrlBuilder
 import kotlinx.coroutines.Dispatchers
 import me.devnatan.katan.common.util.replaceEach
 import me.devnatan.katan.core.database.DatabaseConnector
@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.slf4j.LoggerFactory
+import java.net.URL
 
 abstract class JDBCConnector(
     override val name: String,
@@ -62,14 +63,14 @@ abstract class JDBCConnector(
 private fun JDBCConnector.defaultConnectionUrl(settings: DatabaseSettings): String {
     return when (settings) {
         is JDBCRemoteSettings -> {
-            QueryStringEncoder(url.replaceEach {
+            UrlBuilder.fromUrl(URL(url.replaceEach {
                 "{host}" by settings.host
                 "{database}" by settings.database
-            }).apply {
+            })).apply {
                 for ((name, value) in settings.connectionProperties.entries) {
-                    addParam(name, value)
+                    queryParam(name, value)
                 }
-            }.toString()
+            }.toUrlString()
         }
         is JDBCLocalSettings -> {
             url.replaceEach {
