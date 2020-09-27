@@ -8,11 +8,16 @@ import com.github.ajalt.clikt.parameters.options.associate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.clikt.parameters.types.long
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import me.devnatan.katan.api.server.isActive
+import me.devnatan.katan.api.server.isInactive
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.common.server.UninitializedServer
+import java.time.Duration
 
 class ServersCommand(cli: KatanCLI) : NoOpCliktCommand(
     name = "server",
@@ -21,7 +26,11 @@ class ServersCommand(cli: KatanCLI) : NoOpCliktCommand(
 ) {
 
     init {
-        subcommands(ServersListCommand(cli), ServersCreateCommand(cli))
+        subcommands(ServersListCommand(cli),
+            ServersCreateCommand(cli),
+            ServersStartCommand(cli),
+            ServersStopCommand(cli)
+        )
     }
 
 }
@@ -82,6 +91,59 @@ class ServersCreateCommand(private val cli: KatanCLI) : CliktCommand(
             } catch (e: Throwable) {
                 KatanCLI.logger.error(e.message)
             }
+        }
+    }
+
+}
+
+class ServersStartCommand(private val cli: KatanCLI) : CliktCommand(
+    name = "start",
+    help = "Starts a server."
+) {
+
+    private val serverName by argument("name", "Server name")
+
+    override fun run() {
+        try {
+            val server = cli.serverManager.getServer(serverName)
+            if (server.state.isInactive()) {
+                echo("The server is not running, use the status command to learn more.")
+                return
+            }
+
+            echo("Starting server \"${server.name}\"...")
+            cli.coroutineScope.launch(cli.executor) {
+                cli.serverManager.startServer(server)
+            }
+        } catch (e: NoSuchElementException) {
+            echo("Server $serverName not found.")
+        }
+    }
+
+}
+
+class ServersStopCommand(private val cli: KatanCLI) : CliktCommand(
+    name = "stop",
+    help = "Stops a running server."
+) {
+
+    private val serverName by argument("name", "Server name")
+    private val timeout by option("-t", "--timeout").long().default(10)
+
+    override fun run() {
+        try {
+            val server = cli.serverManager.getServer(serverName)
+            if (!server.state.isActive()) {
+                echo("The server is not running, so it cannot be stopped.")
+                return
+            }
+
+            echo("Stopping server \"${server.name}\"...")
+            cli.coroutineScope.launch(cli.executor) {
+                cli.serverManager.stopServer(server, Duration.ofSeconds(timeout))
+            }
+        } catch (e: NoSuchElementException) {
+            echo("Server $serverName not found.")
         }
     }
 
