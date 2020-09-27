@@ -1,10 +1,8 @@
 package me.devnatan.katan.api.permission
 
-import java.util.*
-
 interface PermissionHolder {
 
-    var permissions: EnumMap<Permission, PermissionFlag>
+    var permissions: MutableMap<Permission, PermissionFlag>
 
     /**
      * Checks whether we have a specific permission.
@@ -12,12 +10,12 @@ interface PermissionHolder {
      */
     fun hasPermission(permission: Permission): Boolean {
         if (permissions.isEmpty())
-            return false;
+            return false
 
         if (!permissions.containsKey(permission))
-            return false;
+            return false
 
-        return permissions[permission]!! != PermissionFlags.NOT_ALLOWED
+        return permissions.getValue(permission) != PermissionFlags.NOT_ALLOWED
     }
 
 }
