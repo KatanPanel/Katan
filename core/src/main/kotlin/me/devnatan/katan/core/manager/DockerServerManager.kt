@@ -129,6 +129,7 @@ class DockerServerManager(
             val containerName = CONTAINER_NAME_PATTERN.format(initialized.id.toString())
             for ((serviceName, _) in compose.services ?: emptyMap()) {
                 logger.info("Building service \"$serviceName\"...")
+
                 composer.runCommand(
                     "run -d --name $containerName $environmentArgs $serviceName", mapOf(
                         DockerCompose.COMPOSE_FILE to composeFile.absolutePath,
@@ -139,11 +140,7 @@ class DockerServerManager(
 
             logger.info("Obtaining the server container identification number...")
             initialized.apply {
-                container = DockerServerContainer(
-                    core.docker.listContainersCmd()
-                        .withNameFilter(listOf(containerName))
-                        .exec().first().id, core.docker
-                )
+                container = DockerServerContainer(containerName, core.docker)
             }
         }
     }
