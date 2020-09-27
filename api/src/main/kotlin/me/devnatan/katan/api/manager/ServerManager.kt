@@ -27,12 +27,33 @@ interface ServerManager {
     fun getServer(id: Int): Server
 
     /**
+     * Returns a server with the specified [name].
+     *
+     * @param name the server name
+     * @throws NoSuchElementException if the server in question does not exist.
+     * @return the server
+     */
+    fun getServer(name: String): Server
+
+    /**
      * Adds a server to the list of available servers.
      *
      * @param server the server to be added
      * @return whether the server was successfully added
      */
     fun addServer(server: Server): Boolean
+
+    /**
+     * Checks if there is a server registered with the specified [id].
+     * @param id the server id
+     */
+    fun existsServer(id: Int): Boolean
+
+    /**
+     * Checks if there is a server registered with the specified [name].
+     * @param name the server name
+     */
+    fun existsServer(name: String): Boolean
 
     /**
      * Initializes the attributes of a server (creates the container for example).

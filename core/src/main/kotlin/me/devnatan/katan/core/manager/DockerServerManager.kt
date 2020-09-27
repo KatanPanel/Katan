@@ -79,8 +79,20 @@ class DockerServerManager(
         return servers.first { it.id == id }
     }
 
+    override fun getServer(name: String): Server {
+        return servers.first { it.name.equals(name, true) }
+    }
+
     override fun addServer(server: Server): Boolean {
         return servers.add(server)
+    }
+
+    override fun existsServer(id: Int): Boolean {
+        return servers.any { it.id == id }
+    }
+
+    override fun existsServer(name: String): Boolean {
+        return servers.any { it.name.equals(name, true) }
     }
 
     override suspend fun createServer(server: Server, properties: Map<String, String>): Server {

@@ -47,7 +47,7 @@ interface Server {
     var state: ServerState
 
     /**
-     *
+     * The identification of the type of composition structure for the server.
      */
     var composition: String
 
