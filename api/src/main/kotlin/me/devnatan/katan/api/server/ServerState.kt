@@ -27,17 +27,23 @@ enum class ServerState {
     RUNNING,
 
     /**
-     * The state of the server is unknown.
-     * Probra
+     * The state of the server is unknown,
+     * existing only during pre-inspection.
      */
     UNKNOWN
 
 }
 
+/**
+ * If the server is up and running.
+ */
 fun ServerState.isActive(): Boolean {
     return this == ServerState.RESTARTING || this == ServerState.RUNNING
 }
 
+/**
+ * If the server is stopped, idle, or in an unknown state.
+ */
 fun ServerState.isInactive(): Boolean {
     return this == ServerState.DEAD || this == ServerState.PAUSED || this == ServerState.UNKNOWN
 }
