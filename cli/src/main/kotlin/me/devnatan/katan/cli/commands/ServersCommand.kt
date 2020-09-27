@@ -62,6 +62,12 @@ class ServersCreateCommand(private val cli: KatanCLI) : CliktCommand(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun run() {
+        if (cli.serverManager.existsServer(serverName)) {
+            echo("There is already a server with that name, try another one. ")
+            echo("Use \"katan server ls\" to find out which servers already exist.")
+            return
+        }
+
         cli.coroutineScope.launch(cli.executor + CoroutineName("KatanCLI::server-create:$serverName")) {
             try {
                 val server = UninitializedServer(serverName, "0.0.0.0", serverPort, serverConfig)
