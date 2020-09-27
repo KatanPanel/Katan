@@ -53,8 +53,8 @@ class ServersCreateCommand(private val cli: KatanCLI) : CliktCommand(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun run() {
-        val job = cli.coroutineScope.async(cli.executor + CoroutineName("KatanCLI::server-create:$serverName")) {
-            runCatching {
+        cli.coroutineScope.launch(cli.executor + CoroutineName("KatanCLI::server-create:$serverName")) {
+            try {
                 val server = UninitializedServer(serverName, "0.0.0.0", serverPort, serverConfig)
                 echo("Preparing to create server \"$serverName\"...")
                 if (properties.isEmpty())
@@ -70,19 +70,18 @@ class ServersCreateCommand(private val cli: KatanCLI) : CliktCommand(
 
                 cli.serverManager.createServer(server, properties).also {
                     cli.serverManager.addServer(it)
+
+                    echo("Doing initial container inspection...")
+                    cli.serverManager.inspectServer(it)
+
+                    echo("Saving latest content information from the server....")
+                    cli.serverManager.registerServer(it)
+
+                    echo("Server ${it.name} created successfully.")
                 }
-            }.onSuccess {
-                echo("Doing initial container inspection...")
-                cli.serverManager.inspectServer(it)
-
-                echo("Saving latest content information from the server....")
-                cli.serverManager.registerServer(it)
-            }.getOrThrow()
-        }
-
-        job.invokeOnCompletion {
-            val server = job.getCompleted()
-            echo("Server ${server.name} created successfully.")
+            } catch (e: Throwable) {
+                KatanCLI.logger.error(e.message)
+            }
         }
     }
 
