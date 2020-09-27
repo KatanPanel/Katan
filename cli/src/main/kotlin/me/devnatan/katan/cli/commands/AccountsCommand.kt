@@ -18,10 +18,6 @@ class AccountsCommand(cli: KatanCLI) : NoOpCliktCommand(
 ) {
 
     init {
-        context {
-            console = KatanCLI.Console
-        }
-
         subcommands(AccountsListCommand(cli), AccountsCreateCommand(cli))
     }
 
