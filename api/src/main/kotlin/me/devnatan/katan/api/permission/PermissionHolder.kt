@@ -2,7 +2,7 @@ package me.devnatan.katan.api.permission
 
 interface PermissionHolder {
 
-    var permissions: MutableMap<Permission, PermissionFlag>
+    val permissions: MutableMap<Permission, PermissionFlag>
 
     /**
      * Checks whether we have a specific permission.
