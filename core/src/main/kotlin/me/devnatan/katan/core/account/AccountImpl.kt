@@ -1,6 +1,5 @@
-package me.devnatan.katan.core.impl.account
+package me.devnatan.katan.core.account
 
-import com.google.common.collect.Maps
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -19,6 +18,6 @@ data class AccountImpl(
 ) : Account {
 
     @Contextual
-    override var permissions: EnumMap<Permission, PermissionFlag> = Maps.newEnumMap(Permission::class.java)
+    override lateinit var permissions: EnumMap<Permission, PermissionFlag>
 
 }

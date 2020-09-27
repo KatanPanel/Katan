@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import me.devnatan.katan.cli.commands.AccountsCommand
+import me.devnatan.katan.cli.commands.ServersCommand
 
 class KatanCommand(cli: KatanCLI) : CliktCommand(
     name = "katan",
@@ -21,7 +22,7 @@ class KatanCommand(cli: KatanCLI) : CliktCommand(
             console = KatanCLI.Console
         }
 
-        subcommands(AccountsCommand(cli))
+        subcommands(AccountsCommand(cli), ServersCommand(cli))
     }
 
     override fun run() {

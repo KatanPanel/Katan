@@ -8,9 +8,10 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 internal object ServersTable : IntIdTable("katan_servers") {
 
     val name        = varchar("name", 255)
-    val address     = varchar("address", 255)
+    val address     = varchar("address", 16)
     val port        = integer("port")
     val containerId = varchar("container_id", 255)
+    val composition = varchar("composition", 255).default("default")
 
 }
 
@@ -22,5 +23,6 @@ class ServerEntity(id: EntityID<Int>) : IntEntity(id) {
     var port        by ServersTable.port
     var containerId by ServersTable.containerId
     val holders     by ServerHolderEntity referrersOn ServerHoldersTable.server
+    val composition by ServersTable.composition
 
 }

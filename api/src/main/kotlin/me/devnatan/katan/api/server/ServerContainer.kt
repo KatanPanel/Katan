@@ -5,7 +5,7 @@ package me.devnatan.katan.api.server
  * @since 0.1.0
  * @property id the container identification.
  */
-open class ServerContainer(val id: String) {
+abstract class ServerContainer(val id: String) {
 
     /**
      * Container inspection result.
@@ -21,6 +21,16 @@ open class ServerContainer(val id: String) {
             inspection !is ServerInspection.Uninspected
         }
     }
+
+    /**
+     * Starts the container.
+     */
+    abstract suspend fun start()
+
+    /**
+     * Stops the container.
+     */
+    abstract suspend fun stop()
 
 }
 

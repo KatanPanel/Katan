@@ -1,4 +1,4 @@
-package me.devnatan.katan.core.impl.server
+package me.devnatan.katan.core.server
 
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerQuery

@@ -2,6 +2,7 @@ package me.devnatan.katan.cli.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.default
@@ -17,6 +18,10 @@ class AccountsCommand(cli: KatanCLI) : NoOpCliktCommand(
 ) {
 
     init {
+        context {
+            console = KatanCLI.Console
+        }
+
         subcommands(AccountsListCommand(cli), AccountsCreateCommand(cli))
     }
 

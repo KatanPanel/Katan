@@ -37,8 +37,9 @@ interface ServerManager {
     /**
      * Initializes the attributes of a server (creates the container for example).
      * @param server the server to be created
+     * @param properties properties used when creating the container
      */
-    suspend fun createServer(server: Server)
+    suspend fun createServer(server: Server, properties: Map<String, String>): Server
 
     /**
      * Register a new server in the database.

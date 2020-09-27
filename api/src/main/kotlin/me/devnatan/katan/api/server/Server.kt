@@ -46,4 +46,9 @@ interface Server {
      */
     var state: ServerState
 
+    /**
+     *
+     */
+    var composition: String
+
 }

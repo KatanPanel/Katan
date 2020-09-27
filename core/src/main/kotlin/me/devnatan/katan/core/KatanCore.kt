@@ -10,6 +10,7 @@ import com.typesafe.config.Config
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
+import me.devnatan.katan.api.Platform
 import me.devnatan.katan.api.manager.AccountManager
 import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.common.util.get
@@ -33,6 +34,14 @@ class KatanCore(val config: Config) :
         const val DATABASE_DIALECT_FALLBACK = "H2"
         val logger = LoggerFactory.getLogger(Katan::class.java)!!
 
+    }
+
+    override val platform: Platform by lazy {
+        Platform(Platform.OS(
+            System.getProperty("os.name"),
+            System.getProperty("os.arch"),
+            System.getProperty("os.version", "")
+        ))
     }
 
     lateinit var database: DatabaseConnector
@@ -142,7 +151,7 @@ class KatanCore(val config: Config) :
     }
 
     suspend fun start() {
-        logger.info("Platform: ${System.getProperty("os.name")} (${System.getProperty("os.arch")})")
+        logger.info("Platform: ${platform.os.name} ${platform.os.version}")
         database()
         docker()
         accountManager = DefaultAccountManager(this)

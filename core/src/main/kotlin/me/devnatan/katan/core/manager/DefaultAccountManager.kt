@@ -9,7 +9,7 @@ import me.devnatan.katan.api.manager.AccountManager
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.database.jdbc.entity.AccountEntity
-import me.devnatan.katan.core.impl.account.AccountImpl
+import me.devnatan.katan.core.account.AccountImpl
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory

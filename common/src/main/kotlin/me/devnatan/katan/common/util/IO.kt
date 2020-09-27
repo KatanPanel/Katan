@@ -1,6 +1,7 @@
 package me.devnatan.katan.common.util
 
 import java.io.File
+import java.io.InputStream
 import java.nio.file.Files
 import kotlin.reflect.KClass
 
