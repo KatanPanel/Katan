@@ -12,13 +12,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.api.server.Server
-import me.devnatan.katan.api.server.ServerInspection
 import me.devnatan.katan.api.server.ServerState
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.repository.ServersRepository
 import me.devnatan.katan.core.server.DockerServerContainer
 import me.devnatan.katan.core.server.DockerServerContainerInspection
-import me.devnatan.katan.core.server.SerializableServer
+import me.devnatan.katan.core.server.ServerImpl
 import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -85,7 +84,7 @@ class DockerServerManager(
     }
 
     override suspend fun createServer(server: Server, properties: Map<String, String>): Server {
-        val initialized = SerializableServer(lastId.incrementAndGet(),
+        val initialized = ServerImpl(lastId.incrementAndGet(),
             server.name,
             server.address,
             server.port,

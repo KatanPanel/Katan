@@ -1,8 +1,12 @@
-package me.devnatan.katan.core.server
+package me.devnatan.katan.webserver.impl
 
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import me.devnatan.katan.api.server.*
 
-class DockerBasedServer(
+@Serializable
+class SerializableServer(
     override val id: Int,
     override var name: String,
     override var address: String,
@@ -10,9 +14,12 @@ class DockerBasedServer(
     override var composition: String
 ) : Server {
 
+    @Contextual
     override lateinit var container: ServerContainer
-    override var query: ServerQuery = MinecraftServerQuery(this)
-    override var state: ServerState = ServerState.UNKNOWN
+    override lateinit var query: ServerQuery
+    override lateinit var state: ServerState
+
+    @Transient
     override val holders: MutableSet<ServerHolder> = hashSetOf()
 
 }

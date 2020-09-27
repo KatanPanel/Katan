@@ -7,7 +7,7 @@ import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.database.jdbc.entity.ServerEntity
 import me.devnatan.katan.core.server.NoOpServerContainer
 import me.devnatan.katan.core.server.ServerHolderImpl
-import me.devnatan.katan.core.server.SerializableServer
+import me.devnatan.katan.core.server.ServerImpl
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 interface ServersRepository {
@@ -23,7 +23,7 @@ class JDBCServersRepository(private val core: KatanCore, private val connector: 
     override suspend fun listServers(): List<Server> {
         return newSuspendedTransaction(Dispatchers.Default, connector.database) {
             ServerEntity.all().map { entity ->
-                SerializableServer(entity.id.value,
+                ServerImpl(entity.id.value,
                     entity.name,
                     entity.address,
                     entity.port,
