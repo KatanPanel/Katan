@@ -1,5 +1,6 @@
 package me.devnatan.katan.core.database.jdbc
 
+import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.net.URIBuilder
 import com.palominolabs.http.url.UrlBuilder
 import kotlinx.coroutines.Dispatchers
 import me.devnatan.katan.common.util.replaceEach
@@ -63,14 +64,18 @@ abstract class JDBCConnector(
 private fun JDBCConnector.defaultConnectionUrl(settings: DatabaseSettings): String {
     return when (settings) {
         is JDBCRemoteSettings -> {
-            UrlBuilder.fromUrl(URL(url.replaceEach {
+            url.replaceEach {
                 "{host}" by settings.host
                 "{database}" by settings.database
-            })).apply {
-                for ((name, value) in settings.connectionProperties.entries) {
-                    queryParam(name, value)
+            } + buildString {
+                val properties = settings.connectionProperties
+                if (properties.isNotEmpty()) {
+                    append("?")
+                    append(properties.map {
+                        "${it.key}=${it.value}"
+                    }.joinToString("&"))
                 }
-            }.toUrlString()
+            }
         }
         is JDBCLocalSettings -> {
             url.replaceEach {

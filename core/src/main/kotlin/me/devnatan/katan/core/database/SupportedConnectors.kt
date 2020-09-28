@@ -13,7 +13,7 @@ val SUPPORTED_CONNECTORS: Map<String, (Config) -> Pair<DatabaseConnector, Databa
         MySQLConnector() to JDBCRemoteSettings(
             it.get("host", "localhost:3306"),
             it.get("user", "root"),
-            it.getString("password"),
+            it.get("password", ""),
             it.get("database", "katan"),
             it.getStringMap("properties")
         )
