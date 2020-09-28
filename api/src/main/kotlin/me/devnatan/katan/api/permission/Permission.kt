@@ -1,11 +1,17 @@
 package me.devnatan.katan.api.permission
 
-enum class Permission {
+typealias Permission = String
 
-    ACCOUNT_CREATE_SERVER,
+typealias PermissionFlag = Int
 
-    ACCOUNT_CONSOLE_ACCESS,
+object PermissionFlags {
 
-    ACCOUNT_FTP_ACCESS;
+    val ALL: Array<PermissionFlag> by lazy {
+        arrayOf(NOT_ALLOWED, ALLOWED, INHERIT)
+    }
+
+    const val NOT_ALLOWED: Int = 0
+    const val ALLOWED: Int = 1
+    const val INHERIT: Int = 2
 
 }
