@@ -4,11 +4,11 @@ package me.devnatan.katan.webserver.routes
 
 import io.ktor.locations.*
 
-@Location("/login")
+@Location("/auth/login")
 data class LoginRoute(val username: String, val password: String)
 
-@Location("/register")
+@Location("/auth/register")
 data class RegisterRoute(val username: String, val password: String)
 
-@Location("/verify")
+@Location("/auth/verify")
 data class VerifyRoute(val token: String)
