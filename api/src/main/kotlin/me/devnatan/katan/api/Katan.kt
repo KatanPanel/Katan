@@ -1,5 +1,6 @@
 package me.devnatan.katan.api
 
+import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.manager.AccountManager
 import me.devnatan.katan.api.manager.ServerManager
 
@@ -23,5 +24,10 @@ interface Katan {
      * The [ServerManager] for this instance.
      */
     val serverManager: ServerManager
+
+    /**
+     * The [Cache] for this instance.
+     */
+    val cache: Cache<Any>
 
 }

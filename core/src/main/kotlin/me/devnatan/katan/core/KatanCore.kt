@@ -11,9 +11,12 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.Platform
+import me.devnatan.katan.api.cache.Cache
+import me.devnatan.katan.api.cache.UnavailableCacheProvider
 import me.devnatan.katan.api.manager.AccountManager
 import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.common.util.get
+import me.devnatan.katan.core.cache.RedisCacheProvider
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
@@ -22,9 +25,14 @@ import me.devnatan.katan.core.manager.DefaultAccountManager
 import me.devnatan.katan.core.manager.DockerServerManager
 import me.devnatan.katan.core.repository.JDBCServersRepository
 import org.slf4j.LoggerFactory
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolConfig
+import redis.clients.jedis.Pipeline
 import java.io.UncheckedIOException
 import java.net.ConnectException
 import java.security.KeyStore
+
 
 class KatanCore(val config: Config) :
     CoroutineScope by CoroutineScope(CoroutineName("Katan")), Katan {
@@ -37,11 +45,13 @@ class KatanCore(val config: Config) :
     }
 
     override val platform: Platform by lazy {
-        Platform(Platform.OS(
-            System.getProperty("os.name"),
-            System.getProperty("os.arch"),
-            System.getProperty("os.version", "")
-        ))
+        Platform(
+            Platform.OS(
+                System.getProperty("os.name"),
+                System.getProperty("os.arch"),
+                System.getProperty("os.version", "")
+            )
+        )
     }
 
     lateinit var database: DatabaseConnector
@@ -49,6 +59,7 @@ class KatanCore(val config: Config) :
 
     override lateinit var accountManager: AccountManager
     override lateinit var serverManager: ServerManager
+    override lateinit var cache: Cache<Any>
 
     private suspend fun database() {
         val db = config.getConfig("database")
@@ -119,7 +130,10 @@ class KatanCore(val config: Config) :
 
                         KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
                     }
-                    else -> throwSilent(IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE"), logger)
+                    else -> throwSilent(
+                        IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE"),
+                        logger
+                    )
                 }
             )
         }
@@ -150,10 +164,36 @@ class KatanCore(val config: Config) :
         }
     }
 
+    private fun caching() {
+        val redis = config.getConfig("redis")
+        if (!redis.get("use", false)) {
+            logger.warn("Redis caching service is disabled.")
+            logger.warn("It is highly recommended that you install Redis on the machine and activate the caching service.")
+            logger.warn("Services based on external synchronization will not work.")
+            return
+        }
+
+        val host = redis.get("host", "localhost")
+        /*
+            we have to use the pool instead of the direct client due to Katan nature,
+            the default instance of Jedis (without pool) is not thread-safe
+         */
+
+        try {
+            cache = RedisCacheProvider(JedisPool(JedisPoolConfig(), host))
+            logger.info("Redis connected successfully!")
+        } catch (e: Throwable) {
+            cache = UnavailableCacheProvider()
+            logger.error("Could not connect to the Redis server ().")
+            logger.error(e.message)
+        }
+    }
+
     suspend fun start() {
         logger.info("Platform: ${platform.os.name} ${platform.os.version}")
         database()
         docker()
+        caching()
         accountManager = DefaultAccountManager(this)
         serverManager = DockerServerManager(
             this, when (database) {
