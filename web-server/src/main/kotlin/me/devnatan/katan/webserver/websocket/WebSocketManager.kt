@@ -4,10 +4,7 @@ import br.com.devsrsouza.eventkt.listen
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
 import br.com.devsrsouza.eventkt.scopes.asSimple
 import io.ktor.http.cio.websocket.*
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
@@ -61,7 +58,11 @@ class WebSocketManager {
                 detachSession(iter.next(), false)
             }
         }
-        eventbus.cancel()
+
+        // bypasses IllegalStateException
+        if (eventbus.coroutineContext.isActive)
+            eventbus.cancel()
+
         scope.cancel()
     }
 
