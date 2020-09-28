@@ -43,8 +43,9 @@ class KatanCLI(katan: Katan) : Closeable, Katan by katan {
     var coroutineScope = CoroutineScope(CoroutineName("KatanCLI"))
     private val command = KatanCommand(this)
 
-    suspend fun init() {
-        coroutineScope.launch {
+    fun init() {
+        running = true
+        runBlocking {
             var line: String?
             do {
                 line = readLine()
@@ -68,13 +69,11 @@ class KatanCLI(katan: Katan) : Closeable, Katan by katan {
                 }
             } while (line != null)
         }
-
-        running = true
     }
 
     override fun close() {
-        executor.close()
         coroutineScope.cancel()
+        executor.close()
     }
 
 }
