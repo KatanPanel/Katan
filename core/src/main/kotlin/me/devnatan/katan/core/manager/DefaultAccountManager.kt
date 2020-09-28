@@ -1,15 +1,16 @@
 package me.devnatan.katan.core.manager
 
 import com.auth0.jwt.JWT
+import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTDecodeException
 import kotlinx.coroutines.Dispatchers
 import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.api.manager.AccountManager
 import me.devnatan.katan.core.KatanCore
+import me.devnatan.katan.core.account.AccountImpl
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.database.jdbc.entity.AccountEntity
-import me.devnatan.katan.core.account.AccountImpl
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
@@ -22,20 +23,37 @@ class DefaultAccountManager(private val core: KatanCore) : AccountManager {
 
     private companion object {
 
-        const val JWT_ACCOUNT_ID_FIELD = "id"
-        const val JWT_ISSUER = "Katan"
-        const val JWT_AUDIENCE = "Katan"
-        val JWT_TOKEN_LIFETIME = Duration.ofMinutes(10)!!
+        const val AUTH_SECRET_MIN_LENGTH = 8
+        const val AUTH_SECRET_MAX_LENGTH = 32
+
+        private const val JWT_AUDIENCE = "Katan-AccountManager"
+        private val JWT_TOKEN_LIFETIME = Duration.ofMinutes(10)!!
 
         val logger = LoggerFactory.getLogger(AccountManager::class.java)!!
 
     }
 
     private val accounts = hashSetOf<Account>()
-    private val algorithm = Algorithm.HMAC256(core.config.getString("security.crypto.auth.secret"))
-    private val verifier = JWT.require(algorithm).withIssuer(JWT_ISSUER).withAudience(JWT_AUDIENCE).build()!!
+    private val algorithm: Algorithm
+    private val verifier: JWTVerifier
 
     init {
+        val secret = core.config.getString("security.crypto.auth.secret")
+        val len = secret.length
+        check(len >= AUTH_SECRET_MIN_LENGTH) {
+            "Authentication secret must have at least %d characters (given: %d).".format(
+                AUTH_SECRET_MIN_LENGTH, len
+            )
+        }
+        check(len <= AUTH_SECRET_MAX_LENGTH) {
+            "Authentication secret cannot exceed %d characters (given: %d).".format(
+                AUTH_SECRET_MAX_LENGTH, len
+            )
+        }
+
+        algorithm = Algorithm.HMAC256(secret)
+        verifier = JWT.require(algorithm).withAudience(JWT_AUDIENCE).build()!!
+
         logger.info("Loading accounts...")
 
         // TODO: create accounts repository
@@ -95,9 +113,8 @@ class DefaultAccountManager(private val core: KatanCore) : AccountManager {
             throw IllegalArgumentException()
 
         return JWT.create()
-            .withIssuer(JWT_ISSUER)
             .withAudience(JWT_AUDIENCE)
-            .withClaim(JWT_ACCOUNT_ID_FIELD, account.id.toString())
+            .withClaim("account", account.id.toString())
             .withExpiresAt(Date.from(Instant.now().plus(JWT_TOKEN_LIFETIME)))
             .sign(algorithm)
     }
