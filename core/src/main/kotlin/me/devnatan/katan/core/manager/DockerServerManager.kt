@@ -47,7 +47,7 @@ class DockerServerManager(
     private val composer = DockerCompose(core.platform, logger)
 
     init {
-        Files.createDirectories(Paths.get(COMPOSE_ROOT))
+        logger.info("Compose root is located at: " + Files.createDirectories(Paths.get(COMPOSE_ROOT)))
 
         runBlocking {
             logger.info("Loading servers...")
@@ -55,6 +55,7 @@ class DockerServerManager(
                 server.container = DockerServerContainer(server.container.id, core.docker)
 
                 try {
+                    logger.info("Inspecting server \"${server.name}\"...")
                     inspectServer(server)
                     servers.add(server)
                 } catch (e: NotFoundException) {
@@ -66,6 +67,7 @@ class DockerServerManager(
                 // already registered this will prevent future collisions.
                 lastId.lazySet(server.id)
             }
+            logger.info("${servers.size} servers have been loaded.")
         }
     }
 

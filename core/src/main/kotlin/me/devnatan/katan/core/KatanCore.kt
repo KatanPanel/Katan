@@ -72,7 +72,7 @@ class KatanCore(val config: Config) :
             throwSilent(IllegalArgumentException("Dialect properties not found: $dialect."), logger)
         }.getOrThrow()
 
-        connectWith(dialect, dialectSettings, db.get("strict", true))
+        connectWith(dialect, dialectSettings, db.get("strict", false))
     }
 
     private suspend fun connectWith(dialect: String, config: Config, strict: Boolean) {
@@ -88,10 +88,8 @@ class KatanCore(val config: Config) :
             connector.connect(settings)
         }.onFailure {
             logger.error("Unable to connect to $dialect database.")
-            if (strict || dialect.equals(DATABASE_DIALECT_FALLBACK, true)) {
-                logger.error("{}", it.toString())
-                throw it
-            }
+            if (strict || dialect.equals(DATABASE_DIALECT_FALLBACK, true))
+                throwSilent(it, logger)
 
             logger.info("Strict mode is disabled, connecting again using fallback dialect $DATABASE_DIALECT_FALLBACK.")
             connectWith(DATABASE_DIALECT_FALLBACK, config, strict)
@@ -110,9 +108,12 @@ class KatanCore(val config: Config) :
         if (tls) {
             dockerLogger.info("TLS verification is enabled, will switching between HTTP protocols.")
             clientConfig.withDockerCertPath(dockerConfig.getString("tls.certPath"))
+        } else {
+            dockerLogger.warn("TLS verification is not enabled. It is highly recommended to run Docker in a secure environment.")
+            dockerLogger.warn("See more: https://docs.docker.com/engine/security/https/")
         }
 
-        if (dockerConfig.get("ssl.enabled", true)) {
+        if (dockerConfig.get("ssl.enabled", false)) {
             clientConfig.withCustomSslConfig(
                 when (dockerConfig.getString("ssl.provider")) {
                     "CERT" -> {
@@ -140,13 +141,14 @@ class KatanCore(val config: Config) :
 
         val properties = dockerConfig.getConfig("properties")
         val httpConfig = clientConfig.build()
+
         docker = runCatching {
             DockerClientImpl.getInstance(
                 httpConfig, OkDockerHttpClient.Builder()
                     .dockerHost(httpConfig.dockerHost)
                     .sslConfig(httpConfig.sslConfig)
-                    .connectTimeout(properties.getInt("connectTimeout"))
-                    .readTimeout(properties.getInt("readTimeout"))
+                    .connectTimeout(properties.get("connectTimeout", 5000))
+                    .readTimeout(properties.get("readTimeout", 5000))
                     .build()
             )
         }.onFailure {
@@ -155,8 +157,8 @@ class KatanCore(val config: Config) :
 
         // sends a ping to see if the connection will be established.
         try {
-            dockerLogger.info("Trying to connect to ${httpConfig.dockerHost}...")
             docker.pingCmd().exec()
+            dockerLogger.info("Start composing server predefined composition files via \"compose/.../docker-compose.yml\".")
         } catch (e: ConnectException) {
             throwSilent(e, dockerLogger)
         } catch (e: UncheckedIOException) {
@@ -174,6 +176,7 @@ class KatanCore(val config: Config) :
         }
 
         val host = redis.get("host", "localhost")
+        logger.info("Redis host set to: $host")
         /*
             we have to use the pool instead of the direct client due to Katan nature,
             the default instance of Jedis (without pool) is not thread-safe
@@ -181,15 +184,16 @@ class KatanCore(val config: Config) :
 
         try {
             cache = RedisCacheProvider(JedisPool(JedisPoolConfig(), host))
-            logger.info("Redis connected successfully!")
+            logger.info("Redis caching server is ready to use.")
         } catch (e: Throwable) {
             cache = UnavailableCacheProvider()
-            logger.error("Could not connect to the Redis server ().")
+            logger.error("Could not connect to the Redis server.")
             logger.error(e.message)
         }
     }
 
     suspend fun start() {
+        logger.info("Starting Katan...")
         logger.info("Platform: ${platform.os.name} ${platform.os.version}")
         database()
         docker()

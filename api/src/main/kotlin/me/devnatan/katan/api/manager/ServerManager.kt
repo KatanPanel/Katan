@@ -6,10 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import me.devnatan.katan.api.server.Server
 import java.time.Duration
 
-/**
- * @author Natan V.
- * @since 0.1.0
- */
 interface ServerManager {
 
     /**
