@@ -3,6 +3,7 @@ package me.devnatan.katan.webserver
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -27,7 +28,7 @@ class KatanWebServer(
         val logger = LoggerFactory.getLogger(KatanWebServer::class.java)!!
     }
 
-    lateinit var engine: CIOApplicationEngine
+    lateinit var engine: ApplicationEngine
     val config = ConfigFactory.load(ConfigFactory.parseFile(this::class.exportResource("webserver.conf")))!!
     val webSocketManager: WebSocketManager = WebSocketManager()
     val enabled = config.get("enabled", true)
@@ -39,21 +40,26 @@ class KatanWebServer(
 
         val deployment = config.getConfig("deployment")
         engine = embeddedServer(
-            CIO,
+            Netty,
             applicationEngineEnvironment {
-                val ssl = deployment.getConfig("ssl")
-
                 connector {
                     host = deployment.get("host", "0.0.0.0")
                     port = deployment.get("port", 80)
                 }
 
-                /* sslConnector(
-                    KeyStore.getInstance(KeyStore.getDefaultType()),
-                    ssl.getString("keyAlias"),
-                    { ssl.getString("keyStorePassword").toCharArray() },
-                    { ssl.getString("privateKeyPassword").toCharArray() }
-                ) {} */
+                if (deployment.hasPath("sslPort")) {
+                    val ssl = deployment.getConfig("ssl")
+                    val ks = KeyStore.getInstance(KeyStore.getDefaultType())
+                    val pass = ssl.getString("keyStorePassword").toCharArray()
+                    ks.load(null, pass)
+
+                    sslConnector(
+                        ks,
+                        ssl.getString("keyAlias"),
+                        { pass },
+                        { ssl.getString("privateKeyPassword").toCharArray() }
+                    ) {}
+                }
 
                 module {
                     installHooks()
