@@ -1,10 +1,9 @@
 package me.devnatan.katan.api
 
-import java.io.File
-
 data class Platform(val os: OS) {
 
     /**
+     * Platform operational system info.
      * @property name the name of the operating system
      * @property arch the operating system architecture information
      * @property version the operating system version
@@ -55,10 +54,13 @@ fun Platform.isUnix(): Boolean {
 }
 
 /**
- * Detects the current platform.
+ * Detects the current platform based on the system properties.
+ * @see System.getProperty
  */
-fun currentPlatform() = Platform(Platform.OS(
-    System.getProperty("os.name"),
-    System.getProperty("os.arch"),
-    System.getProperty("os.version", "")
-))
+fun currentPlatform() = Platform(
+    Platform.OS(
+        System.getProperty("os.name"),
+        System.getProperty("os.arch"),
+        System.getProperty("os.version", "")
+    )
+)
