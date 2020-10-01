@@ -16,5 +16,5 @@ dependencies {
     implementation("com.h2database:h2:1.4.200")
     implementation("mysql:mysql-connector-java:8.0.21")
     implementation("com.palominolabs.http:url-builder:1.1.2")
-    implementation("redis.clients:jedis:2.9.0")
+    implementation("redis.clients:jedis:3.3.0")
 }

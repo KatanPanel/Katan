@@ -8,7 +8,6 @@ import me.devnatan.katan.api.cache.Cache
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Pipeline
-import java.lang.IllegalArgumentException
 
 class RedisCacheProvider(private val pool: JedisPool) : Cache<Any> {
 

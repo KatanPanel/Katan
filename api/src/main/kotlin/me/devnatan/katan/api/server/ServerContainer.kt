@@ -1,8 +1,8 @@
 package me.devnatan.katan.api.server
 
+import kotlinx.coroutines.Job
+
 /**
- * @author Natan V.
- * @since 0.1.0
  * @property id the container identification.
  */
 abstract class ServerContainer(val id: String) {
@@ -17,6 +17,7 @@ abstract class ServerContainer(val id: String) {
      * @return [ServerInspection.Uninspected] if it hasn't been inspected.
      */
     open fun isInspected(): Boolean {
+        Job
         return synchronized(inspection) {
             inspection !is ServerInspection.Uninspected
         }
@@ -43,6 +44,12 @@ interface ServerInspection {
     /**
      * Represents an inspection result not yet performed.
      */
-    object Uninspected : ServerInspection
+    object Uninspected : ServerInspection {
+
+        override fun toString(): String {
+            return "Not inspected yet."
+        }
+
+    }
 
 }

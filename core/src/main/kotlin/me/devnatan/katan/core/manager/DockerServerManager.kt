@@ -3,26 +3,27 @@ package me.devnatan.katan.core.manager
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
 import com.github.dockerjava.api.model.Frame
-import de.gesellix.docker.compose.ComposeFileReader
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.api.server.ServerComposition
+import me.devnatan.katan.api.server.ServerCompositionFactory
 import me.devnatan.katan.api.server.ServerState
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.repository.ServersRepository
 import me.devnatan.katan.core.server.DockerServerContainer
 import me.devnatan.katan.core.server.DockerServerContainerInspection
 import me.devnatan.katan.core.server.ServerImpl
+import me.devnatan.katan.core.server.composition.DockerImageFactory
 import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.LoggerFactory
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
+import java.io.Closeable
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Duration
@@ -45,6 +46,7 @@ class DockerServerManager(
     private val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName(COROUTINE_SCOPE_NAME))
     private val servers: MutableSet<Server> = hashSetOf()
     private val composer = DockerCompose(core.platform, logger)
+    private val compositionFactories: MutableList<ServerCompositionFactory> = arrayListOf()
 
     init {
         logger.info("Compose root is located at: " + Files.createDirectories(Paths.get(COMPOSE_ROOT)))
@@ -59,8 +61,8 @@ class DockerServerManager(
                     inspectServer(server)
                     servers.add(server)
                 } catch (e: NotFoundException) {
-                    logger.warn("Server \"${server.name}\" container could not be found.")
-                    logger.warn("It will not be initialized, execute the build command to build the container and start again.")
+                    logger.warn("Server \"${server.name}\" server container was not found, it could not be initialized.")
+                    logger.warn("Use \"katan server create\" to create a new server or compose one from a Docker Compose file using \"katan server compose\".")
                 }
 
                 // Ensuring that the next id is after the id of any server
@@ -69,6 +71,8 @@ class DockerServerManager(
             }
             logger.info("${servers.size} servers have been loaded.")
         }
+
+        registerCompositionFactory(DockerImageFactory)
     }
 
     override fun getServerList(): Collection<Server> {
@@ -97,14 +101,15 @@ class DockerServerManager(
         return servers.any { it.name.equals(name, true) }
     }
 
-    override suspend fun createServer(server: Server, properties: Map<String, String>): Server {
-        val initialized = ServerImpl(lastId.incrementAndGet(),
+    override suspend fun createServer(server: Server): Server {
+        val initialized = ServerImpl(
+            lastId.incrementAndGet(),
             server.name,
             server.address,
-            server.port,
-            server.composition)
+            server.port
+        )
 
-        val pwd = File(COMPOSE_ROOT + File.separator + initialized.composition)
+        /* val pwd = File(COMPOSE_ROOT + File.separator + initialized.composition)
         if (!pwd.exists())
             pwd.mkdirs()
 
@@ -112,15 +117,15 @@ class DockerServerManager(
         if (!composeFile.exists())
             throw FileNotFoundException("Couldn't find Docker Compose for ${initialized.name} @ ${composeFile.absolutePath}")
 
-        logger.info("Using \"${initialized.composition}\" Docker Compose as server composition.")
+        logger.info("Using \"${initialized.composition}\" Docker Compose as server composition.") */
         return withContext(
-            coroutineScope.coroutineContext + Dispatchers.IO + CoroutineName("$COROUTINE_SCOPE_NAME-#createServer-${server.name}")
+            Dispatchers.IO + CoroutineName("$COROUTINE_SCOPE_NAME-#createServer-${server.name}")
         ) {
             val fileEnv = mapOf(
                 "KATAN_PORT" to server.port.toString()
             )
 
-            val compose = ComposeFileReader().load(
+            /* val compose = ComposeFileReader().load(
                 FileInputStream(composeFile), pwd.absolutePath, fileEnv
             )!!
 
@@ -128,8 +133,9 @@ class DockerServerManager(
                 "-e $key=$value"
             }.joinToString(" ")
 
+            */
             val containerName = CONTAINER_NAME_PATTERN.format(initialized.id.toString())
-            for ((serviceName, _) in compose.services ?: emptyMap()) {
+            /*for ((serviceName, _) in compose.services ?: emptyMap()) {
                 logger.info("Building service \"$serviceName\"...")
 
                 composer.runCommand(
@@ -138,7 +144,7 @@ class DockerServerManager(
                         DockerCompose.COMPOSE_PROJECT to containerName
                     ), showOutput = false, showErrors = false
                 )
-            }
+            } */
 
             logger.info("Obtaining the server container identification number...")
             initialized.apply {
@@ -180,18 +186,31 @@ class DockerServerManager(
         server.container.inspection = DockerServerContainerInspection(response)
     }
 
+    // TODO: use conflated channel
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun runServer(server: Server, command: String): Flow<String> = callbackFlow {
-        val callback = object : ResultCallback.Adapter<Frame>() {
+        val callback = object : ResultCallback<Frame> {
+            private var stream: Closeable? = null
+
             override fun onNext(frame: Frame) {
-                coroutineScope.launch(Dispatchers.Default) {
-                    send(frame.toString())
-                }
+                sendBlocking(frame.toString())
+            }
+
+            override fun onStart(closeable: Closeable) {
+                stream = closeable
+            }
+
+            override fun onComplete() {
+                channel.close()
             }
 
             override fun onError(error: Throwable) {
-                super.onError(error)
                 channel.close(error)
+            }
+
+            override fun close() {
+                @Suppress("BlockingMethodInNonBlockingContext")
+                stream?.close()
             }
         }
 
@@ -207,6 +226,44 @@ class DockerServerManager(
         awaitClose {
             callback.close()
         }
+    }
+
+    override fun getRegisteredCompositionFactories(): Collection<ServerCompositionFactory> {
+        return compositionFactories
+    }
+
+    override fun getCompositionFactoryFor(key: ServerComposition.Key<*>): ServerCompositionFactory? {
+        return compositionFactories.firstOrNull { factory ->
+            factory.applicable.any { it == key }
+        }
+    }
+
+    override fun getCompositionFactoryApplicableFor(name: String): ServerCompositionFactory? {
+        return compositionFactories.firstOrNull { factory ->
+            factory.applicable.any { it.name == name }
+        }
+    }
+
+    override fun registerCompositionFactory(factory: ServerCompositionFactory) {
+        compositionFactories.add(factory)
+        logger.info(
+            "Composition factory registered for ${
+                factory.applicable.joinToString {
+                    it.name
+                }
+            }."
+        )
+    }
+
+    override fun unregisterCompositionFactory(factory: ServerCompositionFactory) {
+        compositionFactories.remove(factory)
+        logger.info(
+            "Unregistered ${
+                factory.applicable.joinToString {
+                    it.toString()
+                }
+            } composition factory."
+        )
     }
 
 }

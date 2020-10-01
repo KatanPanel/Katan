@@ -1,9 +1,5 @@
 package me.devnatan.katan.api.server
 
-/**
- * @author Natan V.
- * @since 0.1.0
- */
 interface Server {
 
     /**
@@ -47,8 +43,8 @@ interface Server {
     var state: ServerState
 
     /**
-     * The identification of the type of composition structure for the server.
+     * Server compositions.
      */
-    var composition: String
+    var compositions: ServerCompositions
 
 }

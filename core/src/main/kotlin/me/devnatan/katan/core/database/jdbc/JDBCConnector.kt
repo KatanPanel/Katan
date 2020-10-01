@@ -1,7 +1,5 @@
 package me.devnatan.katan.core.database.jdbc
 
-import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.net.URIBuilder
-import com.palominolabs.http.url.UrlBuilder
 import kotlinx.coroutines.Dispatchers
 import me.devnatan.katan.common.util.replaceEach
 import me.devnatan.katan.core.database.DatabaseConnector
@@ -13,7 +11,6 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.slf4j.LoggerFactory
-import java.net.URL
 
 abstract class JDBCConnector(
     override val name: String,

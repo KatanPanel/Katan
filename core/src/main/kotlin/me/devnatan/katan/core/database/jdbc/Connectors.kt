@@ -4,7 +4,8 @@ import me.devnatan.katan.core.database.DatabaseSettings
 
 class MySQLConnector : JDBCConnector("MySQL", "com.mysql.cj.jdbc.Driver", "jdbc:mysql://{host}/{database}")
 
-class H2Connector(private val memory: Boolean) : JDBCConnector("H2", "org.h2.Driver",
+class H2Connector(private val memory: Boolean) : JDBCConnector(
+    "H2", "org.h2.Driver",
     if (memory) "jdbc:h2:{file}"
     else "jdbc:h2:mem:regular;{properties}"
 ) {

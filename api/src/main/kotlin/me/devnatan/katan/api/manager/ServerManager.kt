@@ -4,6 +4,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.api.server.ServerComposition
+import me.devnatan.katan.api.server.ServerCompositionFactory
 import java.time.Duration
 
 interface ServerManager {
@@ -54,9 +56,9 @@ interface ServerManager {
     /**
      * Initializes the attributes of a server (creates the container for example).
      * @param server the server to be created
-     * @param properties properties used when creating the container
+     * @see ServerComposition
      */
-    suspend fun createServer(server: Server, properties: Map<String, String>): Server
+    suspend fun createServer(server: Server): Server
 
     /**
      * Register a new server in the database.
@@ -113,7 +115,7 @@ interface ServerManager {
      *
      * Example of usage:
      * ```
-     * runServerAsync(server, command, options).onCompletion {
+     * runServer(server, command, options).onCompletion {
      *     println("Container detached")
      * }.onEach { value ->
      *     println("Output: $value")
@@ -125,5 +127,14 @@ interface ServerManager {
      */
     fun runServer(server: Server, command: String): Flow<String>
 
+    fun getRegisteredCompositionFactories(): Collection<ServerCompositionFactory>
+
+    fun getCompositionFactoryFor(key: ServerComposition.Key<*>): ServerCompositionFactory?
+
+    fun getCompositionFactoryApplicableFor(name: String): ServerCompositionFactory?
+
+    fun registerCompositionFactory(factory: ServerCompositionFactory)
+
+    fun unregisterCompositionFactory(factory: ServerCompositionFactory)
 
 }

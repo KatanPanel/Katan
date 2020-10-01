@@ -4,9 +4,9 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":cli"))
-    implementation(project(":web-server"))
+    api(project(":core"))
+    api(project(":cli"))
+    api(project(":web-server"))
 }
 
 application {
@@ -14,14 +14,14 @@ application {
 }
 
 tasks {
-    shadowJar {
-        archiveBaseName.set("Katan-${project.parent?.version ?: project.version}")
-    }
-
     jar {
         manifest {
             attributes["Main-Class"] = application.mainClassName
         }
+    }
+
+    shadowJar {
+        archiveBaseName.set("Katan-${project.parent?.version ?: project.version}")
     }
 
     build {

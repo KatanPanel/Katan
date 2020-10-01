@@ -23,11 +23,11 @@ class JDBCServersRepository(private val core: KatanCore, private val connector: 
     override suspend fun listServers(): List<Server> {
         return newSuspendedTransaction(Dispatchers.Default, connector.database) {
             ServerEntity.all().map { entity ->
-                ServerImpl(entity.id.value,
+                ServerImpl(
+                    entity.id.value,
                     entity.name,
                     entity.address,
-                    entity.port,
-                    entity.composition
+                    entity.port
                 ).apply {
                     container = NoOpServerContainer(entity.containerId)
 
