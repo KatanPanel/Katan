@@ -1,5 +1,8 @@
 package me.devnatan.katan.core
 
+import br.com.devsrsouza.eventkt.EventScope
+import br.com.devsrsouza.eventkt.scopes.LocalEventScope
+import br.com.devsrsouza.eventkt.scopes.SimpleEventScope
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
@@ -10,31 +13,39 @@ import com.typesafe.config.Config
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
+import me.devnatan.katan.api.KatanEnvironment
 import me.devnatan.katan.api.Platform
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
+import me.devnatan.katan.api.currentPlatform
 import me.devnatan.katan.api.manager.AccountManager
-import me.devnatan.katan.api.manager.ServerManager
+import me.devnatan.katan.api.manager.PluginManager
+import me.devnatan.katan.common.KATAN_VERSION
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.cache.RedisCacheProvider
+import me.devnatan.katan.core.crypto.Hash
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.exceptions.throwSilent
 import me.devnatan.katan.core.manager.DefaultAccountManager
+import me.devnatan.katan.core.manager.DefaultPluginManager
 import me.devnatan.katan.core.manager.DockerServerManager
+import me.devnatan.katan.core.repository.JDBCAccountsRepository
 import me.devnatan.katan.core.repository.JDBCServersRepository
 import org.slf4j.LoggerFactory
-import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
-import redis.clients.jedis.Pipeline
 import java.io.UncheckedIOException
 import java.net.ConnectException
 import java.security.KeyStore
+import kotlin.system.measureTimeMillis
 
-
-class KatanCore(val config: Config) :
+class KatanCore(
+    val config: Config,
+    override val environment: KatanEnvironment,
+    val locale: KatanLocale
+) :
     CoroutineScope by CoroutineScope(CoroutineName("Katan")), Katan {
 
     companion object {
@@ -45,26 +56,23 @@ class KatanCore(val config: Config) :
     }
 
     override val platform: Platform by lazy {
-        Platform(
-            Platform.OS(
-                System.getProperty("os.name"),
-                System.getProperty("os.arch"),
-                System.getProperty("os.version", "")
-            )
-        )
+        currentPlatform()
     }
 
     lateinit var database: DatabaseConnector
     lateinit var docker: DockerClient
 
     override lateinit var accountManager: AccountManager
-    override lateinit var serverManager: ServerManager
+    override lateinit var serverManager: DockerServerManager
+    override lateinit var pluginManager: PluginManager
     override lateinit var cache: Cache<Any>
+    override lateinit var eventBus: EventScope
+    lateinit var hash: Hash
 
     private suspend fun database() {
         val db = config.getConfig("database")
         val dialect = db.get("source", DATABASE_DIALECT_FALLBACK)
-        logger.info("Using $dialect as database dialect (fallback to ${DATABASE_DIALECT_FALLBACK}).")
+        logger.info(locale.internal("katan.database.dialect", dialect, DATABASE_DIALECT_FALLBACK))
 
         val dialectSettings = runCatching {
             db.getConfig(dialect.toLowerCase())
@@ -81,23 +89,27 @@ class KatanCore(val config: Config) :
             throwSilent(IllegalArgumentException("Database dialect $dialect is not supported"), logger)
 
         val (connector, settings) = SUPPORTED_CONNECTORS.getValue(dialectName).invoke(config)
-        logger.info("Initializing connector ${connector::class.simpleName}.")
+        logger.info(locale.internal("katan.database.connector", connector::class.simpleName!!))
 
         runCatching {
             database = connector
-            connector.connect(settings)
+            logger.info(locale.internal("katan.database.connecting", settings.toString()))
+            val took = measureTimeMillis {
+                connector.connect(settings)
+            }
+            logger.info(locale.internal("katan.database.connected", String.format("%.2f", took / 1000.0f)))
         }.onFailure {
-            logger.error("Unable to connect to $dialect database.")
+            logger.error(locale.internal("katan.database.fail", dialect))
             if (strict || dialect.equals(DATABASE_DIALECT_FALLBACK, true))
                 throwSilent(it, logger)
 
-            logger.info("Strict mode is disabled, connecting again using fallback dialect $DATABASE_DIALECT_FALLBACK.")
+            logger.info(locale.internal("katan.database.strict", DATABASE_DIALECT_FALLBACK))
             connectWith(DATABASE_DIALECT_FALLBACK, config, strict)
         }
     }
 
     private fun docker() {
-        logger.info("Configuring Docker...")
+        logger.info(locale.internal("katan.docker.config"))
         val dockerLogger = LoggerFactory.getLogger(DockerClient::class.java)
         val dockerConfig = config.getConfig("docker")
         val tls = dockerConfig.get("tls.verify", false)
@@ -106,28 +118,28 @@ class KatanCore(val config: Config) :
             .withDockerTlsVerify(tls)
 
         if (tls) {
-            dockerLogger.info("TLS verification is enabled, will switching between HTTP protocols.")
+            dockerLogger.info(locale.internal("katan.docker.tls-enabled"))
             clientConfig.withDockerCertPath(dockerConfig.getString("tls.certPath"))
-        } else {
-            dockerLogger.warn("TLS verification is not enabled. It is highly recommended to run Docker in a secure environment.")
-            dockerLogger.warn("See more: https://docs.docker.com/engine/security/https/")
-        }
+        } else
+            dockerLogger.warn(
+                locale.internal(
+                    "katan.docker.tls-disabled",
+                    "https://docs.docker.com/engine/security/https/"
+                )
+            )
 
         if (dockerConfig.get("ssl.enabled", false)) {
             clientConfig.withCustomSslConfig(
                 when (dockerConfig.getString("ssl.provider")) {
                     "CERT" -> {
                         val path = dockerConfig.getString("ssl.certPath")
-                        dockerLogger.info("Docker SSL certification path located at {}.", path)
+                        dockerLogger.info(locale.internal("katan.docker.cert-loaded", path))
                         LocalDirectorySSLConfig(path)
                     }
                     "KEY_STORE" -> {
                         val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
                         val keystore = KeyStore.getInstance(type)
-                        dockerLogger.info(
-                            "Using {} as SSL key store type.",
-                            type
-                        )
+                        dockerLogger.info(locale.internal("katan.docker.ks-loaded", type))
 
                         KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
                     }
@@ -158,7 +170,7 @@ class KatanCore(val config: Config) :
         // sends a ping to see if the connection will be established.
         try {
             docker.pingCmd().exec()
-            dockerLogger.info("Start composing server predefined composition files via \"compose/.../docker-compose.yml\".")
+            dockerLogger.info(locale.internal("katan.docker.ready"))
         } catch (e: ConnectException) {
             throwSilent(e, dockerLogger)
         } catch (e: UncheckedIOException) {
@@ -169,42 +181,65 @@ class KatanCore(val config: Config) :
     private fun caching() {
         val redis = config.getConfig("redis")
         if (!redis.get("use", false)) {
-            logger.warn("Redis caching service is disabled.")
-            logger.warn("It is highly recommended that you install Redis on the machine and activate the caching service.")
-            logger.warn("Services based on external synchronization will not work.")
+            logger.warn(locale.internal("katan.redis.disabled"))
+            logger.warn(locale.internal("katan.redis.alert", "https://redis.io/"))
             return
         }
 
         val host = redis.get("host", "localhost")
-        logger.info("Redis host set to: $host")
-        /*
-            we have to use the pool instead of the direct client due to Katan nature,
-            the default instance of Jedis (without pool) is not thread-safe
-         */
+        logger.info(locale.internal("katan.redis.host-info", host))
 
         try {
+            // we have to use the pool instead of the direct client due to Katan nature,
+            // the default instance of Jedis (without pool) is not thread-safe
             cache = RedisCacheProvider(JedisPool(JedisPoolConfig(), host))
-            logger.info("Redis caching server is ready to use.")
+            logger.info(locale.internal("katan.redis.ready"))
         } catch (e: Throwable) {
             cache = UnavailableCacheProvider()
-            logger.error("Could not connect to the Redis server.")
+            logger.error(locale.internal("katan.redis.connection-failed"))
             logger.error(e.message)
         }
     }
 
     suspend fun start() {
-        logger.info("Starting Katan...")
-        logger.info("Platform: ${platform.os.name} ${platform.os.version}")
+        logger.info(
+            locale.internal(
+                "katan.starting",
+                KATAN_VERSION,
+                locale.internal("katan.env.$environment").toLowerCase(locale.locale)
+            )
+        )
+        logger.info(locale.internal("katan.platform", "${platform.os.name} ${platform.os.version}"))
+
         database()
         docker()
         caching()
-        accountManager = DefaultAccountManager(this)
+
+        fun throwUnavailableRepository(
+            type: String
+        ): Nothing = throwSilent(
+            IllegalArgumentException("No $type repository available for ${database::class.simpleName}"),
+            logger
+        )
+
+        eventBus = SimpleEventScope(LocalEventScope())
+        pluginManager = DefaultPluginManager()
+        accountManager = DefaultAccountManager(
+            this, when (database) {
+                is JDBCConnector -> JDBCAccountsRepository(this, database as JDBCConnector)
+                else -> throwUnavailableRepository("accounts")
+            }
+        )
         serverManager = DockerServerManager(
             this, when (database) {
                 is JDBCConnector -> JDBCServersRepository(this, database as JDBCConnector)
-                else -> throwSilent(IllegalArgumentException("No servers repository available for $database"), logger)
+                else -> throwUnavailableRepository("servers")
             }
         )
+    }
+
+    override suspend fun close() {
+
     }
 
 }

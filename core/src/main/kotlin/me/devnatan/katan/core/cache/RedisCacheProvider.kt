@@ -1,9 +1,6 @@
 package me.devnatan.katan.core.cache
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import me.devnatan.katan.api.cache.Cache
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
@@ -56,12 +53,12 @@ class RedisCacheProvider(private val pool: JedisPool) : Cache<Any> {
  * Asynchronously executes a list of commands at once.
  * @param pipe the execution pipe
  */
-suspend fun <V> Cache<V>.pipelineAsync(
+suspend fun <V> Cache<V>.asyncPipeline(
     coroutineScope: CoroutineScope,
     pipe: Pipeline.() -> Unit
 ) = (unsafe() as Jedis).use { redis ->
     val pipeline = redis.pipelined().apply(pipe)
-    coroutineScope.async(Dispatchers.Unconfined) {
+    coroutineScope.async(Dispatchers.Unconfined, CoroutineStart.ATOMIC) {
         withContext(Dispatchers.IO) {
             pipeline.sync()
         }

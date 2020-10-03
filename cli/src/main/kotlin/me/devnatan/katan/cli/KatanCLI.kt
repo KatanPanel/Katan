@@ -5,26 +5,18 @@ import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.output.CliktConsole
 import kotlinx.coroutines.*
 import me.devnatan.katan.api.Katan
+import me.devnatan.katan.api.manager.AccountManager
+import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.common.KATAN_VERSION
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.Closeable
 import java.util.concurrent.Executors
 
-class KatanCLI(katan: Katan) : Closeable, Katan by katan {
+class KatanCLI(val katan: Katan) {
 
-    companion object {
-        val logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
+    class Console(private val logger: Logger) : CliktConsole {
 
-        internal fun showVersion() {
-            logger.info("Running on Katan v$KATAN_VERSION.")
-        }
-    }
-
-    object Console : CliktConsole {
-
-        private val console = System.console()
-
-        // SLF4J logger already adds line break
+        // SLF4J logger already adds the line break
         override val lineSeparator: String = ""
 
         override fun print(text: String, error: Boolean) {
@@ -36,44 +28,56 @@ class KatanCLI(katan: Katan) : Closeable, Katan by katan {
             hideInput -> console.readPassword(prompt)?.let { String(it) }
             else -> console.readLine(prompt)
         }
-    }
 
-    private var running = false
-    var executor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-    var coroutineScope = CoroutineScope(CoroutineName("KatanCLI"))
-    private val command = KatanCommand(this)
-
-    fun init() {
-        running = true
-        runBlocking {
-            var line: String?
-            do {
-                line = readLine()
-                try {
-                    val args = line?.split(" ") ?: emptyList()
-                    if (!args[0].equals("katan", true))
-                        continue
-
-                    if (args.size == 1) {
-                        showVersion()
-                        continue
-                    }
-
-                    command.parse(args.subList(1, args.size))
-                } catch (e: PrintHelpMessage) {
-                    logger.info(e.command.getFormattedHelp())
-                } catch (e: UsageError) {
-                    logger.error(e.message)
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                }
-            } while (line != null)
+        companion object {
+            val console: java.io.Console by lazy { System.console() }
         }
     }
 
-    override fun close() {
-        coroutineScope.cancel()
-        executor.close()
+    val logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
+    val serverManager: ServerManager get() = katan.serverManager
+    val accountManager: AccountManager get() = katan.accountManager
+
+    private var running = false
+    private val command = KatanCommand(this)
+    val coroutineExecutor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    val coroutineScope = CoroutineScope(CoroutineName("KatanCLI"))
+    val console = Console(logger)
+
+    fun init() {
+        running = true
+        var line: String?
+        do {
+            line = readLine()
+            try {
+                val args = line?.split(" ") ?: emptyList()
+                if (!args[0].equals("katan", true))
+                    continue
+
+                if (args.size == 1) {
+                    showVersion()
+                    continue
+                }
+
+                command.parse(args.subList(1, args.size))
+            } catch (e: PrintHelpMessage) {
+                logger.info(e.command.getFormattedHelp())
+            } catch (e: UsageError) {
+                logger.error(e.message)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
+        } while (line != null)
+    }
+
+    fun close() {
+        if (coroutineExecutor.isActive)
+            coroutineScope.cancel()
+        coroutineExecutor.close()
+    }
+
+    internal fun showVersion() {
+        logger.info("Running on Katan v$KATAN_VERSION.")
     }
 
 }

@@ -16,24 +16,17 @@ interface ServerComposition<out T : ServerCompositionOptions> {
          */
         val name: String
 
-    }
+        val single: Boolean
 
-    open class BaseKey<T : ServerComposition<*>>(override val name: String) : Key<T> {
-
-        override fun equals(other: Any?): Boolean {
-            return when (other) {
-                is Key<*> -> other.name == name
-                else -> false
-            }
-        }
+        val default: Boolean
 
     }
 
     val key: Key<*>
 
-    var factory: ServerCompositionFactory
+    val factory: ServerCompositionFactory
 
-    var options: @UnsafeVariance T
+    val options: @UnsafeVariance T
 
     /**
      * Reads the values of this composition to the [server].
@@ -47,13 +40,14 @@ interface ServerComposition<out T : ServerCompositionOptions> {
 
 }
 
-abstract class AbstractServerComposition<T : ServerCompositionOptions> :
-    ServerComposition<T> {
-
-    override lateinit var options: T
-    override lateinit var factory: ServerCompositionFactory
-
+fun <T : ServerComposition<*>> createCompositionKey(
+    name: String,
+    single: Boolean = false,
+    default: Boolean = false
+): ServerComposition.Key<T> {
+    return object : ServerComposition.Key<T> {
+        override val name: String = name
+        override val single: Boolean = single
+        override val default: Boolean = default
+    }
 }
-
-abstract class WeaklyTypedServerComposition :
-    AbstractServerComposition<ServerCompositionOptions>()

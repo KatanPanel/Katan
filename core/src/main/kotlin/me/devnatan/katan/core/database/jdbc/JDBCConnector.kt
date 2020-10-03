@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 abstract class JDBCConnector(
     override val name: String,
     override val driver: String,
-    override val url: String,
+    override val url: String
 ) : DatabaseConnector {
 
     companion object {
@@ -26,7 +26,6 @@ abstract class JDBCConnector(
 
     override suspend fun connect(settings: DatabaseSettings) {
         database = if (settings is JDBCRemoteSettings) {
-            logger.info("Connecting to ${settings.host}...")
             Database.connect(
                 createConnectionUrl(settings),
                 this.driver,
@@ -45,7 +44,6 @@ abstract class JDBCConnector(
                 ServerHoldersTable
             )
         }
-        logger.info("Connected successfully!")
     }
 
     override fun close() {
@@ -94,10 +92,22 @@ open class JDBCRemoteSettings(
     val user: String,
     val password: String,
     val database: String,
-    override val connectionProperties: Map<String, String>,
-) : JDBCSettings
+    override val connectionProperties: Map<String, String>
+) : JDBCSettings {
+
+    override fun toString(): String {
+        return "$host -> $database ($user)"
+    }
+
+}
 
 open class JDBCLocalSettings(
     val file: String,
     override val connectionProperties: Map<String, String>,
-) : JDBCSettings
+) : JDBCSettings {
+
+    override fun toString(): String {
+        return file
+    }
+
+}

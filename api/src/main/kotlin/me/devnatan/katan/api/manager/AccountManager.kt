@@ -43,21 +43,6 @@ interface AccountManager {
      */
     fun existsAccount(username: String): Boolean
 
-    /**
-     * Authenticates a username and password if an account for this username exists,
-     * the password is verified if correct a token used for identification is returned.
-     * @throws NoSuchElementException if the account does not exist
-     * @throws IllegalArgumentException if the password is incorrect
-     * @return a token linked to the account
-     */
-    suspend fun authenticateAccount(username: String, password: String): String
-
-    /**
-     * Checks whether the specified token is valid,
-     * if it contains any content and returns the linked account.
-     * * @throws NoSuchElementException if haven't any account linked to it.
-     * @throws IllegalArgumentException if token is empty or blank
-     */
-    suspend fun verifyToken(token: String): Account
+    suspend fun authenticateAccount(account: Account, password: String): Boolean
 
 }

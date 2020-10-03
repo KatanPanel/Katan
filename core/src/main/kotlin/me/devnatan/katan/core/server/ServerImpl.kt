@@ -5,9 +5,7 @@ import me.devnatan.katan.common.server.ServerCompositionsImpl
 
 data class ServerImpl(
     override val id: Int,
-    override var name: String,
-    override var address: String,
-    override var port: Int
+    override var name: String
 ) : Server {
 
     override lateinit var container: ServerContainer

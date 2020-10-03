@@ -1,7 +1,5 @@
 package me.devnatan.katan.api.plugin
 
-import java.lang.UnsupportedOperationException
-
 interface PluginHandler {
 
     /**
@@ -11,7 +9,6 @@ interface PluginHandler {
     fun handle(plugin: KatanPlugin)
 
 }
-
 
 interface SuspendablePluginHandler : PluginHandler {
 

@@ -13,16 +13,6 @@ interface Server {
     var name: String
 
     /**
-     * Server hostname
-     */
-    var address: String
-
-    /**
-     * Remote port from server address.
-     */
-    var port: Int
-
-    /**
      * Accounts that have permissions on that server.
      */
     val holders: MutableSet<ServerHolder>

@@ -8,7 +8,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import me.devnatan.katan.cli.commands.AccountsCommand
 import me.devnatan.katan.cli.commands.ServersCommand
 
-class KatanCommand(cli: KatanCLI) : CliktCommand(
+class KatanCommand(private val cli: KatanCLI) : CliktCommand(
     name = "katan",
     printHelpOnEmptyArgs = true,
     invokeWithoutSubcommand = true,
@@ -19,7 +19,7 @@ class KatanCommand(cli: KatanCLI) : CliktCommand(
 
     init {
         context {
-            console = KatanCLI.Console
+            console = cli.console
         }
 
         subcommands(AccountsCommand(cli), ServersCommand(cli))
@@ -27,7 +27,7 @@ class KatanCommand(cli: KatanCLI) : CliktCommand(
 
     override fun run() {
         if (version)
-            KatanCLI.showVersion()
+            cli.showVersion()
     }
 
 }

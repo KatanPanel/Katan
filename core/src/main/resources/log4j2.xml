@@ -2,26 +2,27 @@
 <Configuration status="WARN" strict="true">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%d{HH:mm:ss}] [%t] %-5level %logger{1} - %msg%n"/>
+            <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level @ %logger{1}]: %msg%n"/>
         </Console>
-        <RollingFile name="File" fileName="logs/app.log" filePattern="logs/app.%d{MM-dd-yyyy-HH-mm}.%i.log.gz" ignoreExceptions="false">
+        <RollingFile name="File" fileName="logs/app.log" filePattern="logs/app.%d{MM-dd-yyyy-HH-mm}.%i.log.gz"
+                     ignoreExceptions="false">
             <PatternLayout pattern="%-4relative [%d{yyyy-MM-dd HH:mm:ss}] [%t] %-5level %logger{35} - %msg%n"/>
             <Policies>
                 <SizeBasedTriggeringPolicy size="3 GB"/>
-                <OnStartupTriggeringPolicy />
+                <OnStartupTriggeringPolicy/>
             </Policies>
             <DefaultRolloverStrategy>
                 <Delete basePath="${baseDir}" maxDepth="3">
-                    <IfFileName glob="logs/app.*.log.gz" />
-                    <IfLastModified age="14d" />
+                    <IfFileName glob="logs/app.*.log.gz"/>
+                    <IfLastModified age="14d"/>
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Root level="INFO">
+        <Root level="${sys:katan.log.level}">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="File"/>
+            <AppenderRef ref="File" level="DEBUG"/>
         </Root>
     </Loggers>
 </Configuration>

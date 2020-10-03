@@ -2,7 +2,6 @@ package me.devnatan.katan.cli.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
-import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.default
@@ -52,7 +51,7 @@ class AccountsCreateCommand(private val cli: KatanCLI) : CliktCommand(
 
         echo("Creating account $accountName...")
         val account = cli.accountManager.createAccount(accountName, accountPassword)
-        cli.coroutineScope.launch(cli.executor + CoroutineName("KatanCLI::account-create:$accountName")) {
+        cli.coroutineScope.launch(cli.coroutineExecutor + CoroutineName("KatanCLI::account-create:$accountName")) {
             cli.accountManager.registerAccount(account)
         }.invokeOnCompletion {
             echo("Account $accountName created successfully.")

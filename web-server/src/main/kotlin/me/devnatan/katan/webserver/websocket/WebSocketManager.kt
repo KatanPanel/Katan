@@ -3,14 +3,14 @@ package me.devnatan.katan.webserver.websocket
 import br.com.devsrsouza.eventkt.listen
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
 import br.com.devsrsouza.eventkt.scopes.asSimple
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import me.devnatan.katan.webserver.websocket.handler.WebSocketHandler
 import me.devnatan.katan.webserver.websocket.message.MutableWebSocketMessage
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
@@ -20,6 +20,13 @@ import java.nio.channels.ClosedChannelException
 import java.util.concurrent.CopyOnWriteArrayList
 
 class WebSocketManager {
+
+
+    private val objectMapper = jacksonObjectMapper().apply {
+        deactivateDefaultTyping()
+        enable(SerializationFeature.INDENT_OUTPUT)
+        propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
+    }
 
     private val sessions = CopyOnWriteArrayList<WebSocketSession>()
     private val handlers = mutableListOf<WebSocketHandler<WebSocketMessage, *>>()
@@ -48,7 +55,7 @@ class WebSocketManager {
                 mappings.getValue(message.op).invoke(message)
                 emit(message.content)
             }
-        }.launchIn(scope)
+        }
     }
 
     suspend fun close() {
@@ -107,11 +114,22 @@ class WebSocketManager {
     suspend fun writePacket(message: WebSocketMessage) {
         try {
             message.session.send(message.run {
-                WebSocketMessageImpl(op, Frame.Text(Json.encodeToString(content)).copy(), session)
+                WebSocketMessageImpl(op, Frame.Text(objectMapper.writeValueAsString(content)).copy(), session)
             })
         } catch (e: Throwable) {
             detachSession(message.session)
         }
+    }
+
+    fun readPacket(session: WebSocketSession, packet: Frame.Text) {
+        val data = objectMapper.readValue(packet.readText(), Map::class.java) as Map<String, *>
+        emitEvent(
+            MutableWebSocketMessage(
+                data.getValue("id") as Int,
+                data.getValue("content") as Any,
+                session
+            )
+        )
     }
 
 }

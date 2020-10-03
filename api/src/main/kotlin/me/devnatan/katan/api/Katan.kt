@@ -1,8 +1,12 @@
 package me.devnatan.katan.api
 
+import br.com.devsrsouza.eventkt.EventScope
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.manager.AccountManager
+import me.devnatan.katan.api.manager.PluginManager
 import me.devnatan.katan.api.manager.ServerManager
+import me.devnatan.katan.api.plugin.PluginPhase
+import org.slf4j.event.Level
 
 /**
  * Interface that provides access to Katan handlers without having
@@ -26,6 +30,8 @@ interface Katan {
      */
     val serverManager: ServerManager
 
+    val pluginManager: PluginManager
+
     /**
      * The caching provider for that instance.
      * Should NEVER return an uninitialized value, for this use [me.devnatan.katan.api.cache.UnavailableCacheProvider]
@@ -36,6 +42,8 @@ interface Katan {
      * Returns the environment mode that has been defined for this instance.
      */
     val environment: KatanEnvironment
+
+    val eventBus: EventScope
 
     /**
      * Terminate the current instance by interrupting pending tasks and stopping running services,
@@ -92,4 +100,41 @@ inline class KatanEnvironment(private val value: String) {
         return value == PRODUCTION
     }
 
+    override fun toString(): String {
+        return value
+    }
+
 }
+
+/**
+ * Returns the default recommended logging level for this environment mode.
+ */
+fun KatanEnvironment.defaultLogLevel(): Level = when {
+    isLocal() -> Level.TRACE
+    isDevelopment() || isTesting() -> Level.DEBUG
+    else -> Level.INFO
+}
+
+/**
+ * Phase called during the Katan setup process.
+ */
+val KatanConfiguration = PluginPhase("KatanConfiguration")
+
+/**
+ * Phase called when Katan starts the boot process.
+ *
+ */
+val KatanInit = PluginPhase("KatanInit")
+
+/**
+ * Phase called when the Katan is completely started.
+ */
+val KatanStarted = PluginPhase("KatanStarted")
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+@RequiresOptIn(
+    "This is an internal Katan API that should not be used from outside of Katan Core.",
+    RequiresOptIn.Level.ERROR
+)
+annotation class InternalKatanAPI

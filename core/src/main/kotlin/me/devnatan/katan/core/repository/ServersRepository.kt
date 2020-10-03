@@ -25,9 +25,7 @@ class JDBCServersRepository(private val core: KatanCore, private val connector: 
             ServerEntity.all().map { entity ->
                 ServerImpl(
                     entity.id.value,
-                    entity.name,
-                    entity.address,
-                    entity.port
+                    entity.name
                 ).apply {
                     container = NoOpServerContainer(entity.containerId)
 
@@ -47,8 +45,6 @@ class JDBCServersRepository(private val core: KatanCore, private val connector: 
         newSuspendedTransaction(Dispatchers.Default, connector.database) {
             ServerEntity.new(server.id) {
                 this.name = server.name
-                this.address = server.address
-                this.port = server.port
                 this.containerId = server.container.id
             }
         }

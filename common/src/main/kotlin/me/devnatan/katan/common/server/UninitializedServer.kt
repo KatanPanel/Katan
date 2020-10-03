@@ -9,8 +9,6 @@ class UninitializedServer(override var name: String) : Server {
 
     override var compositions: ServerCompositions = ServerCompositionsImpl()
 
-    override var address: String = ""
-    override var port: Int = -1
     override lateinit var container: ServerContainer
     override lateinit var query: ServerQuery
     override lateinit var state: ServerState

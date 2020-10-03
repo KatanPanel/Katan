@@ -1,18 +1,37 @@
+@file:OptIn(ExperimentalCoroutinesApi::class, InternalKatanAPI::class)
+
 package me.devnatan.katan.api.server
+
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import me.devnatan.katan.api.InternalKatanAPI
 
 interface ServerCompositionFactory {
 
-    val lazy: Boolean
-
     val applicable: Array<out ServerComposition.Key<*>>
 
-    val adapter: ServerCompositionOptions.Adapter
+    val channel: BroadcastChannel<ServerCompositionPacket>
 
     /**
      * Creates a new server composition using [server] as an argument.
      * @param server the server subject to composition
      */
-    fun create(key: ServerComposition.Key<*>, server: Server): ServerComposition<*>
+    suspend fun create(
+        key: ServerComposition.Key<*>,
+        server: Server,
+        options: ServerCompositionOptions
+    ): ServerComposition<*>
+
+}
+
+abstract class AbstractServerCompositionFactory(
+    override vararg val applicable: ServerComposition.Key<*> = emptyArray()
+) : ServerCompositionFactory {
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val channel = BroadcastChannel<ServerCompositionPacket>(Channel.CONFLATED)
 
 }
 
@@ -20,39 +39,45 @@ interface ServerCompositionFactory {
  * Creates a new factory using [factory] as a manufacturing method.
  */
 fun newCompositionFactory(
-    adapter: ServerCompositionOptions.Adapter,
     vararg forKeys: ServerComposition.Key<*> = emptyArray(),
     factory: FactoryHandler
 ): ServerCompositionFactory {
-    return FactoryImpl(false, adapter, forKeys, factory)
+    return FactoryImpl(forKeys, factory)
 }
 
-/**
- * Creates a new factory using [factory] as a manufacturing method.
- */
-fun newLazyCompositionFactory(
-    adapter: ServerCompositionOptions.Adapter,
-    vararg forKeys: ServerComposition.Key<*> = emptyArray(),
-    factory: FactoryHandler
-): ServerCompositionFactory {
-    return FactoryImpl(true, adapter, forKeys, factory)
-}
-
-private typealias FactoryHandler = (ServerComposition.Key<*>, Server) -> ServerComposition<*>
+private typealias FactoryHandler = (ServerComposition.Key<*>, Server, ServerCompositionOptions) -> ServerComposition<*>
 
 private class FactoryImpl(
-    override val lazy: Boolean,
-    override val adapter: ServerCompositionOptions.Adapter,
     override val applicable: Array<out ServerComposition.Key<*>>,
     private inline val factory: FactoryHandler
-) : ServerCompositionFactory {
+) : AbstractServerCompositionFactory(*applicable) {
 
-    override fun create(key: ServerComposition.Key<*>, server: Server): ServerComposition<*> {
-        return factory.invoke(key, server)
+    override suspend fun create(
+        key: ServerComposition.Key<*>,
+        server: Server,
+        options: ServerCompositionOptions
+    ): ServerComposition<*> {
+        return factory.invoke(key, server, options)
     }
 
 }
 
 operator fun ServerCompositionFactory.get(keyName: String): ServerComposition.Key<*>? {
     return applicable.firstOrNull { it.name.equals(keyName, true) }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class, InternalKatanAPI::class)
+suspend inline fun ServerCompositionFactory.prompt(
+    text: String,
+    defaultValue: String? = null
+): String {
+    val job = CompletableDeferred<String>()
+    val packet = ServerCompositionPacket.Prompt(text, defaultValue, job)
+    channel.send(packet)
+    return job.await()
+}
+
+@OptIn(ExperimentalCoroutinesApi::class, InternalKatanAPI::class)
+suspend fun ServerCompositionFactory.message(message: String) {
+    channel.send(ServerCompositionPacket.Message(message))
 }

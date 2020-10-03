@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import me.devnatan.katan.api.event.*
 import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerComposition
@@ -20,13 +21,12 @@ import me.devnatan.katan.core.repository.ServersRepository
 import me.devnatan.katan.core.server.DockerServerContainer
 import me.devnatan.katan.core.server.DockerServerContainerInspection
 import me.devnatan.katan.core.server.ServerImpl
-import me.devnatan.katan.core.server.composition.DockerImageFactory
+import me.devnatan.katan.core.server.compositions.DockerCompositionFactory
 import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.LoggerFactory
 import java.io.Closeable
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.Duration
+import kotlin.system.measureTimeMillis
 
 class DockerServerManager(
     private val core: KatanCore,
@@ -45,34 +45,30 @@ class DockerServerManager(
     private val lastId: AtomicInt = atomic(0)
     private val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName(COROUTINE_SCOPE_NAME))
     private val servers: MutableSet<Server> = hashSetOf()
-    private val composer = DockerCompose(core.platform, logger)
+    val composer = DockerCompose(core.platform, logger)
     private val compositionFactories: MutableList<ServerCompositionFactory> = arrayListOf()
 
     init {
-        logger.info("Compose root is located at: " + Files.createDirectories(Paths.get(COMPOSE_ROOT)))
-
+        registerCompositionFactory(DockerCompositionFactory(core))
         runBlocking {
-            logger.info("Loading servers...")
             for (server in repository.listServers()) {
                 server.container = DockerServerContainer(server.container.id, core.docker)
 
                 try {
-                    logger.info("Inspecting server \"${server.name}\"...")
                     inspectServer(server)
                     servers.add(server)
                 } catch (e: NotFoundException) {
-                    logger.warn("Server \"${server.name}\" server container was not found, it could not be initialized.")
-                    logger.warn("Use \"katan server create\" to create a new server or compose one from a Docker Compose file using \"katan server compose\".")
+                    logger.warn("Server \"${server.name}\" container was not found, it could not be initialized.")
                 }
 
                 // Ensuring that the next id is after the id of any server
                 // already registered this will prevent future collisions.
                 lastId.lazySet(server.id)
             }
-            logger.info("${servers.size} servers have been loaded.")
         }
 
-        registerCompositionFactory(DockerImageFactory)
+        if (servers.isNotEmpty())
+            logger.debug("${servers.size} servers have been loaded.")
     }
 
     override fun getServerList(): Collection<Server> {
@@ -102,78 +98,37 @@ class DockerServerManager(
     }
 
     override suspend fun createServer(server: Server): Server {
-        val initialized = ServerImpl(
-            lastId.incrementAndGet(),
-            server.name,
-            server.address,
-            server.port
-        )
-
-        /* val pwd = File(COMPOSE_ROOT + File.separator + initialized.composition)
-        if (!pwd.exists())
-            pwd.mkdirs()
-
-        val composeFile = File(pwd, "docker-compose.yml")
-        if (!composeFile.exists())
-            throw FileNotFoundException("Couldn't find Docker Compose for ${initialized.name} @ ${composeFile.absolutePath}")
-
-        logger.info("Using \"${initialized.composition}\" Docker Compose as server composition.") */
-        return withContext(
-            Dispatchers.IO + CoroutineName("$COROUTINE_SCOPE_NAME-#createServer-${server.name}")
-        ) {
-            val fileEnv = mapOf(
-                "KATAN_PORT" to server.port.toString()
-            )
-
-            /* val compose = ComposeFileReader().load(
-                FileInputStream(composeFile), pwd.absolutePath, fileEnv
-            )!!
-
-            val environmentArgs = properties.map { (key, value) ->
-                "-e $key=$value"
-            }.joinToString(" ")
-
-            */
-            val containerName = CONTAINER_NAME_PATTERN.format(initialized.id.toString())
-            /*for ((serviceName, _) in compose.services ?: emptyMap()) {
-                logger.info("Building service \"$serviceName\"...")
-
-                composer.runCommand(
-                    "run -d --name $containerName $environmentArgs $serviceName", mapOf(
-                        DockerCompose.COMPOSE_FILE to composeFile.absolutePath,
-                        DockerCompose.COMPOSE_PROJECT to containerName
-                    ), showOutput = false, showErrors = false
-                )
-            } */
-
-            logger.info("Obtaining the server container identification number...")
-            initialized.apply {
-                container = DockerServerContainer(containerName, core.docker)
-            }
+        val impl = ServerImpl(lastId.incrementAndGet(), server.name).apply {
+            container = DockerServerContainer(CONTAINER_NAME_PATTERN.format(id), core.docker)
         }
+
+        core.eventBus.publish(ServerCreateEvent(server))
+        return impl
     }
 
     override suspend fun registerServer(server: Server) {
         repository.insertServer(server)
     }
 
-    override suspend fun startServer(server: Server) = coroutineScope.launch(
-        Dispatchers.IO + CoroutineName("$COROUTINE_SCOPE_NAME-#startServer-${server.id}")
-    ) {
-        server.container.start()
-    }.join()
+    override suspend fun startServer(server: Server) {
+        core.eventBus.publish(ServerBeforeStartEvent(server))
+        val duration = Duration.ofMillis(measureTimeMillis {
+            server.container.start()
+        })
+        core.eventBus.publish(ServerStartEvent(server, duration))
+    }
 
-    override suspend fun stopServer(server: Server, killAfter: Duration) = coroutineScope.launch(
-        Dispatchers.IO + CoroutineName("$COROUTINE_SCOPE_NAME-#stopServer-${server.id}")
-    ) {
-        server.container.stop()
-    }.join()
+    override suspend fun stopServer(server: Server, killAfter: Duration) {
+        core.eventBus.publish(ServerBeforeStopEvent(server))
+        val duration = Duration.ofMillis(measureTimeMillis {
+            server.container.stop()
+        })
+        core.eventBus.publish(ServerStopEvent(server, duration))
+    }
 
     override suspend fun inspectServer(server: Server) {
         val response = core.docker.inspectContainerCmd(server.container.id).exec()
-
-        // update server state
-        server.state = response.state.run {
+        val state = response.state.run {
             when {
                 dead ?: false -> ServerState.DEAD
                 running ?: false -> ServerState.RUNNING
@@ -183,7 +138,12 @@ class DockerServerManager(
             }
         }
 
-        server.container.inspection = DockerServerContainerInspection(response)
+        core.eventBus.publish(ServerStateChangeEvent(server, state))
+        server.state = state
+
+        val inspection = DockerServerContainerInspection(response)
+        core.eventBus.publish(ServerInspectionEvent(server, inspection))
+        server.container.inspection = inspection
     }
 
     // TODO: use conflated channel
@@ -246,7 +206,7 @@ class DockerServerManager(
 
     override fun registerCompositionFactory(factory: ServerCompositionFactory) {
         compositionFactories.add(factory)
-        logger.info(
+        logger.debug(
             "Composition factory registered for ${
                 factory.applicable.joinToString {
                     it.name
@@ -257,12 +217,12 @@ class DockerServerManager(
 
     override fun unregisterCompositionFactory(factory: ServerCompositionFactory) {
         compositionFactories.remove(factory)
-        logger.info(
-            "Unregistered ${
+        logger.debug(
+            "Unregistered composition factory of ${
                 factory.applicable.joinToString {
                     it.toString()
                 }
-            } composition factory."
+            }."
         )
     }
 

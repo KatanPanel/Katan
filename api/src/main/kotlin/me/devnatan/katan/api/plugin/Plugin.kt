@@ -3,8 +3,14 @@ package me.devnatan.katan.api.plugin
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.Version
+import org.slf4j.Logger
 
 open class KatanPlugin {
+
+    /**
+     * Built-in logger built using descriptor data.
+     */
+    lateinit var logger: Logger
 
     /**
      * Current instance of the Katan injected into the plugin.
@@ -131,13 +137,32 @@ fun KatanPlugin.handle(phase: PluginPhase, block: KatanPlugin.() -> Unit): Plugi
     })
 }
 
-
 /**
  * Adds a handler that, when called, executes the [block] function for phase [phase].
  * @see handle
  */
 fun KatanPlugin.handleSuspending(phase: PluginPhase, block: suspend KatanPlugin.() -> Unit): PluginHandler {
-    return handle(phase, object: SuspendablePluginHandler {
+    return handle(phase, object : SuspendablePluginHandler {
         override suspend fun handleSuspending(plugin: KatanPlugin) = block(plugin)
+    })
+}
+
+/**
+ * Adds a handler that, when called, executes the [block] function for phase [phase].
+ * @see handle
+ */
+fun KatanPlugin.handle(phase: PluginPhase, block: () -> Unit): PluginHandler {
+    return handle(phase, object : PluginHandler {
+        override fun handle(plugin: KatanPlugin) = block()
+    })
+}
+
+/**
+ * Adds a handler that, when called, executes the [block] function for phase [phase].
+ * @see handle
+ */
+fun KatanPlugin.handleSuspending(phase: PluginPhase, block: suspend () -> Unit): PluginHandler {
+    return handle(phase, object : SuspendablePluginHandler {
+        override suspend fun handleSuspending(plugin: KatanPlugin) = block()
     })
 }
