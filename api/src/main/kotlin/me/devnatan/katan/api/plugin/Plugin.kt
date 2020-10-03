@@ -5,35 +5,35 @@ import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.Version
 import org.slf4j.Logger
 
-open class KatanPlugin {
+interface KatanPlugin {
 
     /**
      * Built-in logger built using descriptor data.
      */
-    lateinit var logger: Logger
+    val logger: Logger
 
     /**
      * Current instance of the Katan injected into the plugin.
      */
-    lateinit var katan: Katan
+    val katan: Katan
 
     /**
      * This plugin's private local scope, used to create tasks, receive and send events, wait for requests and others.
      * Canceling this scope will cancel absolutely everything related to tasks in this plugin.
      */
-    lateinit var coroutineScope: CoroutineScope
+    val coroutineScope: CoroutineScope
 
     /**
      * Descriptor containing the main information of the plugin such as name, version and others.
      */
-    val descriptor = PluginDescriptor()
+    val descriptor: PluginDescriptor
 
     /**
      * Plugin's dependency manager. A dependency is a PluginDescriptor, which is later converted to a Plugin.
      * Defining a dependency means that you want it to be available during
      * the initialization of your plugin, it will start before it.
      */
-    lateinit var dependencyManager: DependencyManager
+    val dependencyManager: DependencyManager
 
     /**
      * It is the transport of events from the plugin, receives external
@@ -47,11 +47,6 @@ open class KatanPlugin {
      * Map of registered handlers for this plugin, calls from the application and the plugin itself must be registered.
      */
     val handlers: MutableMap<PluginPhase, MutableCollection<in PluginHandler>>
-
-    init {
-        eventListener = EventListener(coroutineScope)
-        handlers = hashMapOf()
-    }
 
 }
 
