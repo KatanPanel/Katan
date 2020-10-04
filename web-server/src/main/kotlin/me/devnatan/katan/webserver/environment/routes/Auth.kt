@@ -14,9 +14,6 @@ class AuthRoute {
     data class RegisterRoute(val parent: AuthRoute)
 
     @Location("/verify")
-    data class VerifyRoute(
-        val token: String = "",
-        val parent: AuthRoute
-    )
+    data class VerifyRoute(val parent: AuthRoute)
 
 }

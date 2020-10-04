@@ -2,7 +2,6 @@ package me.devnatan.katan.webserver.environment
 
 import io.ktor.application.*
 import io.ktor.auth.*
-import io.ktor.auth.jwt.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.locations.*
@@ -12,17 +11,14 @@ import io.ktor.routing.*
 import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.filterIsInstance
-import me.devnatan.katan.common.account.SecureAccount
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.receiveOrNull
 import me.devnatan.katan.webserver.*
 import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
+import me.devnatan.katan.webserver.environment.jwt.AccountPrincipal
 import me.devnatan.katan.webserver.environment.routes.AuthRoute
 import me.devnatan.katan.webserver.environment.routes.IndexRoute
-import me.devnatan.katan.webserver.serializable.SerializableAccount
 import me.devnatan.katan.webserver.websocket.session.KtorWebSocketSession
-import java.util.*
 
 internal suspend fun PipelineContext<*, ApplicationCall>.respondWithOk(
     vararg response: Pair<Any, Any>,
@@ -120,33 +116,19 @@ fun Application.router(
         respondWithOk("account" to entity)
     }
 
-    get<AuthRoute.VerifyRoute> { verify ->
-        if (verify.token.isBlank())
-            respondWithError(INVALID_ACCESS_TOKEN_ERROR)
+    get<AuthRoute.VerifyRoute> {
+        val account = call.authentication.principal<AccountPrincipal>()
+            ?: respondWithError(INVALID_ACCESS_TOKEN_ERROR, HttpStatusCode.Unauthorized)
 
-        runCatching {
-            env.server.internalAccountManager.verifyToken(verify.token)
-        }.onSuccess {
-            respondWithOk("account" to SerializableAccount(it as SecureAccount))
-        }.onFailure { respondWithError(INVALID_ACCESS_TOKEN_ERROR) }
+        respondWithOk("account" to account)
     }
 
     route("/servers") {
         handle {
-            val principal = call.authentication.principal<JWTPrincipal>()
-                ?: respondWithError(INVALID_ACCESS_TOKEN_ERROR, HttpStatusCode.Unauthorized)
-
-            val claim = principal.payload.getClaim("account")
-            if (claim.isNull)
-                respondWithError(INVALID_ACCESS_TOKEN_ERROR, HttpStatusCode.Unauthorized)
-
-            val account = env.server.accountManager.getAccount(UUID.fromString(claim.asString()))
-                ?: respondWithError(ACCOUNT_NOT_FOUND_ERROR)
-
-            val token = env.server.internalAccountManager.getCachedAccountToken(account.id.toString())
-                ?: respondWithError(INVALID_SESSION_ERROR)
-
-            respondWithError(ACCOUNT_NOT_FOUND_ERROR)
+            call.authentication.principal<AccountPrincipal>() ?: respondWithError(
+                INVALID_ACCESS_TOKEN_ERROR,
+                HttpStatusCode.Unauthorized
+            )
         }
     }
 }

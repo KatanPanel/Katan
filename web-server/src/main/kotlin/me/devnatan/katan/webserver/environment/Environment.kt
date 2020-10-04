@@ -85,6 +85,7 @@ class Environment(val server: KatanWS) {
         webSocketManager.close()
     }
 
+    @OptIn(KtorExperimentalAPI::class)
     private fun Application.installFeatures() {
         install(Locations)
         install(DefaultHeaders)
@@ -122,11 +123,6 @@ class Environment(val server: KatanWS) {
                         "message" to cause.response.second
                     )
                 )
-            }
-
-            exception<Throwable> { cause ->
-                call.respond(HttpStatusCode.InternalServerError)
-                throw cause
             }
         }
 
@@ -186,20 +182,14 @@ class Environment(val server: KatanWS) {
         }
 
         install(Authentication) {
-            val config = config.getConfig("jwt")
-            val audience = config.getString("audience")
             jwt {
                 realm = "Katan WebServer"
-                verifier(
-                    JWT.require(Algorithm.HMAC256(config.getString("secret")))
-                        .withAudience(audience)
-                        .withIssuer(config.getString("issuer"))
-                        .build()
-                )
+                verifier(server.internalAccountManager.verifier)
+
                 validate { credential ->
-                    if (credential.payload.audience.contains(audience))
-                        JWTPrincipal(credential.payload)
-                    else null
+                    runCatching {
+                        AccountPrincipal(server.internalAccountManager.verifyPayload(credential.payload))
+                    }.getOrNull()
                 }
             }
         }
