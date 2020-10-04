@@ -54,6 +54,7 @@ class KatanWS(val katan: Katan) {
     private fun load() {
         if (!::config.isInitialized)
             config = ConfigFactory.load(ConfigFactory.parseFile(exportResource("webserver.conf")))!!
+        internalAccountManager = WSAccountManager(this)
     }
 
     suspend fun close() {

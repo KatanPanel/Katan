@@ -50,18 +50,34 @@ fun Application.router(
     }
 
     webSocket("/") {
-        val ws = env.webSocketManager
         val session = KtorWebSocketSession(this) {
-            ws.writePacket(it)
+            outgoing.send(
+                Frame.Text(
+                    env.webSocketManager.objectMapper.writeValueAsString(
+                        mapOf(
+                            "op" to it.op,
+                            "d" to it.content
+                        )
+                    )
+                )
+            )
         }
 
-        ws.attachSession(session)
+        env.webSocketManager.attachSession(session)
         try {
-            incoming.consumeAsFlow().filterIsInstance<Frame.Text>().collect { frame ->
-                ws.readPacket(session, frame)
+            while (true) {
+                val frame = incoming.receiveOrNull() ?: break
+                when (frame) {
+                    is Frame.Close -> break
+                    is Frame.Text -> env.webSocketManager.readPacket(session, frame)
+                    else -> throw UnsupportedOperationException("Unsupported frame type")
+                }
             }
+        } catch (_: ClosedReceiveChannelException) {
+        } catch (e: Throwable) {
+            e.printStackTrace()
         } finally {
-            ws.detachSession(session)
+            env.webSocketManager.detachSession(session)
         }
     }
 

@@ -2,18 +2,14 @@ package me.devnatan.katan.webserver.websocket.handler
 
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
 
-typealias WebSocketHandlerMapper<T> = (T).() -> Unit
+typealias WebSocketMessageHandlerBlock = suspend WebSocketMessage.() -> Unit
 
-interface WebSocketHandler<T : WebSocketMessage, R> {
+abstract class WebSocketHandler {
 
-    object NULL
+    val mappings = hashMapOf<Int, WebSocketMessageHandlerBlock>()
 
-    object NOTHING
+}
 
-    val mappings: Map<Int, WebSocketHandlerMapper<T>>
-
-    fun next(message: T): R {
-        throw NotImplementedError()
-    }
-
+fun WebSocketHandler.handle(target: Int, block: WebSocketMessageHandlerBlock) {
+    mappings[target] = block
 }

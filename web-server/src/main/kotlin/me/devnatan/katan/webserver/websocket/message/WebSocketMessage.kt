@@ -13,7 +13,7 @@ interface WebSocketMessage {
     /**
      * Content of the received message.
      */
-    val content: Any
+    val content: Map<String, Any>
 
     /**
      * Session which sent message.
@@ -24,6 +24,6 @@ interface WebSocketMessage {
 
 data class WebSocketMessageImpl(
     override val op: Int,
-    override val content: Any,
+    override val content: Map<String, Any>,
     override val session: WebSocketSession
 ) : WebSocketMessage

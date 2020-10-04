@@ -1,7 +1,5 @@
 package me.devnatan.katan.webserver.environment
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.util.DefaultIndenter
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
@@ -27,7 +25,9 @@ import me.devnatan.katan.api.defaultLogLevel
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.webserver.KatanWS
 import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
+import me.devnatan.katan.webserver.environment.jwt.AccountPrincipal
 import me.devnatan.katan.webserver.websocket.WebSocketManager
+import me.devnatan.katan.webserver.websocket.handler.WebSocketServerHandler
 import org.mpierce.ktor.csrf.CsrfProtection
 import org.mpierce.ktor.csrf.HeaderPresent
 import org.mpierce.ktor.csrf.OriginMatchesKnownHost
@@ -50,7 +50,7 @@ class Environment(val server: KatanWS) {
     val config: Config get() = server.config
 
     fun start() {
-        webSocketManager = WebSocketManager()
+        webSocketManager = WebSocketManager().registerEventHandler(WebSocketServerHandler)
         environment = applicationEngineEnvironment {
             module {
                 installFeatures()

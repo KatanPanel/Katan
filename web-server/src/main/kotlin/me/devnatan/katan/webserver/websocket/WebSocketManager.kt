@@ -6,13 +6,14 @@ import br.com.devsrsouza.eventkt.scopes.asSimple
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.http.cio.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import me.devnatan.katan.webserver.websocket.handler.WebSocketHandler
-import me.devnatan.katan.webserver.websocket.message.MutableWebSocketMessage
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessageImpl
 import me.devnatan.katan.webserver.websocket.session.WebSocketSession
@@ -21,41 +22,29 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 class WebSocketManager {
 
-
-    private val objectMapper = jacksonObjectMapper().apply {
+    val objectMapper = jacksonObjectMapper().apply {
         deactivateDefaultTyping()
-        enable(SerializationFeature.INDENT_OUTPUT)
+        disable(SerializationFeature.INDENT_OUTPUT)
+        enable(SerializationFeature.CLOSE_CLOSEABLE)
         propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
     }
 
     private val sessions = CopyOnWriteArrayList<WebSocketSession>()
-    private val handlers = mutableListOf<WebSocketHandler<WebSocketMessage, *>>()
+    private val handlers = mutableListOf<WebSocketHandler>()
     private val eventbus = LocalEventScope().asSimple()
     private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("Katan::WebSocketManager"))
     private val mutex = Mutex()
 
     init {
-        eventbus.listen<WebSocketMessage>().transform { message ->
+        eventbus.listen<WebSocketMessage>().onEach { message ->
             for (handler in handlers) {
                 val mappings = handler.mappings
                 if (!mappings.containsKey(message.op))
                     continue
 
-                if (message is MutableWebSocketMessage) {
-                    try {
-                        val result = handler.next(message)
-                        if (result is WebSocketHandler.NOTHING)
-                            continue
-
-                        message.content = result ?: WebSocketHandler.NULL
-                    } catch (e: NotImplementedError) {
-                    }
-                }
-
                 mappings.getValue(message.op).invoke(message)
-                emit(message.content)
             }
-        }
+        }.launchIn(scope)
     }
 
     suspend fun close() {
@@ -63,10 +52,10 @@ class WebSocketManager {
             val iter = sessions.iterator()
             while (iter.hasNext()) {
                 detachSession(iter.next(), false)
+                iter.remove()
             }
         }
 
-        // bypasses IllegalStateException
         if (eventbus.coroutineContext.isActive)
             eventbus.cancel()
 
@@ -77,13 +66,14 @@ class WebSocketManager {
         eventbus.publish(event)
     }
 
-    fun registerEventHandler(vararg handlers: WebSocketHandler<WebSocketMessage, *>) {
+    fun registerEventHandler(vararg handlers: WebSocketHandler): WebSocketManager {
         synchronized(this.handlers) {
             this.handlers.addAll(handlers)
         }
+        return this
     }
 
-    fun unregisterEventHandler(handler: WebSocketHandler<WebSocketMessage, *>) {
+    fun unregisterEventHandler(handler: WebSocketHandler) {
         synchronized(handlers) {
             handlers.remove(handler)
         }
@@ -105,28 +95,19 @@ class WebSocketManager {
         } catch (_: ClosedChannelException) {
         }
 
-        return if (remove) mutex.withLock(sessions) {
+        if (remove) return mutex.withLock {
             sessions.remove(session)
-        } else remove
-    }
-
-    @Suppress("BlockingMethodInNonBlockingContext")
-    suspend fun writePacket(message: WebSocketMessage) {
-        try {
-            message.session.send(message.run {
-                WebSocketMessageImpl(op, Frame.Text(objectMapper.writeValueAsString(content)).copy(), session)
-            })
-        } catch (e: Throwable) {
-            detachSession(message.session)
         }
+
+        return false
     }
 
     fun readPacket(session: WebSocketSession, packet: Frame.Text) {
-        val data = objectMapper.readValue(packet.readText(), Map::class.java) as Map<String, *>
+        val data = objectMapper.readValue<Map<String, Any>>(packet.readText())
         emitEvent(
-            MutableWebSocketMessage(
-                data.getValue("id") as Int,
-                data.getValue("content") as Any,
+            WebSocketMessageImpl(
+                data.getValue("op") as Int,
+                data.getValue("d") as Map<String, Any>,
                 session
             )
         )

@@ -2,20 +2,21 @@ package me.devnatan.katan.webserver.websocket.handler
 
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_CREATE
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_START
-import me.devnatan.katan.webserver.websocket.message.WebSocketServerMessage
+import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
 
-class WebSocketServerHandler : WebSocketHandler<WebSocketServerMessage, Unit> {
+object WebSocketServerHandler : WebSocketHandler() {
 
-    override val mappings = mapOf(
-        SERVER_CREATE to this::onServerCreate,
-        SERVER_START to this::onServerStart
-    )
+    init {
+        handle(SERVER_CREATE) {
+            throw NotImplementedError()
+        }
 
-    private fun onServerCreate(message: WebSocketServerMessage) {
-    }
-
-    private fun onServerStart(message: WebSocketServerMessage) {
-
+        handle(SERVER_START) {
+            throw NotImplementedError()
+        }
     }
 
 }
+
+val WebSocketMessage.serverId
+    get() = content.getValue("server-id") as String
