@@ -6,7 +6,6 @@ import me.devnatan.katan.api.manager.AccountManager
 import me.devnatan.katan.common.account.SecureAccount
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.repository.AccountsRepository
-import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.*
 
@@ -14,12 +13,6 @@ class DefaultAccountManager(
     private val core: KatanCore,
     private val repository: AccountsRepository
 ) : AccountManager {
-
-    private companion object {
-
-        val logger = LoggerFactory.getLogger(AccountManager::class.java)!!
-
-    }
 
     private val accounts = hashSetOf<Account>()
 
@@ -47,7 +40,9 @@ class DefaultAccountManager(
 
     override fun createAccount(username: String, password: String): Account {
         val account = SecureAccount(UUID.randomUUID(), username, Instant.now()).apply {
-            this.password = core.hash.hash(password)
+            this.password = if (password.isNotBlank())
+                core.hash.hash(password.toCharArray())
+            else password
         }
 
         return synchronized(accounts) {
@@ -68,7 +63,10 @@ class DefaultAccountManager(
 
     override suspend fun authenticateAccount(account: Account, password: String): Boolean {
         check(account is SecureAccount)
-        return core.hash.compare(password, account.password!!)
+        return if (account.password.isEmpty())
+            password.isEmpty()
+        else
+            core.hash.compare(password.toCharArray(), account.password)
     }
 
 }

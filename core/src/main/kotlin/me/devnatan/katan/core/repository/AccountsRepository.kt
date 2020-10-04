@@ -29,7 +29,8 @@ class JDBCAccountsRepository(private val core: KatanCore, private val connector:
                     entity.username,
                     entity.registeredAt
                 ).apply {
-                    password = entity.password?.toByteArray()
+                    if (entity.password != null)
+                        password = entity.password!!
                 }
             }
         }
@@ -41,7 +42,7 @@ class JDBCAccountsRepository(private val core: KatanCore, private val connector:
                 this.username = account.username
                 this.registeredAt = account.registeredAt
                 if (account is SecureAccount)
-                    this.password = password
+                    this.password = account.password
             }
         }
     }
@@ -50,8 +51,8 @@ class JDBCAccountsRepository(private val core: KatanCore, private val connector:
         newSuspendedTransaction(db = (core.database as JDBCConnector).database) {
             AccountsTable.update({ AccountsTable.id eq account.id }) {
                 it[username] = account.username
-                if (account is SecureAccount)
-                    it[password] = account.password.toString()
+                if (account is SecureAccount && account.password.isNotEmpty())
+                    it[password] = account.password
             }
         }
     }

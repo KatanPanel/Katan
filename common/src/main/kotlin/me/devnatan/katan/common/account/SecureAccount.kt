@@ -12,7 +12,7 @@ data class SecureAccount(
     override val registeredAt: Instant
 ) : Account {
 
-    var password: ByteArray? = null
+    var password: String = ""
     override val permissions: MutableMap<Permission, PermissionFlag> = hashMapOf()
 
 }
