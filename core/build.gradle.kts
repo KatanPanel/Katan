@@ -14,5 +14,12 @@ dependencies {
     implementation("com.h2database:h2:1.4.200")
     implementation("mysql:mysql-connector-java:8.0.21")
     implementation("redis.clients:jedis:3.3.0")
-    api("at.favre.lib:bcrypt:0.9.0")
+    implementation("org.bouncycastle:bcprov-jdk15to18:1.66")
+}
+
+configurations {
+    implementation {
+        exclude(module = "bcpkix-jdk15on")
+        exclude(module = "bcprov-jdk15on")
+    }
 }

@@ -23,6 +23,7 @@ import me.devnatan.katan.api.manager.PluginManager
 import me.devnatan.katan.common.KATAN_VERSION
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.cache.RedisCacheProvider
+import me.devnatan.katan.core.crypto.BcryptHash
 import me.devnatan.katan.core.crypto.Hash
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
@@ -210,6 +211,11 @@ class KatanCore(
             )
         )
         logger.info(locale.internal("katan.platform", "${platform.os.name} ${platform.os.version}"))
+
+        hash = when (config.get("security.crypto.hash", "Bcrypt")) {
+            "BCrypt" -> BcryptHash()
+            else -> BcryptHash()
+        }
 
         database()
         docker()

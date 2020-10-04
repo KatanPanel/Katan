@@ -2,8 +2,8 @@ package me.devnatan.katan.core.crypto
 
 interface Hash {
 
-    fun hash(bytes: String): ByteArray
+    fun hash(value: CharArray): String
 
-    fun compare(value: String, hash: ByteArray): Boolean
+    fun compare(value: CharArray, hash: String): Boolean
 
 }
