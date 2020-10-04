@@ -10,11 +10,15 @@ class KatanLocale(
 ) {
 
     operator fun get(key: String, vararg args: Any): String {
-        return MessageFormat.format(messages.getProperty(key), *args)
+        return if (!messages.containsKey(key))
+            "Missing \"$key\" key"
+        else MessageFormat(messages.getProperty(key), locale).format(args)
     }
 
     fun internal(key: String, vararg args: Any): String {
-        return MessageFormat.format(internal.getProperty(key), *args)
+        return if (!internal.containsKey(key))
+            "Missing \"$key\" key"
+        else MessageFormat(internal.getProperty(key), locale).format(args)
     }
 
 }
