@@ -53,5 +53,7 @@ Installing, configuring and running Katan is extremely easy and fast, by default
   
 ## Community
 Join our communities, discuss changes, discover news and things to come on Katan.
-  * [Discord](https://discord.gg/DfxfXhm)
-  * [Issues report](https://github.com/KatanPanel/Katan/issues)
+
+<br>
+
+[![Discord invite](https://invidget.switchblade.xyz/ey8dwsv)](https://discord.gg/ey8dwsv)
