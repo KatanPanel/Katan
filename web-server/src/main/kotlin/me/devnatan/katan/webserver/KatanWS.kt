@@ -16,9 +16,6 @@ class KatanWS(val katan: Katan) {
 
     companion object {
         val logger = LoggerFactory.getLogger(KatanWS::class.java)!!
-
-        const val ACCOUNT_TOKEN_PREFIX = "account-token:"
-
     }
 
     lateinit var server: ApplicationEngine
@@ -41,11 +38,7 @@ class KatanWS(val katan: Katan) {
         logger.info("Creating environment...")
         environment = Environment(this)
         environment.start()
-        server = embeddedServer(Jetty, environment.environment) {
-            configureServer = {
-                isDumpAfterStart = false
-            }
-        }
+        server = embeddedServer(Jetty, environment.environment)
         logger.info("Starting server...")
         server.start()
     }
