@@ -6,7 +6,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
-import me.devnatan.katan.api.InternalKatanAPI
+import me.devnatan.katan.api.annotations.InternalKatanAPI
 
 interface ServerCompositionFactory {
 

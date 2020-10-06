@@ -1,7 +1,7 @@
 package me.devnatan.katan.api.server
 
 import kotlinx.coroutines.CompletableDeferred
-import me.devnatan.katan.api.InternalKatanAPI
+import me.devnatan.katan.api.annotations.InternalKatanAPI
 
 @InternalKatanAPI
 sealed class ServerCompositionPacket {
