@@ -16,6 +16,7 @@ class WSAccountManager(val webserver: KatanWS) {
 
         const val AUTH_SECRET_MIN_LENGTH = 8
         const val AUTH_SECRET_MAX_LENGTH = 32
+        private val JWT_ACCOUNT_CLAIM = "account"
         private val JWT_TOKEN_LIFETIME = Duration.ofMinutes(10)!!
 
     }
@@ -49,13 +50,13 @@ class WSAccountManager(val webserver: KatanWS) {
 
         return JWT.create()
             .withAudience(audience)
-            .withClaim("account", account.id.toString())
+            .withClaim(JWT_ACCOUNT_CLAIM, account.id.toString())
             .withExpiresAt(Date.from(Instant.now().plus(JWT_TOKEN_LIFETIME)))
             .sign(algorithm)
     }
 
     suspend fun verifyPayload(payload: Payload): Account {
-        val claim = payload.getClaim("id")
+        val claim = payload.getClaim(JWT_ACCOUNT_CLAIM)
         if (claim.isNull)
             throw IllegalArgumentException()
 
