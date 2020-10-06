@@ -9,7 +9,6 @@ import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.common.util.createDirectory
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
-import me.devnatan.katan.common.util.loadResource
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.KatanLocale
 import me.devnatan.katan.core.exceptions.SilentException
@@ -29,34 +28,30 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
         fun main(args: Array<out String>) {
             val config = ConfigFactory.parseFile(exportResource("katan.conf"))
             createDirectory("messages")
-            val locale = config.get("locale", "en-US").let { desired ->
-                val public = exportResource("messages/$desired.properties")
-                val internal = loadResource("messages/$desired.internal.properties")
+            val userLocale: Locale = if (!config.hasPath("locale")) Locale.getDefault()
+            else Locale.forLanguageTag(config.get("locale", "en-US"))
 
-                KatanLocale(Locale.forLanguageTag(desired), Properties().apply {
-                    BufferedReader(InputStreamReader(FileInputStream(public), Charsets.UTF_8)).use { load(it) }
-                }, Properties().apply {
-                    BufferedReader(InputStreamReader(internal, Charsets.UTF_8)).use { load(it) }
-                })
-            }
+            val languageTag = userLocale.toLanguageTag()
+            val messages = exportResource("messages/$languageTag.properties")
 
-            val configEnv = config.get("environment", KatanEnvironment.DEVELOPMENT).toLowerCase()
-            if (configEnv !in KatanEnvironment.ALL) {
-                System.err.println(
-                    locale.internal(
-                        "invalid-environment",
-                        "\"$configEnv\"",
-                        KatanEnvironment.ALL.joinToString(", ")
+            val locale = KatanLocale(userLocale, Properties().apply {
+                // force UTF-8 encoding
+                BufferedReader(
+                    InputStreamReader(
+                        FileInputStream(messages),
+                        Charsets.UTF_8
                     )
-                )
-                return
-            }
+                ).use { input -> load(input) }
+            })
 
-            val env = KatanEnvironment(configEnv)
-            System.setProperty("katan.log.level", env.defaultLogLevel().toString())
+            val env = config.get("environment", KatanEnvironment.DEVELOPMENT).toLowerCase()
+            if (env !in KatanEnvironment.ALL)
+                return System.err.println(locale["invalid-environment", "\"$env\"", KatanEnvironment.ALL.joinToString(", ")])
+
             System.setProperty("katan.locale", locale.locale.toLanguageTag())
-
-            KatanLauncher(config, env, locale)
+            KatanLauncher(config, KatanEnvironment(env).also {
+                System.setProperty("katan.log.level", it.defaultLogLevel().toString())
+            }, locale)
         }
 
     }
@@ -72,7 +67,7 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                     katan.start()
                 }
 
-                KatanCore.logger.info(katan.locale.internal("katan.started", String.format("%.2f", time / 1000.0f)))
+                KatanCore.logger.info(katan.locale.get("katan.started", String.format("%.2f", time / 1000.0f)))
             } catch (e: Throwable) {
                 when (e) {
                     is SilentException -> e.logger.error(e.cause.toString())
