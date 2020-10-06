@@ -8,7 +8,11 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 
-interface Plugin {
+/**
+ * This plugin's private local scope, used to create tasks, receive and send events, wait for requests and others.
+ * Canceling this scope will cancel absolutely everything related to tasks in this plugin.
+ */
+interface Plugin : CoroutineScope {
 
     /**
      * Current instance of the Katan injected into the plugin.
@@ -19,12 +23,6 @@ interface Plugin {
      * Built-in logger built using descriptor data.
      */
     val logger: Logger
-
-    /**
-     * This plugin's private local scope, used to create tasks, receive and send events, wait for requests and others.
-     * Canceling this scope will cancel absolutely everything related to tasks in this plugin.
-     */
-    val coroutineScope: CoroutineScope
 
     /**
      * Descriptor containing the main information of the plugin such as name, version and others.
@@ -58,50 +56,31 @@ interface Plugin {
 
 }
 
-open class KatanPlugin : Plugin {
-
-    final override val katan: Katan get() = uninitialized()
-    final override val state: PluginState get() = uninitialized()
-    final override val dependencyManager: DependencyManager get() = uninitialized()
-    internal var _descriptor: PluginDescriptor? = null
+abstract class KatanPlugin constructor(
     final override val descriptor: PluginDescriptor
-        get() = _descriptor ?: uninitialized()
-    final override val logger: Logger
-    final override val coroutineScope: CoroutineScope
-    final override val eventListener: EventListener
+) : Plugin, CoroutineScope by CoroutineScope(CoroutineName("Katan::plugin-${descriptor.name}")) {
+
+    @JvmOverloads
+    constructor(
+        name: String,
+        version: CharSequence? = null,
+        author: String? = null
+    ) : this(PluginDescriptor(name, version?.let { Version(it) }, author))
+
+    override lateinit var katan: Katan
+    override lateinit var state: PluginState
+    override lateinit var dependencyManager: DependencyManager
+
+    override val logger: Logger = LoggerFactory.getLogger(descriptor.name)
+    override val eventListener: EventListener = EventListener(this)
     final override val handlers: MutableMap<PluginPhase, MutableCollection<PluginHandler>>
 
     init {
-        logger = LoggerFactory.getLogger(descriptor.name)
-        coroutineScope = CoroutineScope(CoroutineName("Katan::plugin-${descriptor.name}"))
-        eventListener = EventListener(coroutineScope)
         handlers = ConcurrentHashMap()
     }
 
-    private fun uninitialized(): Nothing {
-        throw IllegalStateException("Not yet initialized")
-    }
+    abstract suspend operator fun invoke()
 
-}
-
-/**
- * Set the plugin name to [name], version to [version] and [author] to author.
- */
-fun KatanPlugin.descriptor(name: String, version: CharSequence? = null, author: String? = null): PluginDescriptor {
-    if (_descriptor != null)
-        throw IllegalStateException()
-
-    return PluginDescriptor(name, version?.let { Version(it) }, author).also { _descriptor = it }
-}
-
-/**
- * Set the plugin name to [name], version to [version] and [author] to author.
- */
-fun KatanPlugin.descriptor(name: String, version: Version? = null, author: String? = null): PluginDescriptor {
-    if (_descriptor != null)
-        throw IllegalStateException()
-
-    return PluginDescriptor(name, version, author).also { _descriptor = it }
 }
 
 /**
@@ -149,22 +128,12 @@ fun Plugin.dependsOn(name: String, version: Version) = dependsOn(PluginDescripto
  * Access the plugin's event listener, through which you can call and listen to events.
  * @see EventListener
  */
-fun Plugin.listener(block: EventListener.() -> Unit): EventListener {
+inline fun Plugin.listener(block: EventListener.() -> Unit): EventListener {
     return eventListener.apply(block)
 }
 
 /**
- * Adds a [handler] for phase [phase].
- */
-fun Plugin.handle(phase: PluginPhase, handler: PluginHandler): PluginHandler {
-    return handlers.computeIfAbsent(phase) {
-        arrayListOf()
-    }.let { handler }
-}
-
-/**
- * Adds a handler that, when called, executes the [block] function for phase [phase].
- * @see handle
+ * Adds a handler that when called, executes the [block] function for phase [phase].
  */
 inline fun Plugin.handle(phase: PluginPhase, crossinline block: suspend () -> Unit): PluginHandler {
     val handler = object : PluginHandler {

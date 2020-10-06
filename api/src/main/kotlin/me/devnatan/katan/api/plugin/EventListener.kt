@@ -42,7 +42,7 @@ class EventFlow<T> internal constructor(
     fun each(action: Consumer<T>): EventFlow<T> {
         flow.onEach { value ->
             action.accept(value)
-        }
+        }.launchIn(coroutineScope)
         return this
     }
 
