@@ -1,5 +1,5 @@
 # Katan
-Katan is a fast, simple with high-availability game server management panel running isolated in [Docker](https://www.docker.com/) containers with a Web server built with [Ktor](https://ktor.io/).
+Katan is a fast, simple with high-availability game server management panel running isolated in [Docker](https://www.docker.com/) containers.
 
 [![Open Source](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![Stars](https://img.shields.io/github/stars/KatanPanel/Katan.svg?color=1bcc1b)](https://github.com/KatanPanel/Katan/stargazers)
@@ -14,9 +14,6 @@ Katan is a fast, simple with high-availability game server management panel runn
   
 ## Community
 Join our communities, discuss changes, discover news and things to come on Katan.
-
-<br>
-
 [![Discord invite](https://invidget.switchblade.xyz/ey8dwsv)](https://discord.gg/ey8dwsv)
 
 ## License
