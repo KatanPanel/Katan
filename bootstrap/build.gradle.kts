@@ -1,6 +1,6 @@
 plugins {
     application
-    id("com.github.johnrengelman.shadow") version "5.0.0"
+    id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 
 dependencies {
@@ -21,7 +21,10 @@ tasks {
     }
 
     shadowJar {
-        archiveBaseName.set("Katan-${project.parent?.version ?: project.version}")
+        archiveBaseName.set("Katan")
+
+        // fix for "Could not initialize class org.eclipse.jetty.server.HttpConnection"
+        mergeServiceFiles()
     }
 
     build {

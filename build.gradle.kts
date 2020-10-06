@@ -4,28 +4,36 @@ plugins {
     kotlin("jvm") version "1.4.10"
 }
 
-group = "me.devnatan.katan"
-version = "0.1.0"
+val projectGroup = "me.devnatan.katan"
+val projectVersion = "0.1.0"
+
+group = projectGroup
+version = projectVersion
 
 val log4jVersion = "2.13.3"
-
 allprojects {
+    group = projectGroup
+    version = projectVersion
+
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
     repositories {
-        maven("https://dl.bintray.com/kotlin/exposed")
-        maven("http://nexus.devsrsouza.com.br/repository/maven-public/")
-        maven("https://dl.bintray.com/marshallpierce/maven")
         mavenCentral()
         jcenter()
+        maven("https://dl.bintray.com/kotlin/exposed")
+        maven("http://nexus.devsrsouza.com.br/repository/maven-public/")
     }
 
     dependencies {
-        api("com.typesafe:config:1.4.0")
-        api("br.com.devsrsouza.eventkt:eventkt-core-jvm:0.1.0-SNAPSHOT")
-        api("org.apache.logging.log4j:log4j-api:$log4jVersion")
-        api("org.apache.logging.log4j:log4j-core:$log4jVersion")
-        api("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+        implementation(kotlin("stdlib"))
+        implementation(kotlin("reflect"))
+        implementation("br.com.devsrsouza.eventkt:eventkt-core-jvm:0.1.0-SNAPSHOT")
+        implementation("com.typesafe:config:1.4.0")
+        implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+        implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
+        implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0-RC2")
     }
 
     tasks {
@@ -35,14 +43,5 @@ allprojects {
                 jvmTarget = "1.8"
             }
         }
-    }
-}
-
-subprojects {
-    dependencies {
-        implementation(kotlin("stdlib"))
-        implementation(kotlin("reflect"))
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0-RC2")
     }
 }
