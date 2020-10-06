@@ -5,7 +5,7 @@ plugins {
 }
 
 val projectGroup = "me.devnatan.katan"
-val projectVersion = "0.1.0"
+val projectVersion = "0.0.1-ALPHA"
 
 group = projectGroup
 version = projectVersion
