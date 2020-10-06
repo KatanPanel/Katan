@@ -60,9 +60,9 @@ interface Plugin {
 
 open class KatanPlugin : Plugin {
 
-    final override val katan get() = uninitialized()
-    final override val state get() = uninitialized()
-    final override val dependencyManager get() = uninitialized()
+    final override val katan: Katan get() = uninitialized()
+    final override val state: PluginState get() = uninitialized()
+    final override val dependencyManager: DependencyManager get() = uninitialized()
     internal var _descriptor: PluginDescriptor? = null
     final override val descriptor: PluginDescriptor
         get() = _descriptor ?: uninitialized()
