@@ -5,14 +5,18 @@ import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.manager.AccountManager
 import me.devnatan.katan.api.manager.PluginManager
 import me.devnatan.katan.api.manager.ServerManager
-import me.devnatan.katan.api.plugin.PluginPhase
-import org.slf4j.event.Level
 
 /**
  * Interface that provides access to Katan handlers without having
  * direct access to it, useful for plugins and extensions.
  */
 interface Katan {
+
+    companion object {
+
+        val VERSION = Version(0, 0, 1, "alpha")
+
+    }
 
     /**
      * Platform on which this instance is currently running.
@@ -52,89 +56,3 @@ interface Katan {
     suspend fun close()
 
 }
-
-inline class KatanEnvironment(private val value: String) {
-
-    companion object {
-
-        const val LOCAL = "local"
-        const val DEVELOPMENT = "dev"
-        const val TESTING = "test"
-        const val STAGING = "stage"
-        const val PRODUCTION = "prod"
-
-        /**
-         * Returns all available development modes
-         */
-        val ALL: Array<String> by lazy {
-            arrayOf(LOCAL, DEVELOPMENT, TESTING, STAGING, PRODUCTION)
-        }
-
-    }
-
-    /**
-     * Returns `true` if the current environment mode is in [DEVELOPMENT].
-     */
-    fun isLocal(): Boolean {
-        return value == LOCAL
-    }
-
-    /**
-     * Returns `true` if the current environment mode is in [DEVELOPMENT] or [LOCAL].
-     */
-    fun isDevelopment(): Boolean {
-        return value == LOCAL || value == DEVELOPMENT
-    }
-
-    /**
-     * Returns `true` if the current environment mode is in [TESTING] or [STAGING].
-     */
-    fun isTesting(): Boolean {
-        return value == TESTING || value == STAGING
-    }
-
-    /**
-     * Returns `true` if the current environment mode is in [PRODUCTION].
-     */
-    fun isProduction(): Boolean {
-        return value == PRODUCTION
-    }
-
-    override fun toString(): String {
-        return value
-    }
-
-}
-
-/**
- * Returns the default recommended logging level for this environment mode.
- */
-fun KatanEnvironment.defaultLogLevel(): Level = when {
-    isLocal() -> Level.TRACE
-    isDevelopment() || isTesting() -> Level.DEBUG
-    else -> Level.INFO
-}
-
-/**
- * Phase called during the Katan setup process.
- */
-val KatanConfiguration = PluginPhase("KatanConfiguration")
-
-/**
- * Phase called when Katan starts the boot process.
- *
- */
-val KatanInit = PluginPhase("KatanInit")
-
-/**
- * Phase called when the Katan is completely started.
- */
-val KatanStarted = PluginPhase("KatanStarted")
-
-@Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-@RequiresOptIn(
-    "This is an internal Katan API that should not be used from outside of Katan Core.",
-    RequiresOptIn.Level.ERROR
-)
-annotation class InternalKatanAPI

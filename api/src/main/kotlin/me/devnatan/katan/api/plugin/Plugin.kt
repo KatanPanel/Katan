@@ -1,21 +1,23 @@
 package me.devnatan.katan.api.plugin
 
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
-import me.devnatan.katan.api.Version
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.util.concurrent.ConcurrentHashMap
 
-interface KatanPlugin {
-
-    /**
-     * Built-in logger built using descriptor data.
-     */
-    val logger: Logger
+interface Plugin {
 
     /**
      * Current instance of the Katan injected into the plugin.
      */
     val katan: Katan
+
+    /**
+     * Built-in logger built using descriptor data.
+     */
+    val logger: Logger
 
     /**
      * This plugin's private local scope, used to create tasks, receive and send events, wait for requests and others.
@@ -46,32 +48,56 @@ interface KatanPlugin {
     /**
      * Map of registered handlers for this plugin, calls from the application and the plugin itself must be registered.
      */
-    val handlers: MutableMap<PluginPhase, MutableCollection<in PluginHandler>>
+    val handlers: MutableMap<PluginPhase, MutableCollection<PluginHandler>>
+
+    /**
+     * The current state of the plugin before, during and after the loading process
+     */
+    val state: PluginState
 
 }
 
-/**
- * Access the plugin [descriptor] through the [block] function.
- */
-inline fun KatanPlugin.descriptor(block: PluginDescriptor.() -> Unit): PluginDescriptor {
-    return descriptor.apply(block)
-}
+open class KatanPlugin : Plugin {
 
-/**
- * Access the plugin's descriptor and set its name to [name] and then use the [block] function.
- */
-inline fun KatanPlugin.descriptor(name: String, block: PluginDescriptor.() -> Unit = {}): PluginDescriptor {
-    return descriptor.apply {
-        this.name = name
-        block()
+    final override val katan get() = uninitialized()
+    final override val state get() = uninitialized()
+    final override val dependencyManager get() = uninitialized()
+    internal var _descriptor: PluginDescriptor? = null
+    final override val descriptor: PluginDescriptor
+        get() = _descriptor ?: uninitialized()
+    final override val logger: Logger
+    final override val coroutineScope: CoroutineScope
+    final override val eventListener: EventListener
+    final override val handlers: MutableMap<PluginPhase, MutableCollection<PluginHandler>>
+
+    init {
+        logger = LoggerFactory.getLogger(descriptor.name)
+        coroutineScope = CoroutineScope(CoroutineName("Katan::plugin-${descriptor.name}"))
+        eventListener = EventListener(coroutineScope)
+        handlers = ConcurrentHashMap()
     }
+
+    private fun uninitialized(): Nothing {
+        throw IllegalStateException("Not yet initialized")
+    }
+
+}
+
+/**
+ * Set the plugin name to [name], version to [version] and [author] to author.
+ */
+fun KatanPlugin.descriptor(name: String, version: String? = null, author: String? = null): PluginDescriptor {
+    if (_descriptor != null)
+        throw IllegalStateException()
+
+    return PluginDescriptor(name, version, author).also { _descriptor = it }
 }
 
 /**
  * Access the plugin's dependency manager, it should be used only in case you need a better organization
  * of the dependencies or have direct access to the handler, for just adding dependency use [dependsOn].
  */
-inline fun KatanPlugin.dependencyManagement(block: DependencyManager.() -> Unit): DependencyManager {
+inline fun Plugin.dependencyManagement(block: DependencyManager.() -> Unit): DependencyManager {
     return dependencyManager.apply(block)
 }
 
@@ -80,7 +106,7 @@ inline fun KatanPlugin.dependencyManagement(block: DependencyManager.() -> Unit)
  * it to the plugin's classpath and setting it as the plugin's pre-boot priority.
  * @param descriptor the dependency descriptor
  */
-fun KatanPlugin.dependsOn(descriptor: PluginDescriptor) {
+fun Plugin.dependsOn(descriptor: PluginDescriptor) {
     dependencyManager.addDependency(descriptor)
 }
 
@@ -90,9 +116,7 @@ fun KatanPlugin.dependsOn(descriptor: PluginDescriptor) {
  * it to the plugin's classpath and setting it as the plugin's pre-boot priority.
  * @param name the dependency name
  */
-fun KatanPlugin.dependsOn(name: String) = dependsOn(PluginDescriptor().apply {
-    this.name = name
-})
+fun Plugin.dependsOn(name: String) = dependsOn(PluginDescriptor(name))
 
 /**
  * Adds a plugin that matches the specified descriptor [name] and [version] by adding
@@ -100,23 +124,20 @@ fun KatanPlugin.dependsOn(name: String) = dependsOn(PluginDescriptor().apply {
  * @param name the dependency name
  * @param version the dependency version
  */
-fun KatanPlugin.dependsOn(name: String, version: Version) = dependsOn(PluginDescriptor().apply {
-    this.name = name
-    this.version = version
-})
+fun Plugin.dependsOn(name: String, version: String) = dependsOn(PluginDescriptor(name, version))
 
 /**
  * Access the plugin's event listener, through which you can call and listen to events.
  * @see EventListener
  */
-inline fun KatanPlugin.listener(block: EventListener.() -> Unit): EventListener {
+inline fun Plugin.listener(block: EventListener.() -> Unit): EventListener {
     return eventListener.apply(block)
 }
 
 /**
  * Adds a [handler] for phase [phase].
  */
-fun KatanPlugin.handle(phase: PluginPhase, handler: PluginHandler): PluginHandler {
+fun Plugin.handle(phase: PluginPhase, handler: PluginHandler): PluginHandler {
     return handlers.computeIfAbsent(phase) {
         arrayListOf()
     }.let { handler }
@@ -126,29 +147,9 @@ fun KatanPlugin.handle(phase: PluginPhase, handler: PluginHandler): PluginHandle
  * Adds a handler that, when called, executes the [block] function for phase [phase].
  * @see handle
  */
-fun KatanPlugin.handle(phase: PluginPhase, block: KatanPlugin.() -> Unit): PluginHandler {
-    return handle(phase, object: PluginHandler {
-        override fun handle(plugin: KatanPlugin) = block(plugin)
-    })
-}
-
-/**
- * Adds a handler that, when called, executes the [block] function for phase [phase].
- * @see handle
- */
-fun KatanPlugin.handleSuspending(phase: PluginPhase, block: suspend KatanPlugin.() -> Unit): PluginHandler {
-    return handle(phase, object : SuspendablePluginHandler {
-        override suspend fun handleSuspending(plugin: KatanPlugin) = block(plugin)
-    })
-}
-
-/**
- * Adds a handler that, when called, executes the [block] function for phase [phase].
- * @see handle
- */
-fun KatanPlugin.handle(phase: PluginPhase, block: () -> Unit): PluginHandler {
+fun Plugin.handle(phase: PluginPhase, block: Plugin.() -> Unit): PluginHandler {
     return handle(phase, object : PluginHandler {
-        override fun handle(plugin: KatanPlugin) = block()
+        override fun handle(plugin: Plugin) = block(plugin)
     })
 }
 
@@ -156,8 +157,28 @@ fun KatanPlugin.handle(phase: PluginPhase, block: () -> Unit): PluginHandler {
  * Adds a handler that, when called, executes the [block] function for phase [phase].
  * @see handle
  */
-fun KatanPlugin.handleSuspending(phase: PluginPhase, block: suspend () -> Unit): PluginHandler {
+fun Plugin.handleSuspending(phase: PluginPhase, block: suspend Plugin.() -> Unit): PluginHandler {
     return handle(phase, object : SuspendablePluginHandler {
-        override suspend fun handleSuspending(plugin: KatanPlugin) = block()
+        override suspend fun handleSuspending(plugin: Plugin) = block(plugin)
+    })
+}
+
+/**
+ * Adds a handler that, when called, executes the [block] function for phase [phase].
+ * @see handle
+ */
+fun Plugin.handle(phase: PluginPhase, block: () -> Unit): PluginHandler {
+    return handle(phase, object : PluginHandler {
+        override fun handle(plugin: Plugin) = block()
+    })
+}
+
+/**
+ * Adds a handler that, when called, executes the [block] function for phase [phase].
+ * @see handle
+ */
+fun Plugin.handleSuspending(phase: PluginPhase, block: suspend () -> Unit): PluginHandler {
+    return handle(phase, object : SuspendablePluginHandler {
+        override suspend fun handleSuspending(plugin: Plugin) = block()
     })
 }

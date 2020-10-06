@@ -21,3 +21,24 @@ val PluginStarted = PluginPhase("PluginStarted")
  * Phase called when the plugin is stopped.
  */
 val PluginStopped = PluginPhase("PluginStopped")
+
+/**
+ * Phase called when the plugin is started.
+ */
+val PluginLoaded = PluginPhase("PluginLoaded")
+
+/**
+ * Phase called during the Katan setup process.
+ */
+val KatanConfiguration = PluginPhase("KatanConfiguration")
+
+/**
+ * Phase called when Katan starts the boot process.
+ *
+ */
+val KatanInit = PluginPhase("KatanInit")
+
+/**
+ * Phase called when the Katan is completely started.
+ */
+val KatanStarted = PluginPhase("KatanStarted")
