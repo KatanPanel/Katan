@@ -14,6 +14,7 @@ import java.net.URLClassLoader
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import kotlin.reflect.KClass
+import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSuperclassOf
@@ -51,7 +52,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
 
     override suspend fun stopPlugin(descriptor: PluginDescriptor): Plugin? {
         val plugin = getPlugin(descriptor) ?: return null
-        plugin.coroutineScope.cancel()
+        plugin.cancel()
         mutex.withLock {
             plugins.remove(plugin)
         }
@@ -72,6 +73,8 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
             }
         })
 
+        println("call handlers!")
+        println("katan: ${plugin.katan}")
         callHandlers(PluginLoaded, plugin)
         mutex.withLock {
             plugins.add(instance)
@@ -127,7 +130,12 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
             return null
 
         name = name.substringBeforeLast(".").replace("/", ".")
-        return retrievePluginInstance(classloader.loadClass(name).kotlin) ?: return null
+
+        // prevents inline methods from coming here.
+        if (name.contains("$"))
+            return null
+
+        return retrievePluginInstance(classloader.loadClass(name).kotlin)
     }
 
     private suspend fun callHandlers(phase: PluginPhase, plugin: Plugin) {
@@ -138,16 +146,19 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
 
     private fun retrievePluginInstance(kclass: KClass<out Any>): Plugin? {
         fun Any.castAsPlugin(): Plugin? {
-            return if (this is Plugin) this
+            return if (this is Plugin) this.also {
+                println("FOund: $it (${it.state})")
+            }
             else null
         }
 
-        return kclass.objectInstance?.castAsPlugin()
-            ?: kclass.companionObjectInstance?.castAsPlugin()
-            ?: run {
-                if (Plugin::class.isSuperclassOf(kclass)) kclass.createInstance().castAsPlugin()
-                else null
-            }
+        if (Plugin::class.isSuperclassOf(kclass))
+            return kclass.createInstance().castAsPlugin()
+
+        if (kclass.companionObject != null && Plugin::class.isSuperclassOf(kclass.companionObject!!))
+            return kclass.companionObject!!.let { kclass.companionObjectInstance!! }.castAsPlugin()
+
+        return null
     }
 
     private fun setProperty(clazz: Class<*>, obj: Any, property: String, value: Any) {
