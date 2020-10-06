@@ -130,7 +130,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         return retrievePluginInstance(classloader.loadClass(name).kotlin) ?: return null
     }
 
-    private fun callHandlers(phase: PluginPhase, plugin: Plugin) {
+    private suspend fun callHandlers(phase: PluginPhase, plugin: Plugin) {
         for (handler in plugin.handlers[phase] ?: emptyList()) {
             handler.handle(plugin)
         }
