@@ -1,6 +1,6 @@
 package me.devnatan.katan.core.server.compositions
 
-import me.devnatan.katan.api.InternalKatanAPI
+import me.devnatan.katan.api.annotations.InternalKatanAPI
 import me.devnatan.katan.api.server.*
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.server.compositions.compose.DockerComposeComposition
