@@ -3,10 +3,8 @@ package me.devnatan.katan.webserver
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.interfaces.Payload
 import me.devnatan.katan.api.account.Account
-import me.devnatan.katan.webserver.KatanWS.Companion.ACCOUNT_TOKEN_PREFIX
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -54,14 +52,6 @@ class WSAccountManager(val webserver: KatanWS) {
             .withClaim("account", account.id.toString())
             .withExpiresAt(Date.from(Instant.now().plus(JWT_TOKEN_LIFETIME)))
             .sign(algorithm)
-    }
-
-    @Throws(JWTDecodeException::class)
-    suspend fun verifyToken(token: String): Account {
-        if (token.isBlank())
-            throw IllegalArgumentException("Empty token")
-
-        return verifyPayload(verifier.verify(token))
     }
 
     suspend fun verifyPayload(payload: Payload): Account {
