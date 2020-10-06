@@ -1,21 +1,23 @@
 package me.devnatan.katan.api.plugin
 
 import br.com.devsrsouza.eventkt.EventScope
+import br.com.devsrsouza.eventkt.listen
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
 /**
  * Responsible for sending events from the plugin and receiving events for the plugin, also known as EventBus.
  */
-open class EventListener(private val coroutineScope: CoroutineScope) : EventScope by LocalEventScope() {
+open class EventListener(val coroutineScope: CoroutineScope) : EventScope by LocalEventScope() {
+
+    inline fun <reified T : Any> event(crossinline block: suspend T.() -> Unit) {
+        coroutineScope.launch {
+            listen<T>().collect(block)
+        }
+    }
 
     @OptIn(ExperimentalStdlibApi::class)
     fun <T : Any> event(event: Class<T>): EventFlow<T> {

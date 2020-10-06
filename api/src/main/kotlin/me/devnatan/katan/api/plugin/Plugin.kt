@@ -149,7 +149,7 @@ fun Plugin.dependsOn(name: String, version: Version) = dependsOn(PluginDescripto
  * Access the plugin's event listener, through which you can call and listen to events.
  * @see EventListener
  */
-inline fun Plugin.listener(block: EventListener.() -> Unit): EventListener {
+fun Plugin.listener(block: EventListener.() -> Unit): EventListener {
     return eventListener.apply(block)
 }
 
@@ -166,38 +166,13 @@ fun Plugin.handle(phase: PluginPhase, handler: PluginHandler): PluginHandler {
  * Adds a handler that, when called, executes the [block] function for phase [phase].
  * @see handle
  */
-fun Plugin.handle(phase: PluginPhase, block: Plugin.() -> Unit): PluginHandler {
-    return handle(phase, object : PluginHandler {
-        override fun handle(plugin: Plugin) = block(plugin)
-    })
-}
+inline fun Plugin.handle(phase: PluginPhase, crossinline block: suspend () -> Unit): PluginHandler {
+    val handler = object : PluginHandler {
+        override suspend fun handle(plugin: Plugin) = block()
+    }
 
-/**
- * Adds a handler that, when called, executes the [block] function for phase [phase].
- * @see handle
- */
-fun Plugin.handleSuspending(phase: PluginPhase, block: suspend Plugin.() -> Unit): PluginHandler {
-    return handle(phase, object : SuspendablePluginHandler {
-        override suspend fun handleSuspending(plugin: Plugin) = block(plugin)
-    })
-}
-
-/**
- * Adds a handler that, when called, executes the [block] function for phase [phase].
- * @see handle
- */
-fun Plugin.handle(phase: PluginPhase, block: () -> Unit): PluginHandler {
-    return handle(phase, object : PluginHandler {
-        override fun handle(plugin: Plugin) = block()
-    })
-}
-
-/**
- * Adds a handler that, when called, executes the [block] function for phase [phase].
- * @see handle
- */
-fun Plugin.handleSuspending(phase: PluginPhase, block: suspend () -> Unit): PluginHandler {
-    return handle(phase, object : SuspendablePluginHandler {
-        override suspend fun handleSuspending(plugin: Plugin) = block()
-    })
+    handlers.computeIfAbsent(phase) {
+        arrayListOf()
+    }.add(handler)
+    return handler
 }
