@@ -14,6 +14,7 @@ import me.devnatan.katan.core.KatanLocale
 import me.devnatan.katan.core.exceptions.SilentException
 import me.devnatan.katan.webserver.KatanWS
 import java.io.BufferedReader
+import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.util.*
@@ -26,13 +27,30 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
 
         @JvmStatic
         fun main(args: Array<out String>) {
-            val config = ConfigFactory.parseFile(exportResource("katan.conf"))
-            createDirectory("messages")
+            val envVar = System.getProperty("katan.environment", "dev").toLowerCase()
+            if (envVar !in KatanEnvironment.ALL)
+                return System.err.println(
+                    "Environment definition \"$envVar\" is not valid for Katan. You can only choose these: ${
+                        KatanEnvironment.ALL.joinToString(
+                            ", "
+                        )
+                    }"
+                )
+
+            var configEnv = File("katan.$envVar.conf")
+            if (!configEnv.exists())
+                configEnv = exportResource("katan.conf")
+            else
+                println("Configuration file: $configEnv")
+
+            val config = ConfigFactory.parseFile(configEnv)
+            createDirectory("translations")
+
             val userLocale: Locale = if (!config.hasPath("locale")) Locale.getDefault()
             else Locale.forLanguageTag(config.get("locale", "en-US"))
 
             val languageTag = userLocale.toLanguageTag()
-            val messages = exportResource("messages/$languageTag.properties")
+            val messages = exportResource("translations/$languageTag.properties")
 
             val locale = KatanLocale(userLocale, Properties().apply {
                 // force UTF-8 encoding
@@ -44,7 +62,7 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                 ).use { input -> load(input) }
             })
 
-            val env = config.get("environment", KatanEnvironment.DEVELOPMENT).toLowerCase()
+            val env = System.getProperty("katan.environment", "dev").toLowerCase()
             if (env !in KatanEnvironment.ALL)
                 return System.err.println(locale["invalid-environment", "\"$env\"", KatanEnvironment.ALL.joinToString(", ")])
 
@@ -67,7 +85,7 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                     katan.start()
                 }
 
-                KatanCore.logger.info(katan.locale.get("katan.started", String.format("%.2f", time / 1000.0f)))
+                KatanCore.logger.info(katan.locale["katan.started", String.format("%.2f", time / 1000.0f)])
             } catch (e: Throwable) {
                 when (e) {
                     is SilentException -> e.logger.error(e.cause.toString())
