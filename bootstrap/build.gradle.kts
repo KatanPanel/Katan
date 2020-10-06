@@ -17,6 +17,7 @@ tasks {
     jar {
         manifest {
             attributes["Main-Class"] = application.mainClassName
+            attributes["Implementation-Version"] = project.version
         }
     }
 
