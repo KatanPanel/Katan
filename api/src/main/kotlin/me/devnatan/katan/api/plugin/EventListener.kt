@@ -2,7 +2,10 @@ package me.devnatan.katan.api.plugin
 
 import br.com.devsrsouza.eventkt.EventScope
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
@@ -14,7 +17,6 @@ import java.util.function.Consumer
  */
 open class EventListener(private val coroutineScope: CoroutineScope) : EventScope by LocalEventScope() {
 
-    @JvmSynthetic
     @OptIn(ExperimentalStdlibApi::class)
     fun <T : Any> event(event: Class<T>): EventFlow<T> {
         return EventFlow(coroutineScope, listen(event.kotlin))
@@ -46,6 +48,7 @@ class EventFlow<T> internal constructor(
      * Returns the first element emitted by the [flow] and then cancels flow's collection.
      * @see Flow.first
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun collect(): T {
         val future = CompletableFuture<T>()
         val job = coroutineScope.async {

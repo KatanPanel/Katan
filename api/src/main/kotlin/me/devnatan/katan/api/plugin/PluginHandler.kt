@@ -6,13 +6,13 @@ interface PluginHandler {
      * Call this handler for [plugin] blocking the current thread.
      * @param plugin the subject
      */
-    fun handle(plugin: KatanPlugin)
+    fun handle(plugin: Plugin)
 
 }
 
 interface SuspendablePluginHandler : PluginHandler {
 
-    override fun handle(plugin: KatanPlugin) {
+    override fun handle(plugin: Plugin) {
         throw UnsupportedOperationException()
     }
 
@@ -22,7 +22,7 @@ interface SuspendablePluginHandler : PluginHandler {
      * Use this function to work with blocking or long-running functions.
      * @param plugin the subject
      */
-    suspend fun handleSuspending(plugin: KatanPlugin)
+    suspend fun handleSuspending(plugin: Plugin)
 
 }
 

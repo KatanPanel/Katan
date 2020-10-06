@@ -6,17 +6,12 @@ import java.util.*
 /**
  * It represents the basic information of a plugin, as it should be described,
  * it is also used as a dependency filtering element for example through the version of the descriptor.
- *
- * All values of this class must be filled in, they are defined as lateinit (not "var" with default value)
- * because they must be initialized during the start process of a plugin and why if there
- * is no need to use any of the fields if it is not requested it does not need to be initialized.
- *
  */
-class PluginDescriptor {
-
-    lateinit var name: String
-    lateinit var version: Version
-    lateinit var author: String
+class PluginDescriptor(
+    val name: String,
+    val version: Version? = null,
+    val author: String? = null
+) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -36,7 +31,11 @@ class PluginDescriptor {
     }
 
     override fun toString(): String {
-        return "$name v$version by $author"
+        return buildString {
+            append(name)
+            version?.run { append(" v$this") }
+            author?.run { append(" by$this") }
+        }
     }
 
 }

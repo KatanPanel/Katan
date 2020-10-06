@@ -3,6 +3,7 @@ package me.devnatan.katan.api.plugin
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
+import me.devnatan.katan.api.Version
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
@@ -86,7 +87,17 @@ open class KatanPlugin : Plugin {
 /**
  * Set the plugin name to [name], version to [version] and [author] to author.
  */
-fun KatanPlugin.descriptor(name: String, version: String? = null, author: String? = null): PluginDescriptor {
+fun KatanPlugin.descriptor(name: String, version: CharSequence? = null, author: String? = null): PluginDescriptor {
+    if (_descriptor != null)
+        throw IllegalStateException()
+
+    return PluginDescriptor(name, version?.let { Version(it) }, author).also { _descriptor = it }
+}
+
+/**
+ * Set the plugin name to [name], version to [version] and [author] to author.
+ */
+fun KatanPlugin.descriptor(name: String, version: Version? = null, author: String? = null): PluginDescriptor {
     if (_descriptor != null)
         throw IllegalStateException()
 
@@ -124,7 +135,15 @@ fun Plugin.dependsOn(name: String) = dependsOn(PluginDescriptor(name))
  * @param name the dependency name
  * @param version the dependency version
  */
-fun Plugin.dependsOn(name: String, version: String) = dependsOn(PluginDescriptor(name, version))
+fun Plugin.dependsOn(name: String, version: CharSequence) = dependsOn(PluginDescriptor(name, Version(version)))
+
+/**
+ * Adds a plugin that matches the specified descriptor [name] and [version] by adding
+ * it to the plugin's classpath and setting it as the plugin's pre-boot priority.
+ * @param name the dependency name
+ * @param version the dependency version
+ */
+fun Plugin.dependsOn(name: String, version: Version) = dependsOn(PluginDescriptor(name, version))
 
 /**
  * Access the plugin's event listener, through which you can call and listen to events.
