@@ -7,7 +7,6 @@ import kotlinx.coroutines.*
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.manager.AccountManager
 import me.devnatan.katan.api.manager.ServerManager
-import me.devnatan.katan.common.KATAN_VERSION
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
@@ -77,7 +76,7 @@ class KatanCLI(val katan: Katan) {
     }
 
     internal fun showVersion() {
-        logger.info("Running on Katan v$KATAN_VERSION.")
+        logger.info("Running on Katan v${Katan.VERSION}.")
     }
 
 }
