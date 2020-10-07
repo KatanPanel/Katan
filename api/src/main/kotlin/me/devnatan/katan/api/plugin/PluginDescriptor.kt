@@ -34,7 +34,7 @@ class PluginDescriptor(
         return buildString {
             append(name)
             version?.run { append(" v$this") }
-            author?.run { append(" by$this") }
+            author?.run { append(" by $this") }
         }
     }
 

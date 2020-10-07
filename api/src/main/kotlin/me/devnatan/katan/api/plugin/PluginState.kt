@@ -1,11 +1,15 @@
 package me.devnatan.katan.api.plugin
 
-sealed class PluginState {
+import java.time.Instant
 
-    object Loaded
+sealed class PluginState(val parent: PluginState?, val error: Throwable?) {
 
-    object Enabled
+    class Loaded(val loadedAt: Instant, parent: Unloaded, error: Throwable? = null) : PluginState(parent, error)
 
-    object Disabled
+    class Started(val startedAt: Instant, parent: Loaded, error: Throwable? = null) : PluginState(parent, error)
+
+    class Stopped(val disabledAt: Instant, parent: Started, error: Throwable? = null) : PluginState(parent, error)
+
+    class Unloaded(error: Throwable? = null) : PluginState(null, error)
 
 }

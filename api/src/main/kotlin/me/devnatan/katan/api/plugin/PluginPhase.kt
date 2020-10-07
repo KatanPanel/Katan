@@ -23,7 +23,7 @@ val PluginStarted = PluginPhase("PluginStarted")
 val PluginStopped = PluginPhase("PluginStopped")
 
 /**
- * Phase called when the plugin is started.
+ * Phase called when the plugin is loaded.
  */
 val PluginLoaded = PluginPhase("PluginLoaded")
 

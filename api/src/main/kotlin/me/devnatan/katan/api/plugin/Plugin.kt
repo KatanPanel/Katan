@@ -1,5 +1,6 @@
 package me.devnatan.katan.api.plugin
 
+import InitOnceProperty
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
@@ -8,16 +9,18 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * This plugin's private local scope, used to create tasks, receive and send events, wait for requests and others.
- * Canceling this scope will cancel absolutely everything related to tasks in this plugin.
- */
-interface Plugin : CoroutineScope {
+interface Plugin {
 
     /**
      * Current instance of the Katan injected into the plugin.
      */
     val katan: Katan
+
+    /**
+     * This plugin's private local scope, used to create tasks, receive and send events, wait for requests and others.
+     * Canceling this scope will cancel absolutely everything related to tasks in this plugin.
+     */
+    val coroutineScope: CoroutineScope
 
     /**
      * Built-in logger built using descriptor data.
@@ -56,30 +59,29 @@ interface Plugin : CoroutineScope {
 
 }
 
-abstract class KatanPlugin constructor(
-    final override val descriptor: PluginDescriptor
-) : Plugin, CoroutineScope by CoroutineScope(CoroutineName("Katan::plugin-${descriptor.name}")) {
+open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin {
 
-    @JvmOverloads
     constructor(
         name: String,
         version: CharSequence? = null,
         author: String? = null
     ) : this(PluginDescriptor(name, version?.let { Version(it) }, author))
 
-    override lateinit var katan: Katan
-    override lateinit var state: PluginState
-    override lateinit var dependencyManager: DependencyManager
+    final override val katan by InitOnceProperty<Katan>()
+    final override val dependencyManager by InitOnceProperty<DependencyManager>()
 
-    override val logger: Logger = LoggerFactory.getLogger(descriptor.name)
-    override val eventListener: EventListener = EventListener(this)
+    final override var state: PluginState = PluginState.Unloaded()
+    final override val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName("Katan-plugin:${descriptor.name}"))
+    final override val eventListener: EventListener = EventListener(coroutineScope)
+
+    final override val logger: Logger = LoggerFactory.getLogger(descriptor.name)
     final override val handlers: MutableMap<PluginPhase, MutableCollection<PluginHandler>>
 
     init {
         handlers = ConcurrentHashMap()
     }
 
-    abstract suspend operator fun invoke()
+    override fun toString() = descriptor.toString()
 
 }
 
@@ -99,7 +101,6 @@ inline fun Plugin.dependencyManagement(block: DependencyManager.() -> Unit): Dep
 fun Plugin.dependsOn(descriptor: PluginDescriptor) {
     dependencyManager.addDependency(descriptor)
 }
-
 
 /**
  * Adds a plugin that matches the specified descriptor [name] by adding
@@ -128,8 +129,9 @@ fun Plugin.dependsOn(name: String, version: Version) = dependsOn(PluginDescripto
  * Access the plugin's event listener, through which you can call and listen to events.
  * @see EventListener
  */
-inline fun Plugin.listener(block: EventListener.() -> Unit): EventListener {
-    return eventListener.apply(block)
+suspend fun Plugin.listener(block: suspend EventListener.() -> Unit): EventListener {
+    block(eventListener)
+    return eventListener
 }
 
 /**
