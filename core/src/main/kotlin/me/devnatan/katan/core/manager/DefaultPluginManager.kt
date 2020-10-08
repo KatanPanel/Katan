@@ -26,6 +26,8 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
 
     private val logger = LoggerFactory.getLogger(PluginManager::class.java)!!
     private val pwd = File("plugins")
+    private val mutex: Mutex = Mutex()
+    private val plugins: MutableList<Plugin> = arrayListOf()
 
     init {
         if (!pwd.exists())
@@ -37,23 +39,32 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         }
     }
 
-    private val mutex = Mutex()
-    private val plugins = arrayListOf<Plugin>()
+    override fun getPlugins(): List<Plugin> {
+        return plugins.toList()
+    }
 
     override fun getPlugin(descriptor: PluginDescriptor): Plugin? {
         return plugins.firstOrNull { it.descriptor == descriptor }
     }
 
-    override suspend fun initializePlugin(descriptor: PluginDescriptor): Plugin {
-        return runCatching {
-            loadPlugin0(descriptor)
-        }.onSuccess {
-            mutex.withLock { plugins.add(it!!) }
-        }.getOrThrow()!!
+    override suspend fun startPlugin(plugin: Plugin) {
+        (plugin as KatanPlugin).state = PluginState.Started(Instant.now(), plugin.state as PluginState.Loaded)
+        callHandlers(PluginStarted, plugin)
+        logger.info("Plugin $plugin started.")
     }
 
-    override suspend fun stopPlugin(descriptor: PluginDescriptor): Plugin? {
-        val plugin = getPlugin(descriptor) ?: return null
+    override suspend fun loadPlugin(descriptor: PluginDescriptor): Plugin {
+        return runCatching {
+            findPlugin(descriptor)?.let { loadPlugin0(it) }
+        }.onSuccess { plugins.add(it!!) }.getOrThrow()!!
+    }
+
+    override suspend fun unloadPlugin(plugin: Plugin): Plugin {
+        throw NotImplementedError()
+    }
+
+    override suspend fun stopPlugin(plugin: Plugin): Plugin? {
+        check(plugin.state is PluginState.Started) { "The plugin has not started yet" }
         plugin.coroutineScope.cancel()
         mutex.withLock {
             plugins.remove(plugin)
@@ -61,24 +72,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         return plugin
     }
 
-    private suspend fun loadPlugin(plugin: Plugin) {
-        try {
-            setProperties(plugin as KatanPlugin, mapOf("katan" to katan))
-            plugin.state = PluginState.Loaded(Instant.now(), plugin.state as PluginState.Unloaded)
-            callHandlers(PluginLoaded, plugin)
-            logger.info("Plugin $plugin loaded")
-        } catch (e: AlreadyInitializedPropertyException) {
-            logger.error("Could not load plugin \"$plugin\".")
-            logger.error(e.toString())
-            return
-        }
-
-        plugin.state = PluginState.Started(Instant.now(), plugin.state as PluginState.Loaded)
-        callHandlers(PluginStarted, plugin)
-        logger.info("Plugin $plugin started.")
-    }
-
-    private suspend fun loadPlugin0(descriptor: PluginDescriptor): Plugin? {
+    private fun findPlugin(descriptor: PluginDescriptor): Plugin? {
         for (file in pwd.listFiles(FileFilter {
             it.extension == "jar"
         }) ?: emptyArray()) {
@@ -87,7 +81,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
                 val entries = jar.entries()
                 while (entries.hasMoreElements()) {
                     val entry = entries.nextElement()
-                    val plugin = initializePlugin0(entry, classloader) ?: continue
+                    val plugin = initializePlugin(entry, classloader) ?: continue
                     if (plugin.descriptor == descriptor)
                         return plugin
                 }
@@ -95,6 +89,19 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         }
 
         return null
+    }
+
+    private suspend fun loadPlugin0(plugin: Plugin): Plugin {
+        try {
+            setProperties(plugin as KatanPlugin, mapOf("katan" to katan))
+            plugin.state = PluginState.Loaded(Instant.now(), plugin.state as PluginState.Unloaded)
+            callHandlers(PluginLoaded, plugin)
+            logger.info("Plugin $plugin loaded")
+            return plugin
+        } catch (e: AlreadyInitializedPropertyException) {
+            logger.error("Could not load plugin \"$plugin\".")
+            throw e
+        }
     }
 
     private suspend fun loadPlugins() {
@@ -106,15 +113,19 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
                 val entries = jar.entries()
                 while (entries.hasMoreElements()) {
                     val entry = entries.nextElement()
-                    val plugin = initializePlugin0(entry, classloader)
-                    if (plugin != null)
-                        loadPlugin(plugin)
+                    val plugin = initializePlugin(entry, classloader)
+                    if (plugin != null) {
+                        loadPlugin0(plugin)
+                        startPlugin(plugin)
+
+                        plugins.add(plugin)
+                    }
                 }
             }
         }
     }
 
-    private suspend fun initializePlugin0(entry: JarEntry, classloader: URLClassLoader): Plugin? {
+    private fun initializePlugin(entry: JarEntry, classloader: URLClassLoader): Plugin? {
         if (entry.isDirectory)
             return null
 

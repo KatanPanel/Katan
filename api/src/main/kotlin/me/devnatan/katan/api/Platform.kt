@@ -8,7 +8,13 @@ data class Platform(val os: OS) {
      * @property arch the operating system architecture information
      * @property version the operating system version
      */
-    data class OS(val name: String, val arch: String, val version: String)
+    data class OS(val name: String, val arch: String, val version: String) {
+
+        override fun toString(): String {
+            return "$name $version ($arch)"
+        }
+
+    }
 
 }
 
