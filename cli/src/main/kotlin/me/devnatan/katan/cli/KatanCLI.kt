@@ -6,6 +6,7 @@ import com.github.ajalt.clikt.output.CliktConsole
 import kotlinx.coroutines.*
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.manager.AccountManager
+import me.devnatan.katan.api.manager.PluginManager
 import me.devnatan.katan.api.manager.ServerManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -33,9 +34,11 @@ class KatanCLI(val katan: Katan) {
         }
     }
 
-    val logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
+    private val logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
+
     val serverManager: ServerManager get() = katan.serverManager
     val accountManager: AccountManager get() = katan.accountManager
+    val pluginManager: PluginManager get() = katan.pluginManager
 
     private var running = false
     private val command = KatanCommand(this)
@@ -53,10 +56,8 @@ class KatanCLI(val katan: Katan) {
                 if (!args[0].equals("katan", true))
                     continue
 
-                if (args.size == 1) {
-                    showVersion()
-                    continue
-                }
+                if (args.size == 1)
+                    throw PrintHelpMessage(command)
 
                 command.parse(args.subList(1, args.size))
             } catch (e: PrintHelpMessage) {
@@ -73,10 +74,6 @@ class KatanCLI(val katan: Katan) {
         if (coroutineExecutor.isActive)
             coroutineScope.cancel()
         coroutineExecutor.close()
-    }
-
-    internal fun showVersion() {
-        logger.info("Running on Katan v${Katan.VERSION}.")
     }
 
 }
