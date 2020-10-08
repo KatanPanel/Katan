@@ -25,6 +25,7 @@ import me.devnatan.katan.core.server.compositions.DockerCompositionFactory
 import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.LoggerFactory
 import java.io.Closeable
+import java.io.File
 import java.time.Duration
 import kotlin.system.measureTimeMillis
 
@@ -37,7 +38,8 @@ class DockerServerManager(
 
         const val COROUTINE_SCOPE_NAME = "Katan::ServerManager"
         const val CONTAINER_NAME_PATTERN = "katan_server_%s"
-        const val COMPOSE_ROOT = "compose"
+        const val COMPOSE_ROOT = "composer"
+        const val NETWORK_ID = "katan0"
         val logger = LoggerFactory.getLogger(ServerManager::class.java)!!
 
     }
@@ -65,6 +67,16 @@ class DockerServerManager(
                 // already registered this will prevent future collisions.
                 lastId.lazySet(server.id)
             }
+        }
+
+        File(COMPOSE_ROOT).let { if (!it.exists()) it.mkdirs() }
+
+        try {
+            core.docker.inspectNetworkCmd().withNetworkId(NETWORK_ID).exec()
+        } catch (e: NotFoundException) {
+            core.docker.createNetworkCmd().withName(NETWORK_ID)
+                .withAttachable(true)
+                .exec()
         }
 
         if (servers.isNotEmpty())
