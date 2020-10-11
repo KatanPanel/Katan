@@ -1,7 +1,5 @@
 package me.devnatan.katan.api.server
 
-import kotlinx.coroutines.Job
-
 /**
  * @property id the container identification.
  */
@@ -17,7 +15,6 @@ abstract class ServerContainer(val id: String) {
      * @return [ServerInspection.Uninspected] if it hasn't been inspected.
      */
     open fun isInspected(): Boolean {
-        Job
         return synchronized(inspection) {
             inspection !is ServerInspection.Uninspected
         }

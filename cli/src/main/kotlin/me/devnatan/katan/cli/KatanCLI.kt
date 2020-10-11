@@ -4,15 +4,15 @@ import com.github.ajalt.clikt.core.PrintHelpMessage
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.output.CliktConsole
 import kotlinx.coroutines.*
-import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.manager.AccountManager
 import me.devnatan.katan.api.manager.PluginManager
 import me.devnatan.katan.api.manager.ServerManager
+import me.devnatan.katan.core.KatanCore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 
-class KatanCLI(val katan: Katan) {
+class KatanCLI(val katan: KatanCore) {
 
     class Console(private val logger: Logger) : CliktConsole {
 
@@ -34,7 +34,7 @@ class KatanCLI(val katan: Katan) {
         }
     }
 
-    private val logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
+    val logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
 
     val serverManager: ServerManager get() = katan.serverManager
     val accountManager: AccountManager get() = katan.accountManager

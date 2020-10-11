@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.NoOpCliktCommand
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
+import com.github.ajalt.clikt.output.TermUi
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.cli.commands.account.AccountCommand
 import me.devnatan.katan.cli.commands.compose.ComposeCommand
@@ -50,4 +51,19 @@ class VersionCommand(private val cli: KatanCLI) : CliktCommand(
         echo("Environment: ${cli.katan.environment}")
     }
 
+}
+
+fun CliktCommand.err(vararg messages: Any?) {
+    for (message in messages) {
+        if (message is Iterable<*>)
+            for (value in message) err(value)
+        else
+            TermUi.echo(
+                message,
+                trailingNewline = true,
+                err = true,
+                currentContext.console,
+                currentContext.console.lineSeparator
+            )
+    }
 }

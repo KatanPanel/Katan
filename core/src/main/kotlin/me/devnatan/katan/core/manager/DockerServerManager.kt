@@ -3,6 +3,7 @@ package me.devnatan.katan.core.manager
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
 import com.github.dockerjava.api.model.Frame
+import com.github.dockerjava.api.model.PullResponseItem
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
@@ -12,23 +13,23 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import me.devnatan.katan.api.event.*
 import me.devnatan.katan.api.manager.ServerManager
-import me.devnatan.katan.api.server.Server
-import me.devnatan.katan.api.server.ServerComposition
-import me.devnatan.katan.api.server.ServerCompositionFactory
-import me.devnatan.katan.api.server.ServerState
+import me.devnatan.katan.api.server.*
+import me.devnatan.katan.common.server.ServerCompositionsImpl
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.repository.ServersRepository
 import me.devnatan.katan.core.server.DockerServerContainer
 import me.devnatan.katan.core.server.DockerServerContainerInspection
+import me.devnatan.katan.core.server.ServerHolderImpl
 import me.devnatan.katan.core.server.ServerImpl
 import me.devnatan.katan.core.server.compositions.DockerCompositionFactory
+import me.devnatan.katan.core.server.compositions.InvisibleCompositionFactory
 import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.LoggerFactory
-import java.io.Closeable
-import java.io.File
+import java.io.*
 import java.time.Duration
 import kotlin.system.measureTimeMillis
 
+@Suppress("BlockingMethodInNonBlockingContext")
 class DockerServerManager(
     private val core: KatanCore,
     private val repository: ServersRepository,
@@ -49,12 +50,65 @@ class DockerServerManager(
     private val servers: MutableSet<Server> = hashSetOf()
     val composer = DockerCompose(core.platform, logger)
     private val compositionFactories: MutableList<ServerCompositionFactory> = arrayListOf()
+    val compositionFactory = DockerCompositionFactory(core)
+    private val localDataManager = ServerLocalDataManager()
 
     init {
         registerCompositionFactory(DockerCompositionFactory(core))
-        runBlocking {
-            for (server in repository.listServers()) {
-                server.container = DockerServerContainer(server.container.id, core.docker)
+        File(COMPOSE_ROOT).let { if (!it.exists()) it.mkdirs() }
+
+        try {
+            core.docker.inspectNetworkCmd().withNetworkId(NETWORK_ID).exec()
+        } catch (e: NotFoundException) {
+            core.docker.createNetworkCmd().withName(NETWORK_ID)
+                .withAttachable(true)
+                .exec()
+        }
+    }
+
+    internal suspend fun loadServers() {
+        repository.listServers { entities ->
+            for (entity in entities) {
+                val server = ServerImpl(
+                    entity.id.value,
+                    entity.name,
+                    entity.target,
+                    ServerCompositionsImpl()
+                ).apply {
+                    container = DockerServerContainer(entity.containerId, core.docker)
+                }
+
+                server.holders.addAll(entity.holders.mapNotNull {
+                    /*
+                        If the account is null this is a database synchronization error
+                        we can ignore this, but in the future we should alert that kind of thing.
+                     */
+                    core.accountManager.getAccount(it.account.value.toString())
+                }.map { ServerHolderImpl(it, server) })
+
+                for (composition in entity.compositions) {
+                    val factory = compositionFactories.firstOrNull {
+                        it.getKey(composition.key) != null
+                    }
+
+                    if (factory == null) {
+                        logger.warn("${server.name}: No factory found for composition ${composition.key}, skipping.")
+                        continue
+                    }
+
+                    val optionsData =
+                        FileInputStream(localDataManager.getCompositionOptions(server, composition.key)).use {
+                            core.objectMapper.readValue(it, Map::class.java)
+                        } as Map<String, Any>
+
+                    val key = factory.getKey(composition.key)!!
+                    val impl = factory.create(
+                        key,
+                        factory.generate(key, optionsData)
+                    )
+                    impl.read(server)
+                    (server.compositions as ServerCompositionsImpl)[key] = impl
+                }
 
                 try {
                     inspectServer(server)
@@ -69,18 +123,8 @@ class DockerServerManager(
             }
         }
 
-        File(COMPOSE_ROOT).let { if (!it.exists()) it.mkdirs() }
-
-        try {
-            core.docker.inspectNetworkCmd().withNetworkId(NETWORK_ID).exec()
-        } catch (e: NotFoundException) {
-            core.docker.createNetworkCmd().withName(NETWORK_ID)
-                .withAttachable(true)
-                .exec()
-        }
-
         if (servers.isNotEmpty())
-            logger.debug("${servers.size} servers have been loaded.")
+            logger.debug("${servers.size} server(s) have been loaded.")
     }
 
     override fun getServerList(): Collection<Server> {
@@ -109,12 +153,30 @@ class DockerServerManager(
         return servers.any { it.name.equals(name, true) }
     }
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun createServer(server: Server): Server {
-        val impl = ServerImpl(lastId.incrementAndGet(), server.name).apply {
-            container = DockerServerContainer(CONTAINER_NAME_PATTERN.format(id), core.docker)
+        val id = lastId.incrementAndGet()
+        val impl = ServerImpl(id, server.name, server.target, server.compositions)
+        impl.container = DockerServerContainer(CONTAINER_NAME_PATTERN.format(id), core.docker)
+
+        core.eventBus.publish(ServerCreateEvent(impl))
+        for (composition in impl.compositions) {
+            composition.write(impl)
         }
 
-        core.eventBus.publish(ServerCreateEvent(server))
+        for (composition in impl.compositions) {
+            OutputStreamWriter(
+                FileOutputStream(localDataManager.getCompositionOptions(
+                    impl, composition.factory.getKeyName(
+                        composition.key
+                    )!!
+                ).apply {
+                    createNewFile()
+                }), Charsets.UTF_8
+            ).use { core.objectMapper.writeValue(it, composition.options) }
+        }
+
+        core.eventBus.publish(ServerComposedEvent(impl))
         return impl
     }
 
@@ -201,41 +263,102 @@ class DockerServerManager(
     }
 
     override fun getRegisteredCompositionFactories(): Collection<ServerCompositionFactory> {
-        return compositionFactories
+        return compositionFactories.filterNot { it is InvisibleCompositionFactory }
     }
 
     override fun getCompositionFactoryFor(key: ServerComposition.Key<*>): ServerCompositionFactory? {
-        return compositionFactories.firstOrNull { factory ->
-            factory.applicable.any { it == key }
+        return compositionFactories.filterNot {
+            it is InvisibleCompositionFactory
+        }.firstOrNull { factory ->
+            factory.registrations.any { it == key }
         }
     }
 
     override fun getCompositionFactoryApplicableFor(name: String): ServerCompositionFactory? {
-        return compositionFactories.firstOrNull { factory ->
-            factory.applicable.any { it.name == name }
+        return compositionFactories.filterNot {
+            it is InvisibleCompositionFactory
+        }.firstOrNull { factory ->
+            factory.getKey(name) != null
         }
     }
 
     override fun registerCompositionFactory(factory: ServerCompositionFactory) {
         compositionFactories.add(factory)
-        logger.debug(
-            "Composition factory registered for ${
-                factory.applicable.joinToString {
-                    it.name
-                }
-            }."
-        )
+
+        if (factory !is InvisibleCompositionFactory)
+            logger.debug(
+                "Composition factory registered for ${
+                    factory.registrations.entries.joinToString {
+                        it.key
+                    }
+                }."
+            )
     }
 
     override fun unregisterCompositionFactory(factory: ServerCompositionFactory) {
         compositionFactories.remove(factory)
-        logger.debug(
-            "Unregistered composition factory of ${
-                factory.applicable.joinToString {
-                    it.toString()
+
+        if (factory !is InvisibleCompositionFactory)
+            logger.debug(
+                "Unregistered composition factory of ${
+                    factory.registrations.entries.joinToString {
+                        it.key
+                    }
+                }."
+            )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun pullImage(image: String): Flow<String> = callbackFlow {
+        val callback = object : ResultCallback<PullResponseItem> {
+            val progress = arrayListOf<String>()
+            override fun onNext(response: PullResponseItem) {
+                if (response.status === "Waiting" ||
+                    (response.id == null || response.id == image.substringAfterLast(":")) &&
+                    !response.status!!.contains("Image is up to date")
+                ) {
+                    sendBlocking("${response.status} (${response.id}) - ignored.")
+                    return
                 }
-            }."
-        )
+
+                sendBlocking(response.toString())
+                if (response.progressDetail != null &&
+                    response.progressDetail!!.current != null &&
+                    !progress.contains(response.id)
+                ) {
+                    progress.add(response.id!!)
+                    sendBlocking("${response.id}: ${response.status}....")
+                }
+
+                if (response.isPullSuccessIndicated)
+                    progress.remove(response.id)
+
+                if (progress.isEmpty())
+                    channel.close()
+
+                // sendBlocking("${response.status}: ${response.progress}")
+            }
+
+            override fun close() {}
+
+            override fun onStart(closeable: Closeable?) {
+            }
+
+            override fun onError(cause: Throwable) {
+                if (cause is NullPointerException)
+                    cause.printStackTrace()
+
+                channel.close(cause)
+            }
+
+            override fun onComplete() {}
+        }
+
+        core.docker.pullImageCmd(image).exec(callback)
+
+        awaitClose {
+            callback.close()
+        }
     }
 
 }

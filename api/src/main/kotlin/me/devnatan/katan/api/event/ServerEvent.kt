@@ -9,6 +9,8 @@ open class ServerEvent(val server: Server) : Event
 
 open class ServerCreateEvent(server: Server) : ServerEvent(server)
 
+open class ServerComposedEvent(server: Server) : ServerEvent(server)
+
 open class ServerStartEvent(server: Server, val duration: Duration) : ServerEvent(server)
 
 open class ServerBeforeStartEvent(server: Server) : ServerEvent(server)

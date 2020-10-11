@@ -56,7 +56,6 @@ interface ServerManager {
     /**
      * Initializes the attributes of a server (creates the container for example).
      * @param server the server to be created
-     * @see ServerComposition
      */
     suspend fun createServer(server: Server): Server
 
@@ -68,7 +67,6 @@ interface ServerManager {
      * problems due to diverging information such as: inspection.
      *
      * This method will be suspended and will only be resumed at the end of the operation.
-     *
      * @param server the server to be registered
      */
     suspend fun registerServer(server: Server)
@@ -121,7 +119,6 @@ interface ServerManager {
      *     println("Output: $value")
      * }
      * ```
-     *
      * @param server the server
      * @param command the command to be executed
      */

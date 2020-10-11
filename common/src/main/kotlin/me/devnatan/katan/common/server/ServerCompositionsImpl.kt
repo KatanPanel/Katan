@@ -6,18 +6,22 @@ import me.devnatan.katan.api.server.ServerCompositions
 class ServerCompositionsImpl : ServerCompositions {
 
     private val lock = Any()
-    private val registered = arrayListOf<ServerComposition<*>>()
+    private val registered = linkedMapOf<ServerComposition.Key<*>, ServerComposition<*>>()
 
     override operator fun <T : ServerComposition<*>> get(key: ServerComposition.Key<T>): T? {
         return synchronized(lock) {
-            registered.firstOrNull { it.key == key } as? T
+            registered[key] as? T
         }
     }
 
-    override fun add(composition: ServerComposition<*>) {
+    operator fun set(key: ServerComposition.Key<*>, composition: ServerComposition<*>) {
         return synchronized(lock) {
-            registered.add(composition)
+            registered[key] = composition
         }
+    }
+
+    override fun iterator(): Iterator<ServerComposition<*>> {
+        return registered.values.iterator()
     }
 
 }

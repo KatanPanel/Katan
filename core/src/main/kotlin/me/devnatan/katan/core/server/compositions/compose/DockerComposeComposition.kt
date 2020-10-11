@@ -4,9 +4,9 @@ import de.gesellix.docker.compose.ComposeFileReader
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionFactory
-import me.devnatan.katan.api.server.createCompositionKey
 import me.devnatan.katan.core.manager.DockerServerManager
 import me.devnatan.katan.core.server.DockerServerContainer
+import me.devnatan.katan.core.server.ServerImpl
 import me.devnatan.katan.core.server.compositions.DockerCompositionFactory
 import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.Logger
@@ -16,11 +16,11 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 
 class DockerComposeComposition(
-    override val options: DockerComposeOptions,
-    override val factory: ServerCompositionFactory
+    override val factory: ServerCompositionFactory,
+    override val options: DockerComposeOptions
 ) : ServerComposition<DockerComposeOptions> {
 
-    companion object Key : ServerComposition.Key<DockerComposeComposition> by createCompositionKey("composer") {
+    companion object Key : ServerComposition.Key<DockerComposeComposition> {
 
         private val logger: Logger = LoggerFactory.getLogger(DockerComposeComposition::class.java)
 
@@ -28,9 +28,7 @@ class DockerComposeComposition(
 
     override val key: ServerComposition.Key<*> get() = Key
 
-    override suspend fun read(server: Server) {
-
-    }
+    override suspend fun read(server: Server) {}
 
     override suspend fun write(server: Server) {
         val katan = (factory as DockerCompositionFactory).core
@@ -64,7 +62,7 @@ class DockerComposeComposition(
             )
         }
 
-        server.container = DockerServerContainer(containerName, katan.docker)
+        (server as ServerImpl).container = DockerServerContainer(containerName, katan.docker)
     }
 
 }

@@ -1,83 +1,84 @@
-@file:OptIn(ExperimentalCoroutinesApi::class, InternalKatanAPI::class)
-
 package me.devnatan.katan.api.server
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
-import me.devnatan.katan.api.annotations.InternalKatanAPI
+import me.devnatan.katan.api.annotations.InternalKatanApi
+import me.devnatan.katan.api.annotations.UnstableKatanApi
+import kotlin.reflect.KClass
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.jvmErasure
 
-interface ServerCompositionFactory {
+abstract class ServerCompositionFactory(val registrations: MutableMap<String, ServerComposition.Key<*>>) {
 
-    val applicable: Array<out ServerComposition.Key<*>>
+    constructor() : this(hashMapOf())
 
-    val channel: BroadcastChannel<ServerCompositionPacket>
+    @InternalKatanApi
+    @ExperimentalCoroutinesApi
+    val channel = BroadcastChannel<ServerCompositionPacket>(Channel.BUFFERED)
 
-    /**
-     * Creates a new server composition using [server] as an argument.
-     * @param server the server subject to composition
-     */
-    suspend fun create(
-        key: ServerComposition.Key<*>,
-        server: Server,
-        options: ServerCompositionOptions
-    ): ServerComposition<*>
+    abstract suspend fun create(key: ServerComposition.Key<*>, options: ServerCompositionOptions): ServerComposition<*>
 
-}
-
-abstract class AbstractServerCompositionFactory(
-    override vararg val applicable: ServerComposition.Key<*> = emptyArray()
-) : ServerCompositionFactory {
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val channel = BroadcastChannel<ServerCompositionPacket>(Channel.CONFLATED)
+    abstract suspend fun generate(key: ServerComposition.Key<*>, data: Map<String, Any>): ServerCompositionOptions
 
 }
 
-/**
- * Creates a new factory using [factory] as a manufacturing method.
- */
-fun newCompositionFactory(
-    vararg forKeys: ServerComposition.Key<*> = emptyArray(),
-    factory: FactoryHandler
-): ServerCompositionFactory {
-    return FactoryImpl(forKeys, factory)
+fun ServerCompositionFactory.getKey(name: String): ServerComposition.Key<*>? {
+    return registrations[name]
 }
 
-private typealias FactoryHandler = (ServerComposition.Key<*>, Server, ServerCompositionOptions) -> ServerComposition<*>
-
-private class FactoryImpl(
-    override val applicable: Array<out ServerComposition.Key<*>>,
-    private inline val factory: FactoryHandler
-) : AbstractServerCompositionFactory(*applicable) {
-
-    override suspend fun create(
-        key: ServerComposition.Key<*>,
-        server: Server,
-        options: ServerCompositionOptions
-    ): ServerComposition<*> {
-        return factory.invoke(key, server, options)
-    }
-
+fun ServerCompositionFactory.getKeyName(key: ServerComposition.Key<*>): String? {
+    return registrations.entries.firstOrNull { it.value == key }?.key
 }
 
-operator fun ServerCompositionFactory.get(keyName: String): ServerComposition.Key<*>? {
-    return applicable.firstOrNull { it.name.equals(keyName, true) }
+inline fun <reified T : ServerComposition.Key<*>> ServerCompositionFactory.addSupportedKey(key: T) {
+    addSupportedKey(T::class.simpleName!!.toLowerCase(), key)
 }
 
-@OptIn(ExperimentalCoroutinesApi::class, InternalKatanAPI::class)
-suspend inline fun ServerCompositionFactory.prompt(
-    text: String,
-    defaultValue: String? = null
-): String {
+fun ServerCompositionFactory.addSupportedKey(name: String, key: ServerComposition.Key<*>) {
+    registrations[name] = key
+}
+
+@UnstableKatanApi
+@OptIn(ExperimentalCoroutinesApi::class, InternalKatanApi::class)
+suspend inline fun ServerCompositionFactory.prompt(text: String, defaultValue: String? = null): String {
     val job = CompletableDeferred<String>()
     val packet = ServerCompositionPacket.Prompt(text, defaultValue, job)
     channel.send(packet)
     return job.await()
 }
 
-@OptIn(ExperimentalCoroutinesApi::class, InternalKatanAPI::class)
-suspend fun ServerCompositionFactory.message(message: String) {
-    channel.send(ServerCompositionPacket.Message(message))
+@UnstableKatanApi
+@OptIn(ExperimentalCoroutinesApi::class, InternalKatanApi::class)
+suspend inline fun ServerCompositionFactory.message(text: String, error: Boolean = false) {
+    channel.send(ServerCompositionPacket.Message(text, error))
+}
+
+@UnstableKatanApi
+@OptIn(ExperimentalCoroutinesApi::class, InternalKatanApi::class)
+suspend inline fun ServerCompositionFactory.close() {
+    channel.send(ServerCompositionPacket.Close)
+}
+
+@InternalKatanApi
+fun resolveServerCompositionFactoryOptions(type: KClass<out Any>, data: Map<String, Any>): Any {
+    val caller = type.primaryConstructor!!
+    val values = hashMapOf<KParameter, Any?>()
+    for (parameter in caller.parameters) {
+        val value = data[parameter.name]
+        val result = if (value is Map<*, *>) resolveServerCompositionFactoryOptions(
+            parameter.type.jvmErasure,
+            value as Map<String, Any>
+        ) else value
+        values[parameter] = result
+    }
+    return caller.callBy(values)
+}
+
+@UnstableKatanApi
+@OptIn(InternalKatanApi::class)
+inline fun <reified T : ServerCompositionOptions> useAutoGeneratedOptions(data: Map<String, Any>): T {
+    return resolveServerCompositionFactoryOptions(T::class, data) as T
 }

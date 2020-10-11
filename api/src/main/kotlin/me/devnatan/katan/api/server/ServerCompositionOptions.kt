@@ -1,9 +1,10 @@
 package me.devnatan.katan.api.server
 
 import kotlinx.coroutines.CompletableDeferred
-import me.devnatan.katan.api.annotations.InternalKatanAPI
+import me.devnatan.katan.api.annotations.InternalKatanApi
+import me.devnatan.katan.api.annotations.UnstableKatanApi
 
-@InternalKatanAPI
+@InternalKatanApi
 sealed class ServerCompositionPacket {
 
     class Prompt(
@@ -12,13 +13,15 @@ sealed class ServerCompositionPacket {
         val job: CompletableDeferred<String>
     ) : ServerCompositionPacket()
 
-    class Message(val content: String) : ServerCompositionPacket()
+    class Message(val text: String, val error: Boolean) : ServerCompositionPacket()
+
+    object Close : ServerCompositionPacket()
 
 }
 
 interface ServerCompositionOptions {
 
-    @InternalKatanAPI
+    @UnstableKatanApi
     object CLI : ServerCompositionOptions
 
 }
