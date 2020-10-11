@@ -4,9 +4,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":core"))
-    api(project(":cli"))
-    api(project(":web-server"))
+    implementation(project(":core"))
+    implementation(project(":cli"))
+    implementation(project(":web-server"))
 }
 
 application {
