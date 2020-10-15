@@ -12,9 +12,7 @@
 <hr>
 <h2>Introduction</h2>
 <p>
- Katan is a fast, simple and <b>modularly adaptable panel</b> built to manage game servers running isolated in Docker containers.
- <br>
- Developed with the intention of being free and for the community, using a <a href="https://github.com/KatanPanel/Katan/blob/master/LICENSE">open source license</a>, anyone is able to build Katan.
+ Katan is a fast, simple and <b>modularly adaptable panel</b> built to manage game servers running isolated in Docker containers. Developed with the intention of being free and for the community, using a <a href="https://github.com/KatanPanel/Katan/blob/master/LICENSE">open source license</a>, anyone is able to build Katan.
 </p>
 
 <h4>Compatibility</h4>
@@ -41,11 +39,7 @@
  <tr>
   <td><a href="https://github.com/KatanPanel/Katan/tree/master/api">katan-api</a></td>
   <td>Contains all the public and shared high-level code for Katan.</td>
- </tr>
- <tr>
-  <td><a href="https://github.com/KatanPanel/Katan/tree/master/bootstrap">katan-bootstrap</a></td>
-  <td>Responsible for the initialization of all integrated modules.</td>
- </tr>
+ </tr> 
  <tr>
   <td><a href="https://github.com/KatanPanel/Katan/tree/master/docker-compose">katan-docker-compose</a></td>
   <td>Support for handling <a href="https://docs.docker.com/compose/">Docker Compose</a> files.</td>
