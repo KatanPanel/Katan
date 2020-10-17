@@ -33,6 +33,10 @@ fun ServerCompositionFactory.getKeyName(key: ServerComposition.Key<*>): String? 
     return registrations.entries.firstOrNull { it.value == key }?.key
 }
 
+fun ServerCompositionFactory.findKey(other: ServerComposition.Key<*>): ServerComposition.Key<*>? {
+    return registrations[other::class.simpleName!!.toLowerCase()]
+}
+
 inline fun <reified T : ServerComposition.Key<*>> ServerCompositionFactory.addSupportedKey(key: T) {
     addSupportedKey(T::class.simpleName!!.toLowerCase(), key)
 }
