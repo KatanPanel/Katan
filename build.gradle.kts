@@ -5,7 +5,7 @@ plugins {
 }
 
 val projectGroup = "me.devnatan.katan"
-val projectVersion = "0.0.1-ALPHA"
+val projectVersion = "0.0.1"
 
 group = projectGroup
 version = projectVersion
@@ -28,7 +28,6 @@ allprojects {
         implementation(kotlin("stdlib"))
         implementation(kotlin("reflect"))
         implementation("br.com.devsrsouza.eventkt:eventkt-core-jvm:0.1.0-SNAPSHOT")
-        implementation("com.typesafe:config:1.4.0")
         implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
         implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
         implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")

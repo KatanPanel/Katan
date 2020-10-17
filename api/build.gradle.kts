@@ -4,6 +4,8 @@ plugins {
 
 dependencies {
     implementation("com.github.ajalt.clikt:clikt-jvm:3.0.1")
+    api("com.typesafe:config:1.4.0")
+    implementation("org.slf4j:slf4j-simple:1.8.0-beta2")
 }
 
 publishing {
