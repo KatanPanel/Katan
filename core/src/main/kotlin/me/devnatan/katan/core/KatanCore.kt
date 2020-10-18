@@ -3,6 +3,7 @@ package me.devnatan.katan.core
 import br.com.devsrsouza.eventkt.EventScope
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
 import br.com.devsrsouza.eventkt.scopes.SimpleEventScope
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
@@ -64,6 +65,7 @@ class KatanCore(
     override lateinit var cache: Cache<Any>
     override lateinit var eventBus: EventScope
     lateinit var hash: Hash
+    val objectMapper: ObjectMapper = ObjectMapper()
 
     private suspend fun database() {
         val db = config.getConfig("database")

@@ -40,7 +40,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
             )
 
         runBlocking(CoroutineName("KatanCLI::server-create-main")) {
-            var server: Server = UninitializedServer(name, "undefined")
+            var server: Server = UninitializedServer(name)
             echo("Creating server \"$name\"...")
             (server.compositions as ServerCompositionsImpl)[DockerImageComposition] =
                 cli.katan.serverManager.compositionFactory.create(

@@ -67,15 +67,13 @@ class DockerServerManager(
     }
 
     internal suspend fun loadServers() {
-        repository.listServers { entities ->
+        repository.listServers().let { entities ->
             for (entity in entities) {
                 val server = ServerImpl(
-                    entity.id.value,
-                    entity.name,
-                    entity.target,
-                    ServerCompositionsImpl()
+                        entity.id,
+                        entity.name,
                 ).apply {
-                    container = DockerServerContainer(entity.containerId, core.docker)
+                    container = DockerServerContainer(entity.container.id, core.docker)
                 }
 
                 server.holders.addAll(entity.holders.mapNotNull {
@@ -83,12 +81,12 @@ class DockerServerManager(
                         If the account is null this is a database synchronization error
                         we can ignore this, but in the future we should alert that kind of thing.
                      */
-                    core.accountManager.getAccount(it.account.value.toString())
+                    core.accountManager.getAccount(it.account.username)
                 }.map { ServerHolderImpl(it, server) })
 
                 for (composition in entity.compositions) {
                     val factory = compositionFactories.firstOrNull {
-                        it.getKey(composition.key) != null
+                        it.findKey(composition.key) != null
                     }
 
                     if (factory == null) {
@@ -97,15 +95,17 @@ class DockerServerManager(
                     }
 
                     val optionsData =
-                        FileInputStream(localDataManager.getCompositionOptions(server, composition.key)).use {
-                            core.objectMapper.readValue(it, Map::class.java)
-                        } as Map<String, Any>
+                            FileInputStream(localDataManager.getCompositionOptions(server, composition.let { it.factory.getKeyName(it.key)!! })).use {
+                                core.objectMapper.readValue(it, Map::class.java)
+                            } as Map<String, Any>
 
-                    val key = factory.getKey(composition.key)!!
-                    val impl = factory.create(
-                        key,
-                        factory.generate(key, optionsData)
-                    )
+                    val key = factory.findKey(composition.key)!!
+                    val impl = key.let {
+                        factory.create(
+                                it,
+                                factory.generate(it, optionsData)
+                        )
+                    }
                     impl.read(server)
                     (server.compositions as ServerCompositionsImpl)[key] = impl
                 }
@@ -156,7 +156,7 @@ class DockerServerManager(
     @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun createServer(server: Server): Server {
         val id = lastId.incrementAndGet()
-        val impl = ServerImpl(id, server.name, server.target, server.compositions)
+        val impl = ServerImpl(id, server.name)
         impl.container = DockerServerContainer(CONTAINER_NAME_PATTERN.format(id), core.docker)
 
         core.eventBus.publish(ServerCreateEvent(impl))
