@@ -2,7 +2,7 @@ package me.devnatan.katan.common.server
 
 import me.devnatan.katan.api.server.*
 
-class UninitializedServer(override var name: String, override val target: String) : Server {
+class UninitializedServer(override var name: String, override val target: ServerTarget) : Server {
 
     override val id: Int
         get() = throw UninitializedPropertyAccessException()
