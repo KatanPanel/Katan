@@ -2,6 +2,11 @@ package me.devnatan.katan.api
 
 import org.slf4j.event.Level
 
+/**
+ * Represents the mode of the environment in which Katan is running.
+ * @property value the name of the environment
+ * @see Katan.environment
+ */
 inline class KatanEnvironment(private val value: String) {
 
     companion object {
@@ -12,12 +17,7 @@ inline class KatanEnvironment(private val value: String) {
         const val STAGING = "stage"
         const val PRODUCTION = "prod"
 
-        /**
-         * Returns all available development modes
-         */
-        val ALL: Array<String> by lazy {
-            arrayOf(LOCAL, DEVELOPMENT, TESTING, STAGING, PRODUCTION)
-        }
+        val ALL: Array<String> get() = arrayOf(LOCAL, DEVELOPMENT, TESTING, STAGING, PRODUCTION)
 
     }
 

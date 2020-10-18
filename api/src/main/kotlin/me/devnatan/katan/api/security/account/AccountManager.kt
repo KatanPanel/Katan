@@ -1,8 +1,10 @@
-package me.devnatan.katan.api.manager
+package me.devnatan.katan.api.security.account
 
-import me.devnatan.katan.api.account.Account
 import java.util.*
 
+/**
+ * Responsible for [Account] management and authentication.
+ */
 interface AccountManager {
 
     /**
@@ -12,20 +14,19 @@ interface AccountManager {
 
     /**
      * Returns an existing account in the database with the specified username.
-     * @param username account username
+     * @param username the account username.
      */
     suspend fun getAccount(username: String): Account?
 
     /**
      * Returns an existing account in the database with the specified id.
-     * @param id account id
+     * @param id the account id.
      */
     suspend fun getAccount(id: UUID): Account?
 
     /**
-     * Create a new account with the specified
-     * username and password and add it to the account list.
-     * @param username account username
+     * Create a new account with the specified username and password and add it to the account list.
+     * @param username account username.
      * @throws IllegalArgumentException if account already exists.
      * @return the created account.
      */
@@ -33,16 +34,22 @@ interface AccountManager {
 
     /**
      * Register an account in the database.
-     * @param account the account to register
+     * @param account the account to register.
      */
     suspend fun registerAccount(account: Account)
 
     /**
      * Checks whether an account exists with the specified username.
-     * @param username account username
+     * @param username the account username.
      */
     fun existsAccount(username: String): Boolean
 
+    /**
+     * Attempts to authenticate an account with the specified password.
+     * @param account the account to be authenticated.
+     * @param password the password that will be used for authentication.
+     * @return `true` if the account has been successfully authenticated or` false` otherwise.
+     */
     suspend fun authenticateAccount(account: Account, password: String): Boolean
 
 }

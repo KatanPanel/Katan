@@ -1,13 +1,13 @@
 package me.devnatan.katan.api.server
 
 /**
- * @author Natan V.
- * @since 0.1.0
+ * Represents the state of a server, obtained by inspecting its container.
+ * @see ServerContainerInspection
  */
 enum class ServerState {
 
     /**
-     * The internal server process is dead.
+     * The internal server process is dead (aka kill).
      */
     DEAD,
 
@@ -27,22 +27,21 @@ enum class ServerState {
     RUNNING,
 
     /**
-     * The state of the server is unknown,
-     * existing only during pre-inspection.
+     * The state of the server is unknown.
      */
     UNKNOWN
 
 }
 
 /**
- * If the server is up and running.
+ * Returns `true` if the server is up and running or `false` if it's [isInactive].
  */
 fun ServerState.isActive(): Boolean {
     return this == ServerState.RESTARTING || this == ServerState.RUNNING
 }
 
 /**
- * If the server is stopped, idle, or in an unknown state.
+ * Returns `true` if the server is stopped, idle, or in an unknown state or `false` otherwise.
  */
 fun ServerState.isInactive(): Boolean {
     return this == ServerState.DEAD || this == ServerState.PAUSED || this == ServerState.UNKNOWN

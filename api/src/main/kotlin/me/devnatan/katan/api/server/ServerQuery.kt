@@ -1,23 +1,23 @@
 package me.devnatan.katan.api.server
 
-import java.time.Instant
-
 /**
- * @author Natan V.
- * @since 0.1.0
+ * Represents a search for data at the remote server address.
  */
 interface ServerQuery {
 
     /**
-     * Last query latency.
-     * Returns null if it has never been performed.
+     * Returns the latency of the last query.
      */
-    var latency: Long?
+    fun getLatency(): Long
 
     /**
-     * Last time who ran a query.
-     * Returns null if it has never been performed.
+     * Returns the last time a query was run.
      */
-    var lastQueriedAt: Instant?
+    fun getLastQueried(): Boolean
+
+    /**
+     * Returns `true` if the server has been consulted at least once or` false` otherwise.
+     */
+    fun wasQueried(): Boolean
 
 }

@@ -19,15 +19,15 @@ class ServerLocalDataManager {
         return file
     }
 
-    fun getDataFolder(server: Server): File {
+    private fun getDataFolder(server: Server): File {
         return checkPath(dataFolder, server.container.id)
     }
 
-    fun getCompositionsDataFolder(server: Server): File {
+    private fun getCompositionsDataFolder(server: Server): File {
         return checkPath(getDataFolder(server), "compositions")
     }
 
-    fun getCompositionDataFolder(server: Server, key: String): File {
+    private fun getCompositionDataFolder(server: Server, key: String): File {
         return checkPath(getCompositionsDataFolder(server), key)
     }
 

@@ -13,11 +13,14 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.receiveOrNull
+import me.devnatan.katan.api.Katan
 import me.devnatan.katan.webserver.*
 import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
 import me.devnatan.katan.webserver.environment.jwt.AccountPrincipal
 import me.devnatan.katan.webserver.environment.routes.AuthRoute
 import me.devnatan.katan.webserver.environment.routes.IndexRoute
+import me.devnatan.katan.webserver.environment.routes.ServersRoute
+import me.devnatan.katan.webserver.serializable.serializable
 import me.devnatan.katan.webserver.websocket.session.KtorWebSocketSession
 
 internal suspend fun PipelineContext<*, ApplicationCall>.respondWithOk(
@@ -27,7 +30,7 @@ internal suspend fun PipelineContext<*, ApplicationCall>.respondWithOk(
     call.respond(
         status, mapOf(
             "response" to "success",
-            "data" to mapOf(*response)
+            "data" to response.toMap()
         )
     )
 }
@@ -78,10 +81,10 @@ fun Application.router(
     }
 
     get<IndexRoute> {
-        call.respondText("Welcome to Katan Web Server!")
+        respondWithOk("version" to Katan.VERSION.toString())
     }
 
-    post<AuthRoute.LoginRoute> {
+    post<AuthRoute.Login> {
         val data = call.receive<Map<String, String>>()
         val username = data["username"]
         if (username == null || username.isBlank())
@@ -102,7 +105,7 @@ fun Application.router(
         respondWithOk("token" to token)
     }
 
-    post<AuthRoute.RegisterRoute> {
+    post<AuthRoute.Register> {
         val account = call.receive<Map<String, String>>()
         val username = account["username"]
         if (username == null || username.isBlank())
@@ -116,19 +119,27 @@ fun Application.router(
         respondWithOk("account" to entity)
     }
 
-    get<AuthRoute.VerifyRoute> {
-        val account = call.authentication.principal<AccountPrincipal>()
+    get<AuthRoute.Verify> {
+        val account = call.authentication.principal<AccountPrincipal>()?.account
             ?: respondWithError(INVALID_ACCESS_TOKEN_ERROR, HttpStatusCode.Unauthorized)
 
         respondWithOk("account" to account)
     }
 
-    route("/servers") {
-        handle {
+    route("") {
+        intercept(ApplicationCallPipeline.Features) {
             call.authentication.principal<AccountPrincipal>() ?: respondWithError(
                 INVALID_ACCESS_TOKEN_ERROR,
                 HttpStatusCode.Unauthorized
             )
+        }
+
+        get<ServersRoute> {
+            respondWithOk("servers" to env.server.serverManager.getServerList().map { it.serializable() })
+        }
+
+        get<ServersRoute.Server> { data ->
+            respondWithOk("server" to data.server.serializable())
         }
     }
 }

@@ -21,8 +21,10 @@ class KatanWS(val katan: Katan) {
     lateinit var server: ApplicationEngine
     lateinit var environment: Environment
     lateinit var config: Config
-    val accountManager get() = katan.accountManager
     lateinit var internalAccountManager: WSAccountManager
+
+    val accountManager get() = katan.accountManager
+    val serverManager get() = katan.serverManager
 
     private var _enabled = false
     val enabled: Boolean
@@ -51,10 +53,13 @@ class KatanWS(val katan: Katan) {
     }
 
     suspend fun close() {
+        if (!::environment.isInitialized)
+            return
+
         logger.info("Closing environment...")
         environment.close()
 
-        logger.info("Stopping server...")
+        logger.info("Shutting down the server...")
         val shutdown = config.getConfig("deployment.shutdown")
         server.stop(
             shutdown.get("gracePeriod", 1000),

@@ -6,13 +6,15 @@ import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.api.model.PullResponseItem
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.event.*
-import me.devnatan.katan.api.manager.ServerManager
 import me.devnatan.katan.api.server.*
 import me.devnatan.katan.common.server.ServerCompositionsImpl
 import me.devnatan.katan.core.KatanCore
@@ -30,6 +32,7 @@ import java.time.Duration
 import kotlin.system.measureTimeMillis
 
 @Suppress("BlockingMethodInNonBlockingContext")
+@OptIn(UnstableKatanApi::class)
 class DockerServerManager(
     private val core: KatanCore,
     private val repository: ServersRepository,
@@ -56,7 +59,9 @@ class DockerServerManager(
     init {
         registerCompositionFactory(DockerCompositionFactory(core))
         File(COMPOSE_ROOT).let { if (!it.exists()) it.mkdirs() }
+    }
 
+    internal suspend fun loadServers() {
         try {
             core.docker.inspectNetworkCmd().withNetworkId(NETWORK_ID).exec()
         } catch (e: NotFoundException) {
@@ -64,15 +69,13 @@ class DockerServerManager(
                 .withAttachable(true)
                 .exec()
         }
-    }
 
-    internal suspend fun loadServers() {
         repository.listServers { entities ->
             for (entity in entities) {
                 val server = ServerImpl(
                     entity.id.value,
                     entity.name,
-                    entity.target,
+                    ServerTarget.byGame(entity.target),
                     ServerCompositionsImpl()
                 ).apply {
                     container = DockerServerContainer(entity.containerId, core.docker)
@@ -88,7 +91,7 @@ class DockerServerManager(
 
                 for (composition in entity.compositions) {
                     val factory = compositionFactories.firstOrNull {
-                        it.getKey(composition.key) != null
+                        it.get(composition.key) != null
                     }
 
                     if (factory == null) {
@@ -101,7 +104,7 @@ class DockerServerManager(
                             core.objectMapper.readValue(it, Map::class.java)
                         } as Map<String, Any>
 
-                    val key = factory.getKey(composition.key)!!
+                    val key = factory.get(composition.key)!!
                     val impl = factory.create(
                         key,
                         factory.generate(key, optionsData)
@@ -167,7 +170,7 @@ class DockerServerManager(
         for (composition in impl.compositions) {
             OutputStreamWriter(
                 FileOutputStream(localDataManager.getCompositionOptions(
-                    impl, composition.factory.getKeyName(
+                    impl, composition.factory.get(
                         composition.key
                     )!!
                 ).apply {
@@ -185,19 +188,19 @@ class DockerServerManager(
     }
 
     override suspend fun startServer(server: Server) {
-        core.eventBus.publish(ServerBeforeStartEvent(server))
+        core.eventBus.publish(ServerStartingEvent(server))
         val duration = Duration.ofMillis(measureTimeMillis {
             server.container.start()
         })
-        core.eventBus.publish(ServerStartEvent(server, duration))
+        core.eventBus.publish(ServerStartedEvent(server, duration = duration))
     }
 
     override suspend fun stopServer(server: Server, killAfter: Duration) {
-        core.eventBus.publish(ServerBeforeStopEvent(server))
+        core.eventBus.publish(ServerStoppingEvent(server))
         val duration = Duration.ofMillis(measureTimeMillis {
             server.container.stop()
         })
-        core.eventBus.publish(ServerStopEvent(server, duration))
+        core.eventBus.publish(ServerStoppedEvent(server, duration = duration))
     }
 
     override suspend fun inspectServer(server: Server) {
@@ -216,57 +219,31 @@ class DockerServerManager(
         server.state = state
 
         val inspection = DockerServerContainerInspection(response)
-        core.eventBus.publish(ServerInspectionEvent(server, inspection))
+        core.eventBus.publish(ServerInspectedEvent(server, result = inspection))
         server.container.inspection = inspection
     }
 
-    // TODO: use conflated channel
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun runServer(server: Server, command: String): Flow<String> = callbackFlow {
-        val callback = object : ResultCallback<Frame> {
-            private var stream: Closeable? = null
+    @ExperimentalCoroutinesApi
+    override suspend fun runServerCommand(server: Server, command: String): Flow<String> {
+        return callbackFlow {
+            val callback = object : ResultCallback.Adapter<Frame>() {
+                override fun onNext(frame: Frame) {
+                    sendBlocking(frame.payload.toString(Charsets.UTF_8))
+                }
 
-            override fun onNext(frame: Frame) {
-                sendBlocking(frame.toString())
+                override fun close() {
+                    super.close()
+                    channel.close()
+                }
             }
 
-            override fun onStart(closeable: Closeable) {
-                stream = closeable
-            }
-
-            override fun onComplete() {
-                channel.close()
-            }
-
-            override fun onError(error: Throwable) {
-                channel.close(error)
-            }
-
-            override fun close() {
-                @Suppress("BlockingMethodInNonBlockingContext")
-                stream?.close()
-            }
-        }
-
-        core.docker.execStartCmd(
-            coroutineScope.async(
-                Dispatchers.IO + CoroutineName("$COROUTINE_SCOPE_NAME-#runServer-${server.id}"),
-                CoroutineStart.LAZY
-            ) {
-                core.docker.execCreateCmd(server.container.id).withCmd(command).exec().id
-            }.await()
-        ).exec(callback)
-
-        awaitClose {
-            callback.close()
+            core.docker.execStartCmd(core.docker.execCreateCmd(server.container.id).withCmd(command).exec().id)
+                .exec(callback)
+            awaitClose()
         }
     }
 
-    override fun getRegisteredCompositionFactories(): Collection<ServerCompositionFactory> {
-        return compositionFactories.filterNot { it is InvisibleCompositionFactory }
-    }
-
-    override fun getCompositionFactoryFor(key: ServerComposition.Key<*>): ServerCompositionFactory? {
+    override fun getCompositionFactory(key: ServerComposition.Key<*>): ServerCompositionFactory? {
         return compositionFactories.filterNot {
             it is InvisibleCompositionFactory
         }.firstOrNull { factory ->
@@ -274,11 +251,11 @@ class DockerServerManager(
         }
     }
 
-    override fun getCompositionFactoryApplicableFor(name: String): ServerCompositionFactory? {
+    override fun getCompositionFactory(name: String): ServerCompositionFactory? {
         return compositionFactories.filterNot {
             it is InvisibleCompositionFactory
         }.firstOrNull { factory ->
-            factory.getKey(name) != null
+            factory.get(name) != null
         }
     }
 

@@ -9,6 +9,7 @@ internal object ServersTable : IntIdTable("katan_servers") {
 
     val name = varchar("name", 255)
     val containerId = varchar("container_id", 255)
+    val target = varchar("target", 255)
 
 }
 
@@ -17,6 +18,9 @@ class ServerEntity(id: EntityID<Int>) : IntEntity(id) {
 
     var name by ServersTable.name
     var containerId by ServersTable.containerId
+    var target by ServersTable.target
+
     val holders by ServerHolderEntity referrersOn ServerHoldersTable.server
+    val compositions by ServerCompositionEntity referrersOn ServerCompositionsTable.server
 
 }

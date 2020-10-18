@@ -1,40 +1,52 @@
 package me.devnatan.katan.api.server
 
+import me.devnatan.katan.api.annotations.UnstableKatanApi
+
+/**
+ * A server is based on a [container], can be turned on, off and composed.
+ * Every server targets a game, its [target] and it is used as information for other things.
+ */
 interface Server {
 
     /**
-     * Number for unique server identification.
+     * Returns the server id.
      */
     val id: Int
 
     /**
-     * Server name.
+     * Returns the server name.
      */
     var name: String
 
     /**
-     * Accounts that have permissions on that server.
+     * Returns all accounts that have permissions on that server.
      */
     val holders: MutableSet<ServerHolder>
 
     /**
-     * The container linked to the server.
+     * Returns the [ServerContainer] linked to this server.
      */
-    var container: ServerContainer
+    val container: ServerContainer
 
     /**
-     * Remote server address search results.
+     * Returns the remote server address search results.
      */
     val query: ServerQuery
 
     /**
-     * Current server state.
+     * Returns the current server state.
      */
     var state: ServerState
 
     /**
-     * Server compositions.
+     * Returns all server compositions.
      */
-    var compositions: ServerCompositions
+    @UnstableKatanApi
+    val compositions: ServerCompositions
+
+    /**
+     * Returns the game that this server is targeting.
+     */
+    val target: ServerTarget
 
 }

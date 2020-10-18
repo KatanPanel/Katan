@@ -1,8 +1,7 @@
 package me.devnatan.katan.core.manager
 
-import kotlinx.coroutines.runBlocking
-import me.devnatan.katan.api.account.Account
-import me.devnatan.katan.api.manager.AccountManager
+import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.common.account.SecureAccount
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.repository.AccountsRepository
@@ -16,14 +15,14 @@ class DefaultAccountManager(
 
     private val accounts = hashSetOf<Account>()
 
-    init {
-        runBlocking {
-            accounts.addAll(repository.listAccounts())
-        }
+    internal suspend fun loadAccounts() {
+        accounts.addAll(repository.listAccounts())
     }
 
     override fun getAccounts(): List<Account> {
-        return accounts.toList()
+        return synchronized(accounts) {
+            accounts.toList()
+        }
     }
 
     override suspend fun getAccount(username: String): Account? {

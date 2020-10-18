@@ -4,9 +4,8 @@ import com.github.ajalt.clikt.core.PrintHelpMessage
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.output.CliktConsole
 import kotlinx.coroutines.*
-import me.devnatan.katan.api.manager.AccountManager
-import me.devnatan.katan.api.manager.PluginManager
-import me.devnatan.katan.api.manager.ServerManager
+import me.devnatan.katan.api.security.account.AccountManager
+import me.devnatan.katan.api.server.ServerManager
 import me.devnatan.katan.core.KatanCore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -38,7 +37,7 @@ class KatanCLI(val katan: KatanCore) {
 
     val serverManager: ServerManager get() = katan.serverManager
     val accountManager: AccountManager get() = katan.accountManager
-    val pluginManager: PluginManager get() = katan.pluginManager
+    val pluginManager get() = katan.pluginManager
 
     private var running = false
     private val command = KatanCommand(this)

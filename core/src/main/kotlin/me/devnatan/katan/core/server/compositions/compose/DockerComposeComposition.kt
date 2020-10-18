@@ -1,6 +1,7 @@
 package me.devnatan.katan.core.server.compositions.compose
 
 import de.gesellix.docker.compose.ComposeFileReader
+import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionFactory
@@ -15,6 +16,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 
+@OptIn(UnstableKatanApi::class)
 class DockerComposeComposition(
     override val factory: ServerCompositionFactory,
     override val options: DockerComposeOptions

@@ -2,7 +2,7 @@ package me.devnatan.katan.core
 
 import br.com.devsrsouza.eventkt.EventScope
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
-import br.com.devsrsouza.eventkt.scopes.SimpleEventScope
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
@@ -18,21 +18,25 @@ import me.devnatan.katan.api.Platform
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
 import me.devnatan.katan.api.currentPlatform
-import me.devnatan.katan.api.manager.AccountManager
-import me.devnatan.katan.api.manager.PluginManager
+import me.devnatan.katan.api.plugin.KatanInit
+import me.devnatan.katan.api.plugin.KatanStarted
+import me.devnatan.katan.api.security.crypto.Hash
+import me.devnatan.katan.api.services.get
+import me.devnatan.katan.common.exceptions.silent
+import me.devnatan.katan.common.exceptions.throwSilent
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.cache.RedisCacheProvider
 import me.devnatan.katan.core.crypto.BcryptHash
-import me.devnatan.katan.core.crypto.Hash
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
-import me.devnatan.katan.core.exceptions.throwSilent
 import me.devnatan.katan.core.manager.DefaultAccountManager
 import me.devnatan.katan.core.manager.DefaultPluginManager
 import me.devnatan.katan.core.manager.DockerServerManager
+import me.devnatan.katan.core.manager.ServicesManagerImpl
 import me.devnatan.katan.core.repository.JDBCAccountsRepository
 import me.devnatan.katan.core.repository.JDBCServersRepository
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
@@ -51,18 +55,20 @@ class KatanCore(
     companion object {
 
         const val DATABASE_DIALECT_FALLBACK = "H2"
-        val logger = LoggerFactory.getLogger(Katan::class.java)!!
+        val logger: Logger = LoggerFactory.getLogger(Katan::class.java)
 
     }
 
+    val objectMapper = ObjectMapper()
     override val platform: Platform = currentPlatform()
     lateinit var database: DatabaseConnector
     lateinit var docker: DockerClient
-    override lateinit var accountManager: AccountManager
+    override lateinit var accountManager: DefaultAccountManager
     override lateinit var serverManager: DockerServerManager
-    override lateinit var pluginManager: PluginManager
+    override val pluginManager = DefaultPluginManager(this)
+    override val servicesManager = ServicesManagerImpl()
     override lateinit var cache: Cache<Any>
-    override lateinit var eventBus: EventScope
+    override val eventBus: EventScope = LocalEventScope()
     lateinit var hash: Hash
 
     private suspend fun database() {
@@ -194,40 +200,44 @@ class KatanCore(
         }
     }
 
+    private fun throwUnavailableRepository(repository: String): Nothing {
+        throwSilent(IllegalArgumentException("No repository available: $repository"), logger)
+    }
+
     suspend fun start() {
         logger.info(locale["katan.starting", Katan.VERSION, locale["katan.env.$environment"].toLowerCase(locale.locale)])
-        logger.info(locale["katan.platform", "${platform.os.name} ${platform.os.version}"])
-
-        hash = when (config.get("security.crypto.hash", "Bcrypt")) {
-            "BCrypt" -> BcryptHash()
-            else -> BcryptHash()
-        }
-
+        logger.info(locale["katan.platform", "$platform"])
         database()
-        docker()
-        caching()
+        pluginManager.loadPlugins()
 
-        fun throwUnavailableRepository(
-            type: String
-        ): Nothing = throwSilent(
-            IllegalArgumentException("No $type repository available for ${database::class.simpleName}"),
-            logger
+        pluginManager.callHandlers(KatanInit)
+        serverManager = DockerServerManager(
+            this, when (database) {
+                is JDBCConnector -> JDBCServersRepository(database as JDBCConnector)
+                else -> throwUnavailableRepository("servers")
+            }
         )
 
-        eventBus = SimpleEventScope(LocalEventScope())
-        pluginManager = DefaultPluginManager(this)
         accountManager = DefaultAccountManager(
             this, when (database) {
                 is JDBCConnector -> JDBCAccountsRepository(this, database as JDBCConnector)
                 else -> throwUnavailableRepository("accounts")
             }
         )
-        serverManager = DockerServerManager(
-            this, when (database) {
-                is JDBCConnector -> JDBCServersRepository(this, database as JDBCConnector)
-                else -> throwUnavailableRepository("servers")
+        docker()
+        serverManager.loadServers()
+
+        hash = servicesManager.get<Hash> {
+            when (val algorithm = config.getString("security.crypto.hash")) {
+                "BCrypt" -> BcryptHash()
+                else -> throw IllegalArgumentException("Unsupported hash algorithm: $algorithm").silent(logger)
             }
-        )
+        }
+        logger.info("Selected hashing algorithm: ${hash.name}.")
+        accountManager.loadAccounts()
+
+        caching()
+        pluginManager.callHandlers(KatanStarted)
     }
 
     override suspend fun close() {

@@ -8,12 +8,12 @@ import io.ktor.locations.*
 class AuthRoute {
 
     @Location("/login")
-    data class LoginRoute(val parent: AuthRoute)
+    data class Login(val parent: AuthRoute)
 
     @Location("/register")
-    data class RegisterRoute(val parent: AuthRoute)
+    data class Register(val parent: AuthRoute)
 
     @Location("/verify")
-    data class VerifyRoute(val parent: AuthRoute)
+    data class Verify(val parent: AuthRoute)
 
 }

@@ -3,6 +3,7 @@ package me.devnatan.katan.core.server.compositions.image
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onStart
+import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionFactory
@@ -11,6 +12,7 @@ import me.devnatan.katan.core.server.compositions.DockerCompositionFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+@OptIn(UnstableKatanApi::class)
 class DockerImageComposition(
     override val factory: ServerCompositionFactory,
     override val options: DockerImageOptions

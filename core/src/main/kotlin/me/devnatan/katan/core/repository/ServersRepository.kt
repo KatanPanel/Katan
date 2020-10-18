@@ -2,50 +2,41 @@ package me.devnatan.katan.core.repository
 
 import kotlinx.coroutines.Dispatchers
 import me.devnatan.katan.api.server.Server
-import me.devnatan.katan.core.KatanCore
+import me.devnatan.katan.api.server.get
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
+import me.devnatan.katan.core.database.jdbc.entity.ServerCompositionEntity
 import me.devnatan.katan.core.database.jdbc.entity.ServerEntity
-import me.devnatan.katan.core.server.NoOpServerContainer
-import me.devnatan.katan.core.server.ServerHolderImpl
-import me.devnatan.katan.core.server.ServerImpl
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 interface ServersRepository {
 
-    suspend fun listServers(): List<Server>
+    suspend fun listServers(context: suspend (List<ServerEntity>) -> Unit)
 
     suspend fun insertServer(server: Server)
 
 }
 
-class JDBCServersRepository(private val core: KatanCore, private val connector: JDBCConnector) : ServersRepository {
+class JDBCServersRepository(private val connector: JDBCConnector) : ServersRepository {
 
-    override suspend fun listServers(): List<Server> {
-        return newSuspendedTransaction(Dispatchers.Default, connector.database) {
-            ServerEntity.all().map { entity ->
-                ServerImpl(
-                    entity.id.value,
-                    entity.name
-                ).apply {
-                    container = NoOpServerContainer(entity.containerId)
-
-                    holders.addAll(entity.holders.mapNotNull {
-                        /*
-                            If the account is null this is a database synchronization error
-                            we can ignore this, but in the future we should alert that kind of thing.
-                         */
-                        core.accountManager.getAccount(it.account.value.toString())
-                    }.map { ServerHolderImpl(it, this) })
-                }
-            }
+    override suspend fun listServers(context: suspend (List<ServerEntity>) -> Unit) {
+        newSuspendedTransaction(Dispatchers.Default, connector.database) {
+            context(ServerEntity.all().toList())
         }
     }
 
     override suspend fun insertServer(server: Server) {
         newSuspendedTransaction(Dispatchers.Default, connector.database) {
-            ServerEntity.new(server.id) {
+            val serverId = ServerEntity.new(server.id) {
                 this.name = server.name
                 this.containerId = server.container.id
+                this.target = server.target.game
+            }.id
+
+            for (composition in server.compositions) {
+                ServerCompositionEntity.new {
+                    this.key = composition.factory.get(composition.key)!!
+                    this.server = serverId
+                }
             }
         }
     }

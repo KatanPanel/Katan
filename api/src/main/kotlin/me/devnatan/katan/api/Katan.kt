@@ -1,10 +1,14 @@
 package me.devnatan.katan.api
 
 import br.com.devsrsouza.eventkt.EventScope
+import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
-import me.devnatan.katan.api.manager.AccountManager
-import me.devnatan.katan.api.manager.PluginManager
-import me.devnatan.katan.api.manager.ServerManager
+import me.devnatan.katan.api.plugin.Plugin
+import me.devnatan.katan.api.plugin.PluginManager
+import me.devnatan.katan.api.security.account.AccountManager
+import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.api.server.ServerManager
+import me.devnatan.katan.api.services.ServicesManager
 
 /**
  * Interface that provides access to Katan handlers without having
@@ -14,7 +18,10 @@ interface Katan {
 
     companion object {
 
-        val VERSION = Version(0, 0, 1, "alpha")
+        /**
+         * Returns the current version of the Katan.
+         */
+        val VERSION = Version(0, 0, 1)
 
     }
 
@@ -24,29 +31,40 @@ interface Katan {
     val platform: Platform
 
     /**
+     * Returns the environment mode that has been defined for this instance.
+     */
+    val environment: KatanEnvironment
+
+    /**
      * Query, creation and management of accounts
      */
     val accountManager: AccountManager
 
     /**
-     * Responsible for the generation, handling and handling of absolutely
-     * everything related to servers, from creation to query.
+     * Returns the Katan services manager.
      */
-    val serverManager: ServerManager
-
-    val pluginManager: PluginManager
+    @UnstableKatanApi
+    val servicesManager: ServicesManager
 
     /**
      * The caching provider for that instance.
-     * Should NEVER return an uninitialized value, for this use [me.devnatan.katan.api.cache.UnavailableCacheProvider]
+     * Can return an uninitialized value, use [Cache.isAvailable] to check.
      */
     val cache: Cache<Any>
 
     /**
-     * Returns the environment mode that has been defined for this instance.
+     * Returns the Katan [Server] manager.
      */
-    val environment: KatanEnvironment
+    val serverManager: ServerManager
 
+    /**
+     * Returns the Katan [Plugin] manager.
+     */
+    val pluginManager: PluginManager
+
+    /**
+     * Returns the event publisher for this entire instance.
+     */
     val eventBus: EventScope
 
     /**

@@ -1,10 +1,10 @@
 package me.devnatan.katan.api.plugin
 
 /**
- * Represents a phase during the initialization period of a plugin
+ * Represents a phase during the initialization period of a plugin.
  * @property key a key for this phase
  */
-class PluginPhase(val key: String) {
+inline class PluginPhase(val key: String) {
 
     override fun toString(): String {
         return "Phase($key)"
@@ -13,14 +13,28 @@ class PluginPhase(val key: String) {
 }
 
 /**
- * Phase called when the plugin is started.
+ * Represents a handler for the [PluginPhase], unlike events only
+ * occur within the scope of the plugin, that is, it is the plugin for itself.
  */
-val PluginStarted = PluginPhase("PluginStarted")
+interface PluginHandler {
+
+    /**
+     * Called when a [PluginPhase] occurs.
+     */
+    suspend fun handle()
+
+}
 
 /**
- * Phase called when the plugin is stopped.
+ * Inline implementation for [PluginHandler].
  */
-val PluginStopped = PluginPhase("PluginStopped")
+internal class PluginHandlerImpl(inline val handler: suspend () -> Unit) : PluginHandler {
+
+    override suspend fun handle() {
+        handler()
+    }
+
+}
 
 /**
  * Phase called when the plugin is loaded.
@@ -28,13 +42,17 @@ val PluginStopped = PluginPhase("PluginStopped")
 val PluginLoaded = PluginPhase("PluginLoaded")
 
 /**
- * Phase called during the Katan setup process.
+ * Phase called when the plugin is started.
  */
-val KatanConfiguration = PluginPhase("KatanConfiguration")
+val PluginEnabled = PluginPhase("PluginEnabled")
+
+/**
+ * Phase called when the plugin is stopped.
+ */
+val PluginDisabled = PluginPhase("PluginDisabled")
 
 /**
  * Phase called when Katan starts the boot process.
- *
  */
 val KatanInit = PluginPhase("KatanInit")
 

@@ -1,24 +1,27 @@
 package me.devnatan.katan.api.cache
 
+/**
+ * Base interface for implementing caching services such as local cache, Redis, in memory, and others.
+ */
 interface Cache<V> {
 
     /**
-     * Get the value of the specified [key].
-     * @param key the key to be searched
-     * @throws NoSuchElementException if the key does not exist
+     * Get the cached value of the specified [key].
+     * @param key the key to be searched.
+     * @throws NoSuchElementException if the key does not exist.
      */
     fun get(key: String): V
 
     /**
-     * Set the string value as value of the key
-     * @param key the key to be set
-     * @param value the key value
+     * Sets the cached [value] for this [key].
+     * @param key the key to be set.
+     * @param value the value of the key.
      */
     fun set(key: String, value: V)
 
     /**
      * Checks whether the key exists in the caching service.
-     * @param key the key to be verified
+     * @param key the key to be verified.
      */
     fun has(key: String): Boolean
 
@@ -34,7 +37,7 @@ interface Cache<V> {
 
     /**
      * Terminates the execution of the caching service if available.
-     * @throws IllegalStateException if it is not running
+     * @throws IllegalStateException if it is not running.
      */
     suspend fun close()
 
@@ -47,24 +50,18 @@ class UnavailableCacheProvider<V> : Cache<V> {
 
     override fun isAvailable() = false
 
-    override fun get(key: String): V {
-        throw UnsupportedOperationException()
-    }
+    private fun unavailable(): Nothing = throw UnsupportedOperationException()
 
-    override fun set(key: String, value: V) {
-        throw UnsupportedOperationException()
-    }
+    override fun get(key: String): V = unavailable()
+
+    override fun set(key: String, value: V) = unavailable()
 
     override fun has(key: String): Boolean {
-        throw UnsupportedOperationException()
+        return isAvailable()
     }
 
-    override fun <T> unsafe(): T {
-        throw UnsupportedOperationException()
-    }
+    override fun <T> unsafe(): T = unavailable()
 
-    override suspend fun close() {
-        throw UnsupportedOperationException()
-    }
+    override suspend fun close() = unavailable()
 
 }

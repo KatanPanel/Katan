@@ -5,6 +5,7 @@ import me.devnatan.katan.common.util.replaceEach
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.DatabaseSettings
 import me.devnatan.katan.core.database.jdbc.entity.AccountsTable
+import me.devnatan.katan.core.database.jdbc.entity.ServerCompositionsTable
 import me.devnatan.katan.core.database.jdbc.entity.ServerHoldersTable
 import me.devnatan.katan.core.database.jdbc.entity.ServersTable
 import org.jetbrains.exposed.sql.Database
@@ -41,7 +42,8 @@ abstract class JDBCConnector(
             SchemaUtils.create(
                 AccountsTable,
                 ServersTable,
-                ServerHoldersTable
+                ServerHoldersTable,
+                ServerCompositionsTable
             )
         }
     }

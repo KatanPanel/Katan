@@ -40,7 +40,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
             )
 
         runBlocking(CoroutineName("KatanCLI::server-create-main")) {
-            var server: Server = UninitializedServer(name, "undefined")
+            var server: Server = UninitializedServer(name, ServerTarget.UNKNOWN)
             echo("Creating server \"$name\"...")
             (server.compositions as ServerCompositionsImpl)[DockerImageComposition] =
                 cli.katan.serverManager.compositionFactory.create(
@@ -59,13 +59,13 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                 val applied = arrayListOf<ServerComposition.Key<*>>()
                 for ((index, name) in compositions.withIndex()) {
                     val phase = "[${index + 1}/$length]"
-                    val factory = cli.serverManager.getCompositionFactoryApplicableFor(name)
+                    val factory = cli.serverManager.getCompositionFactory(name)
                     if (factory == null) {
                         err("$phase Factory not found for composition $name.")
                         continue
                     }
 
-                    val key = factory.getKey(name)
+                    val key = factory.get(name)
                     if (key == null) {
                         err("$phase $name is registered but not applicable for the specified this factory")
                         continue
@@ -118,7 +118,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                     }
 
                     val cancellationHandler = Job()
-                    val keyName = factory.getKeyName(key)!!
+                    val keyName = factory.get(key)!!
 
                     /*
                         This `handler` will help us finalize the channel subscription for this composition

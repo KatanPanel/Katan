@@ -53,6 +53,7 @@ class RedisCacheProvider(private val pool: JedisPool) : Cache<Any> {
  * Asynchronously executes a list of commands at once.
  * @param pipe the execution pipe
  */
+@ExperimentalCoroutinesApi
 suspend fun <V> Cache<V>.asyncPipeline(
     coroutineScope: CoroutineScope,
     pipe: Pipeline.() -> Unit

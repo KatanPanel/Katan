@@ -1,6 +1,7 @@
 package me.devnatan.katan.core.server.compositions
 
 import me.devnatan.katan.api.annotations.InternalKatanApi
+import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionOptions
 import me.devnatan.katan.api.server.addSupportedKey
@@ -13,6 +14,7 @@ import me.devnatan.katan.core.server.compositions.image.DockerImageOptions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+@OptIn(UnstableKatanApi::class)
 class DockerCompositionFactory(val core: KatanCore) : InvisibleCompositionFactory() {
 
     init {

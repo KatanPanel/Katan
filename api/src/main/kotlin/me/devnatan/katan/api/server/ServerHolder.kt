@@ -1,13 +1,13 @@
 package me.devnatan.katan.api.server
 
-import me.devnatan.katan.api.account.Account
-import me.devnatan.katan.api.permission.PermissionHolder
+import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.security.permission.PermissionsHolder
 
 /**
- * @author Natan V.
- * @since 0.1.0
+ * Represents an account that is connected to a server.
+ * This [account] has permissions and contains specific access permissions to that [server].
  */
-interface ServerHolder : PermissionHolder {
+interface ServerHolder : PermissionsHolder {
 
     /**
      * The account that this holder is linked to.

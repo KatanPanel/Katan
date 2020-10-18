@@ -22,6 +22,7 @@ import io.ktor.websocket.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import me.devnatan.katan.api.defaultLogLevel
+import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.webserver.KatanWS
 import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
@@ -43,11 +44,10 @@ class Environment(val server: KatanWS) {
         const val XSRF_HEADER = "X-XSRF-TOKEN"
     }
 
-    private var started = false
     lateinit var webSocketManager: WebSocketManager
     lateinit var environment: ApplicationEngineEnvironment
 
-    val config: Config get() = server.config
+    private val config: Config get() = server.config
 
     fun start() {
         webSocketManager = WebSocketManager().registerEventHandler(WebSocketServerHandler)
@@ -57,10 +57,11 @@ class Environment(val server: KatanWS) {
                 router(this@Environment)
             }
 
-            val deploy = this@Environment.config.getConfig("deployment")
+            val deploy = server.config.getConfig("deployment")
             connector {
                 host = deploy.getString("host")
                 port = deploy.getInt("port")
+                logger.info("HTTP connector available at: $host:$port")
             }
 
             if (deploy.hasPath("sslPort")) {
@@ -74,14 +75,15 @@ class Environment(val server: KatanWS) {
                     ssl.getString("keyAlias"),
                     { pass },
                     { ssl.getString("privateKeyPassword").toCharArray() }
-                ) {}
+                ) {
+                    port = deploy.getInt("sslPort")
+                    logger.info("HTTP secure connector available at: $host:$port")
+                }
             }
         }
-        started = true
     }
 
     suspend fun close() {
-        check(started) { "Katan WS application is not started" }
         webSocketManager.close()
     }
 
@@ -91,9 +93,6 @@ class Environment(val server: KatanWS) {
         install(DefaultHeaders)
         install(AutoHeadResponse)
         install(WebSockets)
-        install(HSTS) {
-            logger.info("Enabled Strict Transport Security")
-        }
 
         install(ContentNegotiation) {
             jackson {
@@ -129,6 +128,7 @@ class Environment(val server: KatanWS) {
         install(CORS) {
             method(HttpMethod.Options)
             header(XSRF_HEADER)
+            header("Authorization")
             allowNonSimpleContentTypes = true
             allowCredentials = true
 
@@ -189,7 +189,7 @@ class Environment(val server: KatanWS) {
                 validate { credential ->
                     runCatching {
                         AccountPrincipal(server.internalAccountManager.verifyPayload(credential.payload))
-                    }.getOrNull()
+                    }.getOrThrow()
                 }
             }
         }
@@ -208,6 +208,35 @@ class Environment(val server: KatanWS) {
         install(MicrometerMetrics) {
             registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT).apply {
                 config().commonTags("application", "Katan")
+            }
+        }
+
+        install(DataConversion) {
+            convert<Server> {
+                encode {
+                    if (it == null) emptyList()
+                    else listOf((it as Server).id.toString())
+                }
+                decode { values, _ -> server.katan.serverManager.getServer(values.single().toInt()) }
+            }
+        }
+
+        if (config.get("deployment.secure", false) && config.hasPath("deployment.sslPort")) {
+            val hsts = config.getConfig("features.hsts")
+            if (hsts.get("enabled", true)) {
+                install(HSTS)
+                logger.info("Enabled Strict Transport Security (HSTS)")
+            }
+
+            val forwardedHeader = config.getConfig("features.reverse-proxy")
+            if (forwardedHeader.get("enabled", true)) {
+                install(ForwardedHeaderSupport)
+                logger.info("Enabled Forwarded Header support (for reverse proxy).")
+            }
+
+            install(HttpsRedirect) {
+                sslPort = config.getInt("deployment.sslPort")
+                permanentRedirect = true
             }
         }
     }

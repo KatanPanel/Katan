@@ -1,8 +1,8 @@
 package me.devnatan.katan.common.account
 
-import me.devnatan.katan.api.account.Account
-import me.devnatan.katan.api.permission.Permission
-import me.devnatan.katan.api.permission.PermissionFlag
+import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.security.permission.Permission
+import me.devnatan.katan.api.security.permission.PermissionFlag
 import java.time.Instant
 import java.util.*
 

@@ -1,5 +1,10 @@
 package me.devnatan.katan.api
 
+/**
+ * Represents the platform in which Katan is running.
+ * @property os operating system information.
+ * @see Katan.platform
+ */
 data class Platform(val os: OS) {
 
     /**
@@ -15,6 +20,8 @@ data class Platform(val os: OS) {
         }
 
     }
+
+    override fun toString() = os.toString()
 
 }
 
@@ -39,9 +46,8 @@ fun Platform.isLinux(): Boolean {
  * @see Platform.OS
  */
 fun Platform.isMac(): Boolean {
-    return os.name.let {
-        it.startsWith("mac") || it.startsWith("darwin")
-    }
+    val name = os.name.toLowerCase()
+    return name.startsWith("mac") || name.startsWith("darwin")
 }
 
 /**
@@ -67,6 +73,6 @@ fun currentPlatform() = Platform(
     Platform.OS(
         System.getProperty("os.name"),
         System.getProperty("os.arch"),
-        System.getProperty("os.version", "")
+        System.getProperty("os.version", "unknown")
     )
 )
