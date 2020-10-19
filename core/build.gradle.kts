@@ -15,6 +15,8 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.21")
     implementation("redis.clients:jedis:3.3.0")
     implementation("org.bouncycastle:bcprov-jdk15to18:1.66")
+    implementation("org.apache.logging.log4j:log4j-core:2.13.3")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.13.3")
 }
 
 configurations {

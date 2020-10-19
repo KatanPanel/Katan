@@ -5,7 +5,8 @@ plugins {
 dependencies {
     implementation("com.github.ajalt.clikt:clikt-jvm:3.0.1")
     api("com.typesafe:config:1.4.0")
-    implementation("org.slf4j:slf4j-simple:1.8.0-beta2")
+    api("br.com.devsrsouza.eventkt:eventkt-core-jvm:0.1.0-SNAPSHOT")
+    api("org.slf4j:slf4j-api:1.7.30")
 }
 
 publishing {
