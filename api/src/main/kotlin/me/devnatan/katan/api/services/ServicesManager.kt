@@ -21,7 +21,7 @@ interface ServicesManager {
      * @param service the service to be get.
      * @throws NoSuchElementException if the service is not found.
      */
-    fun <T : Any> get(service: KClass<out T>): T?
+    fun <T : Any> get(service: KClass<out T>): T
 
     /**
      * Returns `true` if there is a registered value for that service or `false` otherwise.
@@ -70,5 +70,5 @@ inline fun <reified T : Any> ServicesManager.get(crossinline defaultValue: () ->
 inline fun <T : Any> ServicesManager.get(service: KClass<out T>, crossinline defaultValue: () -> T): T {
     return runCatching {
         get(service)
-    }.getOrElse { defaultValue() }!!
+    }.getOrElse { defaultValue() }
 }

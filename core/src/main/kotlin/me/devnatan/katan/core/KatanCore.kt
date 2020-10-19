@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.KatanEnvironment
 import me.devnatan.katan.api.Platform
+import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
 import me.devnatan.katan.api.currentPlatform
@@ -45,11 +46,8 @@ import java.net.ConnectException
 import java.security.KeyStore
 import kotlin.system.measureTimeMillis
 
-class KatanCore(
-    private val config: Config,
-    override val environment: KatanEnvironment,
-    val locale: KatanLocale
-) :
+@OptIn(UnstableKatanApi::class)
+class KatanCore(private val config: Config, override val environment: KatanEnvironment, val locale: KatanLocale) :
     CoroutineScope by CoroutineScope(CoroutineName("Katan")), Katan {
 
     companion object {

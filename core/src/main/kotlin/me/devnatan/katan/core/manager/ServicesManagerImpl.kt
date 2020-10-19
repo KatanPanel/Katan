@@ -11,17 +11,17 @@ class ServicesManagerImpl : ServicesManager {
     private val lock = Any()
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> get(service: KClass<out T>): T? = synchronized(lock) {
-        return services[service] as? T
+    override fun <T : Any> get(service: KClass<out T>): T = synchronized(lock) {
+        return services.getValue(service) as T
     }
 
     override fun exists(service: KClass<out Any>): Boolean {
         return services.containsKey(service)
     }
 
-    override fun <T : Any> register(service: KClass<out T>, instance: T) {
+    override fun <T : Any> register(service: KClass<out T>, value: T) {
         synchronized(lock) {
-            services.put(service, instance)
+            services.put(service, value)
         }
     }
 
