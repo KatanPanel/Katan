@@ -18,4 +18,5 @@ dependencies {
     implementation("org.mpierce.ktor.csrf:ktor-csrf:0.5.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.11.2")
     implementation("com.auth0:java-jwt:3.10.3")
+    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
 }

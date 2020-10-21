@@ -56,6 +56,10 @@ class WebSocketManager {
             }
         }
 
+        synchronized(handlers) {
+            handlers.clear()
+        }
+
         if (eventbus.coroutineContext.isActive)
             eventbus.cancel()
 
@@ -92,11 +96,15 @@ class WebSocketManager {
     suspend fun detachSession(session: WebSocketSession, remove: Boolean = true): Boolean {
         try {
             session.close()
+            if (!remove)
+                return true
         } catch (_: ClosedChannelException) {
         }
 
-        if (remove) return mutex.withLock {
-            sessions.remove(session)
+        if (remove) {
+            return mutex.withLock {
+                sessions.remove(session)
+            }
         }
 
         return false

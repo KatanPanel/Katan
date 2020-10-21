@@ -9,7 +9,6 @@ import me.devnatan.katan.common.exceptions.throwSilent
 import java.time.Duration
 import java.time.Instant
 import java.util.*
-import kotlin.NoSuchElementException
 
 class WSAccountManager(val webserver: KatanWS) {
 
@@ -18,7 +17,7 @@ class WSAccountManager(val webserver: KatanWS) {
         const val AUTH_SECRET_MIN_LENGTH = 8
         const val AUTH_SECRET_MAX_LENGTH = 32
         private const val JWT_ACCOUNT_CLAIM = "account"
-        private val JWT_TOKEN_LIFETIME = Duration.ofMinutes(10)!!
+        private val JWT_TOKEN_LIFETIME = Duration.ofHours(1)!!
 
     }
 
@@ -65,14 +64,10 @@ class WSAccountManager(val webserver: KatanWS) {
             .sign(algorithm)
     }
 
-    suspend fun verifyPayload(payload: Payload): Account {
-        val claim = payload.getClaim(JWT_ACCOUNT_CLAIM)
-        if (claim.isNull)
-            throw IllegalArgumentException()
-
-        val accountId = claim.asString()
-        return webserver.katan.accountManager.getAccount(UUID.fromString(accountId))
-            ?: throw NoSuchElementException(accountId)
+    suspend fun verifyPayload(payload: Payload): Account? {
+        return payload.getClaim(JWT_ACCOUNT_CLAIM)?.let {
+            webserver.katan.accountManager.getAccount(UUID.fromString(it.asString()))
+        }
     }
 
 }

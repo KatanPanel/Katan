@@ -12,15 +12,18 @@ import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.channels.receiveOrNull
 import me.devnatan.katan.api.Katan
-import me.devnatan.katan.webserver.*
+import me.devnatan.katan.webserver.ACCOUNT_ALREADY_EXISTS_ERROR
+import me.devnatan.katan.webserver.ACCOUNT_INVALID_CREDENTIALS_ERROR
+import me.devnatan.katan.webserver.ACCOUNT_MISSING_CREDENTIALS_ERROR
+import me.devnatan.katan.webserver.ACCOUNT_NOT_FOUND_ERROR
 import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
 import me.devnatan.katan.webserver.environment.jwt.AccountPrincipal
 import me.devnatan.katan.webserver.environment.routes.AuthRoute
 import me.devnatan.katan.webserver.environment.routes.IndexRoute
 import me.devnatan.katan.webserver.environment.routes.ServersRoute
 import me.devnatan.katan.webserver.serializable.serializable
+import me.devnatan.katan.webserver.websocket.WebSocketManager
 import me.devnatan.katan.webserver.websocket.session.KtorWebSocketSession
 
 internal suspend fun PipelineContext<*, ApplicationCall>.respondWithOk(
@@ -40,19 +43,13 @@ internal fun respondWithError(
     status: HttpStatusCode = HttpStatusCode.BadRequest,
 ): Nothing = throw KatanHTTPException(response, status)
 
-@OptIn(KtorExperimentalLocationsAPI::class, ExperimentalCoroutinesApi::class)
-fun Application.router(
-    env: Environment
-) = routing {
-    intercept(ApplicationCallPipeline.Fallback) {
-        call.respond(HttpStatusCode.NotFound)
-    }
-
+@OptIn(ExperimentalCoroutinesApi::class)
+fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
     webSocket("/") {
         val session = KtorWebSocketSession(this) {
             outgoing.send(
                 Frame.Text(
-                    env.webSocketManager.objectMapper.writeValueAsString(
+                    webSocketManager.objectMapper.writeValueAsString(
                         mapOf(
                             "op" to it.op,
                             "d" to it.content
@@ -62,13 +59,12 @@ fun Application.router(
             )
         }
 
-        env.webSocketManager.attachSession(session)
+        webSocketManager.attachSession(session)
         try {
-            while (true) {
-                val frame = incoming.receiveOrNull() ?: break
+            for (frame in incoming) {
                 when (frame) {
                     is Frame.Close -> break
-                    is Frame.Text -> env.webSocketManager.readPacket(session, frame)
+                    is Frame.Text -> webSocketManager.readPacket(session, frame)
                     else -> throw UnsupportedOperationException("Unsupported frame type")
                 }
             }
@@ -76,9 +72,20 @@ fun Application.router(
         } catch (e: Throwable) {
             e.printStackTrace()
         } finally {
-            env.webSocketManager.detachSession(session)
+            webSocketManager.detachSession(session)
         }
     }
+}
+
+@OptIn(KtorExperimentalLocationsAPI::class, ExperimentalCoroutinesApi::class)
+fun Application.router(
+    env: Environment
+) = routing {
+    intercept(ApplicationCallPipeline.Fallback) {
+        call.respond(HttpStatusCode.NotFound)
+    }
+
+    installWebSocketRoute(env.webSocketManager)
 
     get<IndexRoute> {
         respondWithOk("version" to Katan.VERSION.toString())
@@ -119,21 +126,11 @@ fun Application.router(
         respondWithOk("account" to entity)
     }
 
-    get<AuthRoute.Verify> {
-        val account = call.authentication.principal<AccountPrincipal>()?.account
-            ?: respondWithError(INVALID_ACCESS_TOKEN_ERROR, HttpStatusCode.Unauthorized)
-
-        respondWithOk("account" to account)
-    }
-
-    route("") {
-        intercept(ApplicationCallPipeline.Features) {
-            call.authentication.principal<AccountPrincipal>() ?: respondWithError(
-                INVALID_ACCESS_TOKEN_ERROR,
-                HttpStatusCode.Unauthorized
-            )
+    authenticate {
+        get<AuthRoute.Verify> {
+            val account = call.authentication.principal<AccountPrincipal>()?.account!!
+            respondWithOk("account" to account)
         }
-
         get<ServersRoute> {
             respondWithOk("servers" to env.server.serverManager.getServerList().map { it.serializable() })
         }

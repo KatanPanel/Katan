@@ -20,24 +20,17 @@ class KatanWS(val katan: Katan) {
 
     lateinit var server: ApplicationEngine
     lateinit var environment: Environment
-    lateinit var config: Config
+    val config: Config = ConfigFactory.load(ConfigFactory.parseFile(exportResource("webserver.conf")))!!
     lateinit var internalAccountManager: WSAccountManager
+    val enabled = config.get("enabled", false)
 
     val accountManager get() = katan.accountManager
     val serverManager get() = katan.serverManager
 
-    private var _enabled = false
-    val enabled: Boolean
-        get() {
-            load()
-            _enabled = config.get("enabled", true)
-            return _enabled
-        }
-
     @OptIn(KtorExperimentalAPI::class)
     fun init() {
-        load()
         logger.info("Creating environment...")
+        internalAccountManager = WSAccountManager(this)
         environment = Environment(this)
         environment.start()
         server = embeddedServer(Jetty, environment.environment)
@@ -45,17 +38,8 @@ class KatanWS(val katan: Katan) {
         server.start()
     }
 
-
-    private fun load() {
-        if (!::config.isInitialized)
-            config = ConfigFactory.load(ConfigFactory.parseFile(exportResource("webserver.conf")))!!
-        internalAccountManager = WSAccountManager(this)
-    }
-
     suspend fun close() {
-        if (!::environment.isInitialized)
-            return
-
+        if (!::environment.isInitialized) return
         logger.info("Closing environment...")
         environment.close()
 

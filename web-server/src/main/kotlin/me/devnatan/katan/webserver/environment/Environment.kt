@@ -16,7 +16,6 @@ import io.ktor.locations.*
 import io.ktor.metrics.micrometer.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
-import io.ktor.sessions.*
 import io.ktor.util.*
 import io.ktor.websocket.*
 import io.micrometer.prometheus.PrometheusConfig
@@ -24,6 +23,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import me.devnatan.katan.api.defaultLogLevel
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.common.util.get
+import me.devnatan.katan.webserver.INVALID_ACCESS_TOKEN_ERROR
 import me.devnatan.katan.webserver.KatanWS
 import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
 import me.devnatan.katan.webserver.environment.jwt.AccountPrincipal
@@ -187,21 +187,11 @@ class Environment(val server: KatanWS) {
                 verifier(server.internalAccountManager.verifier)
 
                 validate { credential ->
-                    runCatching {
-                        AccountPrincipal(server.internalAccountManager.verifyPayload(credential.payload))
-                    }.getOrThrow()
-                }
-            }
-        }
+                    val account = server.internalAccountManager.verifyPayload(credential.payload)
+                        ?: respondWithError(INVALID_ACCESS_TOKEN_ERROR, HttpStatusCode.Unauthorized)
 
-        install(Sessions) {
-            header<String>(XSRF_HEADER) {
-                transform(
-                    SessionTransportTransformerMessageAuthentication(
-                        hex(config.getString("csrf.key")),
-                        "HmacSHA256"
-                    )
-                )
+                    AccountPrincipal(account)
+                }
             }
         }
 
