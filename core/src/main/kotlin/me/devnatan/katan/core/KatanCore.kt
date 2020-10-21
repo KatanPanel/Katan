@@ -31,10 +31,10 @@ import me.devnatan.katan.core.crypto.BcryptHash
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
-import me.devnatan.katan.core.manager.DefaultAccountManager
-import me.devnatan.katan.core.manager.DefaultPluginManager
-import me.devnatan.katan.core.manager.DockerServerManager
-import me.devnatan.katan.core.manager.ServicesManagerImpl
+import me.devnatan.katan.core.impl.account.AccountsManagerImpl
+import me.devnatan.katan.core.impl.plugin.DefaultPluginManager
+import me.devnatan.katan.core.impl.server.DockerServerManager
+import me.devnatan.katan.core.impl.services.ServicesManagerImpl
 import me.devnatan.katan.core.repository.JDBCAccountsRepository
 import me.devnatan.katan.core.repository.JDBCServersRepository
 import org.slf4j.Logger
@@ -61,7 +61,7 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
     override val platform: Platform = currentPlatform()
     lateinit var database: DatabaseConnector
     lateinit var docker: DockerClient
-    override lateinit var accountManager: DefaultAccountManager
+    override lateinit var accountManager: AccountsManagerImpl
     override lateinit var serverManager: DockerServerManager
     override val pluginManager = DefaultPluginManager(this)
     override val servicesManager = ServicesManagerImpl()
@@ -216,7 +216,7 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
             }
         )
 
-        accountManager = DefaultAccountManager(
+        accountManager = AccountsManagerImpl(
             this, when (database) {
                 is JDBCConnector -> JDBCAccountsRepository(this, database as JDBCConnector)
                 else -> throwUnavailableRepository("accounts")
@@ -238,8 +238,8 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
         pluginManager.callHandlers(KatanStarted)
     }
 
-    override suspend fun close() {
-
+    suspend fun close() {
+        pluginManager.disableAll()
     }
 
 }

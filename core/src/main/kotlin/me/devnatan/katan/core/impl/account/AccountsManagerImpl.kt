@@ -1,4 +1,4 @@
-package me.devnatan.katan.core.manager
+package me.devnatan.katan.core.impl.account
 
 import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.security.account.AccountManager
@@ -8,7 +8,7 @@ import me.devnatan.katan.core.repository.AccountsRepository
 import java.time.Instant
 import java.util.*
 
-class DefaultAccountManager(
+class AccountsManagerImpl(
     private val core: KatanCore,
     private val repository: AccountsRepository
 ) : AccountManager {

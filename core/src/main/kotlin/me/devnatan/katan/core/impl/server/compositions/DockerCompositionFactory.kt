@@ -1,4 +1,4 @@
-package me.devnatan.katan.core.server.compositions
+package me.devnatan.katan.core.impl.server.compositions
 
 import me.devnatan.katan.api.annotations.InternalKatanApi
 import me.devnatan.katan.api.annotations.UnstableKatanApi
@@ -7,10 +7,10 @@ import me.devnatan.katan.api.server.ServerCompositionOptions
 import me.devnatan.katan.api.server.addSupportedKey
 import me.devnatan.katan.api.server.prompt
 import me.devnatan.katan.core.KatanCore
-import me.devnatan.katan.core.server.compositions.compose.DockerComposeComposition
-import me.devnatan.katan.core.server.compositions.compose.DockerComposeOptions
-import me.devnatan.katan.core.server.compositions.image.DockerImageComposition
-import me.devnatan.katan.core.server.compositions.image.DockerImageOptions
+import me.devnatan.katan.core.impl.server.compositions.compose.DockerComposeComposition
+import me.devnatan.katan.core.impl.server.compositions.compose.DockerComposeOptions
+import me.devnatan.katan.core.impl.server.compositions.image.DockerImageComposition
+import me.devnatan.katan.core.impl.server.compositions.image.DockerImageOptions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

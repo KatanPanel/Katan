@@ -16,7 +16,7 @@ class InitOnceProperty<T> : ReadWriteProperty<Any, T> {
 
     override fun getValue(thisRef: Any, property: KProperty<*>): T {
         if (!isInitialized())
-            throw UnsupportedOperationException("Not yet initialized: ${property.name}")
+            throw UnsupportedOperationException("Property not yet initialized: ${property.name}.")
         else {
             @Suppress("UNCHECKED_CAST")
             return value as T
@@ -25,7 +25,7 @@ class InitOnceProperty<T> : ReadWriteProperty<Any, T> {
 
     override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
         if (isInitialized())
-            throw IllegalStateException("Property ${property.name} already initialized")
+            throw IllegalStateException("Property ${property.name} already initialized.")
         this.value = value
     }
 

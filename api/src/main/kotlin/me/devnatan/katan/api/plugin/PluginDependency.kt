@@ -1,6 +1,6 @@
 package me.devnatan.katan.api.plugin
 
-import me.devnatan.katan.api.annotations.UnstableKatanApi
+import me.devnatan.katan.api.Descriptor
 
 /**
  * It represents the dependency of a plugin, described through its [descriptor],
@@ -8,8 +8,9 @@ import me.devnatan.katan.api.annotations.UnstableKatanApi
  * during the plugin's initialization, if there are non-[optional] dependencies that are not loaded for
  * the plugin during its initialization they will veto the continued loading of the plugin.
  */
-@UnstableKatanApi
-data class PluginDependency(val descriptor: PluginDescriptor) {
+open class PluginDependency(val descriptor: Descriptor) {
+
+    var value: (() -> Any?)? = null
 
     /**
      * If this dependency is not required during the plugin's initialization.

@@ -16,6 +16,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.properties.ReadOnlyProperty
 
 /**
  * Plugin is an extension of Katan, plugins have access to several functions
@@ -41,7 +42,7 @@ interface Plugin {
     /**
      * The current state of the plugin before, during and after the loading process
      */
-    val state: PluginState
+    var state: PluginState
 
     /**
      * Built-in logger built using descriptor data.
@@ -59,7 +60,6 @@ interface Plugin {
      * which is later converted to a Plugin. Defining a dependency means that you
      * want it to be available during the initialization of your plugin, it will start before it.
      */
-    @UnstableKatanApi
     val dependencyManager: PluginDependencyManager
 
     /**
@@ -90,15 +90,6 @@ interface Plugin {
 }
 
 /**
- * Access the plugin's dependency manager, it should be used only in case you need a better organization
- * of the dependencies or have direct access to the handler, for just adding dependency use [dependsOn].
- */
-@UnstableKatanApi
-inline fun Plugin.dependencyManagement(block: PluginDependencyManager.() -> Unit): PluginDependencyManager {
-    return dependencyManager.apply(block)
-}
-
-/**
  * Access the plugin's event listener, through which you can call and listen to events.
  */
 inline fun Plugin.listener(crossinline block: EventScope.() -> Unit): EventScope {
@@ -121,6 +112,19 @@ fun Plugin.handle(phase: PluginPhase, block: suspend () -> Unit): PluginHandler 
     return handler
 }
 
+
+/**
+ * Access the plugin's dependency manager, it should be used only in case you need a better organization
+ * of the dependencies or have direct access to the handler, for just adding dependency use [plugin].
+ */
+inline fun Plugin.dependencyManagement(crossinline block: PluginDependencyManager.() -> Unit): PluginDependencyManager {
+    return dependencyManager.apply(block)
+}
+
+inline fun <reified T> Plugin.dependency(): ReadOnlyProperty<Plugin, T?> {
+    return ReadOnlyProperty { _, _ -> (dependencyManager as GenericPluginDependencyManager).resolveDependency(T::class) as? T }
+}
+
 /**
  * Plugin implementation
  */
@@ -133,7 +137,9 @@ open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin
     ) : this(PluginDescriptor(name, version?.let { Version(it) }, author))
 
     final override val katan: Katan by InitOnceProperty()
-    final override val dependencyManager: PluginDependencyManager by InitOnceProperty()
+
+    @OptIn(UnstableKatanApi::class)
+    final override val dependencyManager: PluginDependencyManager = GenericPluginDependencyManager()
     final override val directory: File by InitOnceProperty()
     private var _config: Config by InitOnceProperty()
     final override val config: Config get() = _config
@@ -148,5 +154,24 @@ open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin
     }
 
     override fun toString() = descriptor.toString()
+
+}
+
+class MyPlugin : KatanPlugin("") {
+
+    init {
+        dependencyManagement {
+            plugin("pk", true) {
+                exclude("aaaa")
+                exclude("bbbb")
+            }
+        }
+    }
+
+    val test by dependency<KatanPlugin>()
+
+    fun t() {
+        tes
+    }
 
 }

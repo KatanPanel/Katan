@@ -9,6 +9,7 @@ import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerManager
 import me.devnatan.katan.api.services.ServicesManager
+import org.slf4j.event.Level
 
 /**
  * Interface that provides access to Katan handlers without having
@@ -67,10 +68,66 @@ interface Katan {
      */
     val eventBus: EventScope
 
-    /**
-     * Terminate the current instance by interrupting pending tasks and stopping running services,
-     * it must suspend until the end if there is no termination of the JVM process.
-     */
-    suspend fun close()
+}
 
+/**
+ * Represents the mode of the environment in which Katan is running.
+ * @property value the name of the environment
+ * @see Katan.environment
+ */
+inline class KatanEnvironment(private val value: String) {
+
+    companion object {
+
+        const val LOCAL = "local"
+        const val DEVELOPMENT = "dev"
+        const val TESTING = "test"
+        const val STAGING = "stage"
+        const val PRODUCTION = "production"
+
+        val ALL: Array<String> get() = arrayOf(LOCAL, DEVELOPMENT, TESTING, STAGING, PRODUCTION)
+
+    }
+
+    /**
+     * Returns `true` if the current environment mode is in [DEVELOPMENT].
+     */
+    fun isLocal(): Boolean {
+        return value == LOCAL
+    }
+
+    /**
+     * Returns `true` if the current environment mode is in [DEVELOPMENT] or [LOCAL].
+     */
+    fun isDevelopment(): Boolean {
+        return value == LOCAL || value == DEVELOPMENT
+    }
+
+    /**
+     * Returns `true` if the current environment mode is in [TESTING] or [STAGING].
+     */
+    fun isTesting(): Boolean {
+        return value == TESTING || value == STAGING
+    }
+
+    /**
+     * Returns `true` if the current environment mode is in [PRODUCTION].
+     */
+    fun isProduction(): Boolean {
+        return value == PRODUCTION
+    }
+
+    override fun toString(): String {
+        return value
+    }
+
+}
+
+/**
+ * Returns the default recommended logging level for this environment mode.
+ */
+fun KatanEnvironment.defaultLogLevel(): Level = when {
+    isLocal() -> Level.TRACE
+    isDevelopment() || isTesting() -> Level.DEBUG
+    else -> Level.INFO
 }

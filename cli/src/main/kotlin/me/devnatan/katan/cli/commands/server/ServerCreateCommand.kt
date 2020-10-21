@@ -15,8 +15,8 @@ import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.cli.err
 import me.devnatan.katan.common.server.ServerCompositionsImpl
 import me.devnatan.katan.common.server.UninitializedServer
-import me.devnatan.katan.core.server.compositions.image.DockerImageComposition
-import me.devnatan.katan.core.server.compositions.image.DockerImageOptions
+import me.devnatan.katan.core.impl.server.compositions.image.DockerImageComposition
+import me.devnatan.katan.core.impl.server.compositions.image.DockerImageOptions
 
 class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
     name = "create",

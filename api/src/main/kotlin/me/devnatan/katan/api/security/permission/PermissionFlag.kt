@@ -21,31 +21,42 @@ sealed class PermissionFlag constructor(val code: Int) {
 
     /**
      * Will use the flag of the [PermissionsHolder]’s parent.
-     * By default, if used as a value, it will be as if it were a [NotAllowed].
      */
-    class Inherit(val inherit: PermissionFlag) : PermissionFlag(3)
+    object Inherit : PermissionFlag(3)
 
 }
 
 /**
- * Returns `true` if this flag has a positive value, also checking the
- * inherited value of the [PermissionFlag.Inherit] flag recursively if it is required.
+ * Returns `true` if this flag has a positive value.
+ * @throws UnsupportedOperationException if is [PermissionFlag.Inherit].
  */
 fun PermissionFlag.allowed(): Boolean {
     return when (this) {
         is PermissionFlag.Allowed -> true
         is PermissionFlag.NotAllowed -> false
-        is PermissionFlag.Inherit -> inherit.allowed()
+        else -> throw UnsupportedOperationException("Cannot check inherited permission flag value.")
     }
 }
 
 /**
- * Returns the inverse value of this permission flag.
+ * Returns `true` if this flag has a negative value.
+ * @throws UnsupportedOperationException if is [PermissionFlag.Inherit].
+ */
+fun PermissionFlag.notAllowed(): Boolean {
+    return when (this) {
+        is PermissionFlag.Allowed -> true
+        is PermissionFlag.NotAllowed -> false
+        else -> throw UnsupportedOperationException("Cannot check inherited permission flag value.")
+    }
+}
+
+/**
+ * Returns the inverse value of this permission flag, or `this` for [PermissionFlag.Inherit].
  */
 fun PermissionFlag.not(): PermissionFlag {
     return when (this) {
         is PermissionFlag.Allowed -> PermissionFlag.NotAllowed
         is PermissionFlag.NotAllowed -> PermissionFlag.Allowed
-        is PermissionFlag.Inherit -> this
+        else -> this
     }
 }

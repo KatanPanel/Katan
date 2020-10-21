@@ -1,4 +1,4 @@
-package me.devnatan.katan.core.manager
+package me.devnatan.katan.core.impl.server
 
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
@@ -16,15 +16,12 @@ import kotlinx.coroutines.flow.callbackFlow
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.event.*
 import me.devnatan.katan.api.server.*
+import me.devnatan.katan.common.exceptions.silent
 import me.devnatan.katan.common.server.ServerCompositionsImpl
 import me.devnatan.katan.core.KatanCore
+import me.devnatan.katan.core.impl.server.compositions.DockerCompositionFactory
+import me.devnatan.katan.core.impl.server.compositions.InvisibleCompositionFactory
 import me.devnatan.katan.core.repository.ServersRepository
-import me.devnatan.katan.core.server.DockerServerContainer
-import me.devnatan.katan.core.server.DockerServerContainerInspection
-import me.devnatan.katan.core.server.ServerHolderImpl
-import me.devnatan.katan.core.server.ServerImpl
-import me.devnatan.katan.core.server.compositions.DockerCompositionFactory
-import me.devnatan.katan.core.server.compositions.InvisibleCompositionFactory
 import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.LoggerFactory
 import java.io.*
@@ -70,64 +67,69 @@ class DockerServerManager(
                 .exec()
         }
 
-        repository.listServers { entities ->
-            for (entity in entities) {
-                val server = ServerImpl(
-                    entity.id.value,
-                    entity.name,
-                    ServerTarget.byGame(entity.target),
-                    ServerCompositionsImpl()
-                ).apply {
-                    container = DockerServerContainer(entity.containerId, core.docker)
-                }
+        try {
+            repository.listServers { entities ->
+                for (entity in entities) {
+                    val server = ServerImpl(
+                        entity.id.value,
+                        entity.name,
+                        ServerTarget.byGame(entity.target),
+                        ServerCompositionsImpl()
+                    ).apply {
+                        container = DockerServerContainer(entity.containerId, core.docker)
+                    }
 
-                server.holders.addAll(entity.holders.mapNotNull {
-                    /*
+                    server.holders.addAll(entity.holders.mapNotNull {
+                        /*
                         If the account is null this is a database synchronization error
                         we can ignore this, but in the future we should alert that kind of thing.
                      */
-                    core.accountManager.getAccount(it.account.value.toString())
-                }.map { ServerHolderImpl(it, server) })
+                        core.accountManager.getAccount(it.account.value.toString())
+                    }.map { ServerHolderImpl(it, server) })
 
-                for (composition in entity.compositions) {
-                    val factory = compositionFactories.firstOrNull {
-                        it.get(composition.key) != null
+                    for (composition in entity.compositions) {
+                        val factory = compositionFactories.firstOrNull {
+                            it.get(composition.key) != null
+                        }
+
+                        if (factory == null) {
+                            logger.warn("${server.name}: No factory found for composition ${composition.key}, skipping.")
+                            continue
+                        }
+
+                        val optionsData =
+                            FileInputStream(localDataManager.getCompositionOptions(server, composition.key)).use {
+                                core.objectMapper.readValue(it, Map::class.java)
+                            } as Map<String, Any>
+
+                        val key = factory.get(composition.key)!!
+                        val impl = factory.create(
+                            key,
+                            factory.generate(key, optionsData)
+                        )
+                        impl.read(server)
+                        (server.compositions as ServerCompositionsImpl)[key] = impl
                     }
 
-                    if (factory == null) {
-                        logger.warn("${server.name}: No factory found for composition ${composition.key}, skipping.")
-                        continue
+                    try {
+                        inspectServer(server)
+                        servers.add(server)
+                    } catch (e: NotFoundException) {
+                        logger.warn("Server \"${server.name}\" container was not found, it could not be initialized.")
                     }
 
-                    val optionsData =
-                        FileInputStream(localDataManager.getCompositionOptions(server, composition.key)).use {
-                            core.objectMapper.readValue(it, Map::class.java)
-                        } as Map<String, Any>
-
-                    val key = factory.get(composition.key)!!
-                    val impl = factory.create(
-                        key,
-                        factory.generate(key, optionsData)
-                    )
-                    impl.read(server)
-                    (server.compositions as ServerCompositionsImpl)[key] = impl
+                    // Ensuring that the next id is after the id of any server
+                    // already registered this will prevent future collisions.
+                    lastId.lazySet(server.id)
                 }
-
-                try {
-                    inspectServer(server)
-                    servers.add(server)
-                } catch (e: NotFoundException) {
-                    logger.warn("Server \"${server.name}\" container was not found, it could not be initialized.")
-                }
-
-                // Ensuring that the next id is after the id of any server
-                // already registered this will prevent future collisions.
-                lastId.lazySet(server.id)
             }
-        }
 
-        if (servers.isNotEmpty())
-            logger.debug("${servers.size} server(s) have been loaded.")
+            if (servers.isNotEmpty())
+                logger.debug("${servers.size} server(s) have been loaded.")
+        } catch (e: Throwable) {
+            // if it's SQLErrorSyntaxException probably the Katan version is different
+            throw e.silent(logger)
+        }
     }
 
     override fun getServerList(): Collection<Server> {
@@ -145,7 +147,9 @@ class DockerServerManager(
     }
 
     override fun addServer(server: Server): Boolean {
-        return servers.add(server)
+        return synchronized(servers) {
+            servers.add(server)
+        }
     }
 
     override fun existsServer(id: Int): Boolean {
@@ -260,7 +264,9 @@ class DockerServerManager(
     }
 
     override fun registerCompositionFactory(factory: ServerCompositionFactory) {
-        compositionFactories.add(factory)
+        synchronized(compositionFactories) {
+            compositionFactories.add(factory)
+        }
 
         if (factory !is InvisibleCompositionFactory)
             logger.debug(
@@ -273,7 +279,9 @@ class DockerServerManager(
     }
 
     override fun unregisterCompositionFactory(factory: ServerCompositionFactory) {
-        compositionFactories.remove(factory)
+        synchronized(compositionFactories) {
+            compositionFactories.remove(factory)
+        }
 
         if (factory !is InvisibleCompositionFactory)
             logger.debug(

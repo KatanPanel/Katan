@@ -1,26 +1,34 @@
 package me.devnatan.katan.api.plugin
 
+import me.devnatan.katan.api.Descriptor
 import me.devnatan.katan.api.Version
-import me.devnatan.katan.api.annotations.UnstableKatanApi
+import me.devnatan.katan.api.services.ServiceDescriptor
+import me.devnatan.katan.api.services.ServicesManager
+import kotlin.reflect.KClass
 
 /**
  * Plugin dependency manager, responsible for loading, adding and removing plugin dependencies.
  * This can also be intertwined with another dependency management system.
  */
-@UnstableKatanApi
 interface PluginDependencyManager {
 
     /**
      * Adds the dependency from a descriptor.
      * @param descriptor the dependency descriptor.
      */
-    fun addDependency(descriptor: PluginDescriptor): PluginDependency
+    fun addDependency(descriptor: Descriptor): PluginDependency
 
     /**
      * Removes a dependency that has been previously added.
-     * @param descriptor the dependency descriptor.
+     * @param dependency the dependency descriptor.
      */
-    fun removeDependency(descriptor: PluginDescriptor): PluginDependency
+    fun removeDependency(dependency: PluginDependency)
+
+    /**
+     * Resolves a dependency value.
+     * @param classifier the dependency value classifier.
+     */
+    fun resolveDependency(classifier: KClass<*>): Any?
 
 }
 
@@ -29,12 +37,14 @@ interface PluginDependencyManager {
  * it to the plugin's classpath and setting it as the plugin's pre-boot priority.
  * @param descriptor the dependency descriptor.
  */
-@UnstableKatanApi
-inline fun PluginDependencyManager.dependsOn(
+inline fun PluginDependencyManager.plugin(
     descriptor: PluginDescriptor,
+    optional: Boolean = false,
     crossinline block: PluginDependency.() -> Unit = {}
 ): PluginDependency {
-    return addDependency(descriptor).apply(block)
+    return addDependency(descriptor).apply {
+        this.optional = optional
+    }.apply(block)
 }
 
 /**
@@ -42,12 +52,12 @@ inline fun PluginDependencyManager.dependsOn(
  * it to the plugin's classpath and setting it as the plugin's pre-boot priority.
  * @param name the dependency name.
  */
-@UnstableKatanApi
-inline fun PluginDependencyManager.dependsOn(
+inline fun PluginDependencyManager.plugin(
     name: String,
+    optional: Boolean = false,
     crossinline block: PluginDependency.() -> Unit = {}
 ): PluginDependency {
-    return dependsOn(PluginDescriptor(name), block)
+    return plugin(PluginDescriptor(name), optional, block)
 }
 
 /**
@@ -56,13 +66,13 @@ inline fun PluginDependencyManager.dependsOn(
  * @param name the dependency name.
  * @param version the dependency version.
  */
-@UnstableKatanApi
-inline fun PluginDependencyManager.dependsOn(
+inline fun PluginDependencyManager.plugin(
     name: String,
     version: CharSequence,
+    optional: Boolean = false,
     crossinline block: PluginDependency.() -> Unit = {}
 ): PluginDependency {
-    return dependsOn(PluginDescriptor(name, Version(version)), block)
+    return plugin(PluginDescriptor(name, Version(version)), optional, block)
 }
 
 /**
@@ -71,11 +81,73 @@ inline fun PluginDependencyManager.dependsOn(
  * @param name the dependency name.
  * @param version the dependency version.
  */
-@UnstableKatanApi
-inline fun PluginDependencyManager.dependsOn(
+inline fun PluginDependencyManager.plugin(
     name: String,
     version: Version,
+    optional: Boolean = false,
     crossinline block: PluginDependency.() -> Unit = {}
 ): PluginDependency {
-    return dependsOn(PluginDescriptor(name, version), block)
+    return plugin(PluginDescriptor(name, version), optional, block)
+}
+
+/**
+ * Adds a service that matches the specified descriptor [classifier] by adding
+ * it to the plugin's classpath and setting it as the plugin's pre-boot priority.
+ * @param classifier the dependency classifier
+ */
+fun PluginDependencyManager.service(
+    classifier: KClass<out Any>,
+    optional: Boolean = false
+): PluginDependency {
+    return addDependency(ServiceDescriptor(classifier)).apply {
+        this.optional = optional
+    }
+}
+
+/**
+ * Adds a service that matches the specified descriptor classifier by adding
+ * it to the plugin's classpath and setting it as the plugin's pre-boot priority.
+ * @param T the dependency classifier
+ */
+inline fun <reified T : Any> PluginDependencyManager.service(optional: Boolean = false): PluginDependency {
+    return service(T::class, optional)
+}
+
+class GenericPluginDependencyManager : PluginDependencyManager {
+
+    lateinit var pluginManager: PluginManager
+    lateinit var servicesManager: ServicesManager
+    private val dependencies = HashSet<PluginDependency>()
+
+    override fun addDependency(descriptor: Descriptor): PluginDependency {
+        return PluginDependency(descriptor).also {
+            dependencies.add(it)
+        }
+    }
+
+    override fun removeDependency(dependency: PluginDependency) {
+        dependencies.remove(dependency)
+    }
+
+    override fun resolveDependency(classifier: KClass<*>): Any? {
+        for (dependency in dependencies) {
+            if (when (dependency.descriptor) {
+                    is PluginDescriptor -> {
+                        runCatching {
+                            dependency.value?.invoke()!!::class == classifier
+                        }.getOrNull() == true
+                    }
+                    is ServiceDescriptor -> {
+                        classifier == dependency.descriptor.classifier
+                    }
+                    else -> throw IllegalArgumentException("Unsupported descriptor: ${dependency.descriptor}.")
+                }
+            ) {
+                return dependency.value?.invoke()
+            }
+        }
+
+        throw IllegalArgumentException("Unable to resolve classifier: $classifier")
+    }
+
 }

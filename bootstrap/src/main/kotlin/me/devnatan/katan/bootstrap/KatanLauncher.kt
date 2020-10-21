@@ -24,9 +24,15 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
 
     companion object {
 
+        const val ENV_PROPERTY = "katan.environment"
+
         @JvmStatic
         fun main(args: Array<out String>) {
-            val env = System.getProperty("katan.environment", "dev").toLowerCase()
+            val env = System.getProperty(ENV_PROPERTY, KatanEnvironment.DEVELOPMENT).toLowerCase()
+            var configFile = File("katan.$env.conf")
+            if (!configFile.exists())
+                configFile = exportResource("katan.conf")
+
             if (env !in KatanEnvironment.ALL)
                 return System.err.println(
                     "Environment definition \"$env\" is not valid for Katan. You can only choose these: ${
@@ -36,15 +42,9 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                     }"
                 )
 
-            var configEnv = File("katan.$env.conf")
-            if (!configEnv.exists())
-                configEnv = exportResource("katan.conf")
-
-            val config = ConfigFactory.parseFile(configEnv)
-            val userLocale: Locale = if (!config.hasPath("locale"))
-                Locale.getDefault()
-            else
-                Locale.forLanguageTag(config.get("locale", "en-US"))
+            val config = ConfigFactory.parseFile(configFile)
+            val userLocale: Locale = if (!config.hasPath("locale")) Locale.getDefault()
+            else Locale.forLanguageTag(config.get("locale", "en-US"))
 
             val languageTag = userLocale.toLanguageTag()
             System.setProperty("katan.locale", languageTag)
@@ -102,10 +102,33 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                 cli.init()
             } catch (e: Throwable) {
                 when (e) {
-                    is SilentException -> e.logger.error(e.cause.toString())
+                    is SilentException -> {
+                        val logger = e.logger
+                        val location = e.logger.name.substringAfterLast(".")
+                        var message = "?"
+                        var cause = "?"
+
+                        e.cause?.let { error ->
+                            if (error.cause == null) {
+                                cause = error::class.qualifiedName!!
+                                message = error.message!!
+                            } else {
+                                cause = error.cause!!::class.qualifiedName!!
+                                message = error.cause!!.message!!
+                            }
+                        }
+
+                        logger.error("+ ~~~~~~~ An error occurred while Katan starting ~~~~~~~ +")
+                        logger.error("  Location: $location")
+                        logger.error("  Cause: $cause")
+                        logger.error("  Message: $message")
+                        logger.error("+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ +")
+
+                        if (e.exit)
+                            exitProcess(0)
+                    }
                     else -> e.printStackTrace()
                 }
-                exitProcess(0)
             }
         }
     }

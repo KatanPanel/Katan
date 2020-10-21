@@ -1,14 +1,14 @@
-package me.devnatan.katan.core.server.compositions.compose
+package me.devnatan.katan.core.impl.server.compositions.compose
 
 import de.gesellix.docker.compose.ComposeFileReader
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionFactory
-import me.devnatan.katan.core.manager.DockerServerManager
-import me.devnatan.katan.core.server.DockerServerContainer
-import me.devnatan.katan.core.server.ServerImpl
-import me.devnatan.katan.core.server.compositions.DockerCompositionFactory
+import me.devnatan.katan.core.impl.server.DockerServerContainer
+import me.devnatan.katan.core.impl.server.DockerServerManager
+import me.devnatan.katan.core.impl.server.ServerImpl
+import me.devnatan.katan.core.impl.server.compositions.DockerCompositionFactory
 import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

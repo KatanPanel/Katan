@@ -1,4 +1,4 @@
-package me.devnatan.katan.core.manager
+package me.devnatan.katan.core.impl.services
 
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.services.ServicesManager

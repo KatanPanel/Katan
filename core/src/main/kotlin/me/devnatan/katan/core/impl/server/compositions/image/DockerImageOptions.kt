@@ -1,4 +1,4 @@
-package me.devnatan.katan.core.server.compositions.image
+package me.devnatan.katan.core.impl.server.compositions.image
 
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.server.ServerCompositionOptions

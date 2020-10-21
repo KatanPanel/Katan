@@ -1,6 +1,5 @@
 package me.devnatan.katan.api.services
 
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 import kotlin.reflect.KClass
 
 /**
@@ -13,7 +12,6 @@ import kotlin.reflect.KClass
  *
  * Always check first, using [exists] so that there are no conflicts.
  */
-@UnstableKatanApi
 interface ServicesManager {
 
     /**
@@ -48,7 +46,6 @@ interface ServicesManager {
  * Returns the value of a registered service.
  * @param T the service to be get.
  */
-@UnstableKatanApi
 inline fun <reified T : Any> ServicesManager.get(): T? {
     return get(T::class)
 }
@@ -57,7 +54,6 @@ inline fun <reified T : Any> ServicesManager.get(): T? {
  * Returns the value of a registered service or [defaultValue] if not registered.
  * @param T the service to be get.
  */
-@UnstableKatanApi
 inline fun <reified T : Any> ServicesManager.get(crossinline defaultValue: () -> T): T {
     return get(T::class, defaultValue)
 }
@@ -66,7 +62,6 @@ inline fun <reified T : Any> ServicesManager.get(crossinline defaultValue: () ->
  * Returns the value of a registered service or [defaultValue] if not registered.
  * @param service the service to be get.
  */
-@UnstableKatanApi
 inline fun <T : Any> ServicesManager.get(service: KClass<out T>, crossinline defaultValue: () -> T): T {
     return runCatching {
         get(service)
