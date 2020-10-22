@@ -53,6 +53,7 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
     companion object {
 
         const val DATABASE_DIALECT_FALLBACK = "H2"
+        const val DEFAULT_VALUE = "default"
         val logger: Logger = LoggerFactory.getLogger(Katan::class.java)
 
     }
@@ -68,6 +69,17 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
     override lateinit var cache: Cache<Any>
     override val eventBus: EventScope = LocalEventScope()
     lateinit var hash: Hash
+
+    val dateTimeFormatter: DateTimeFormatter by lazy {
+        val value = config.get("timezone", DEFAULT_VALUE)
+        val timezone = if (value == DEFAULT_VALUE)
+            TimeZone.getDefault()
+        else
+            TimeZone.getTimeZone(value)
+
+        logger.info(locale["katan.timezone", timezone.displayName])
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withZone(timezone.toZoneId())
+    }
 
     private suspend fun database() {
         val db = config.getConfig("database")
