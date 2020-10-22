@@ -156,22 +156,3 @@ open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin
     override fun toString() = descriptor.toString()
 
 }
-
-class MyPlugin : KatanPlugin("") {
-
-    init {
-        dependencyManagement {
-            plugin("pk", true) {
-                exclude("aaaa")
-                exclude("bbbb")
-            }
-        }
-    }
-
-    val test by dependency<KatanPlugin>()
-
-    fun t() {
-        tes
-    }
-
-}
