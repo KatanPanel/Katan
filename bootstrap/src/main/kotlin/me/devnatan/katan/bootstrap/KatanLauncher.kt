@@ -10,8 +10,11 @@ import me.devnatan.katan.common.exceptions.SilentException
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.KatanCore
+import me.devnatan.katan.core.KatanCore.Companion.DEFAULT_VALUE
 import me.devnatan.katan.core.KatanLocale
 import me.devnatan.katan.webserver.KatanWS
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -25,6 +28,7 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
     companion object {
 
         const val ENV_PROPERTY = "katan.environment"
+        private val logger: Logger = LoggerFactory.getLogger(KatanLauncher::class.java)
 
         @JvmStatic
         fun main(args: Array<out String>) {
@@ -35,7 +39,7 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
 
             if (env !in KatanEnvironment.ALL)
                 return System.err.println(
-                    "Environment definition \"$env\" is not valid for Katan. You can only choose these: ${
+                    "Environment \"$env\" is not valid for Katan. You can only choose these: ${
                         KatanEnvironment.ALL.joinToString(
                             ", "
                         )
@@ -43,7 +47,7 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                 )
 
             val config = ConfigFactory.parseFile(configFile)
-            val userLocale: Locale = if (!config.hasPath("locale")) Locale.getDefault()
+            val userLocale: Locale = if (config.get("locale", DEFAULT_VALUE) == DEFAULT_VALUE) Locale.getDefault()
             else Locale.forLanguageTag(config.get("locale", "en-US"))
 
             val languageTag = userLocale.toLanguageTag()
@@ -75,11 +79,11 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
 
     }
 
-    private val katan = KatanCore(config, environment, locale)
-    private var cli = KatanCLI(katan)
-    private var webServer = KatanWS(katan)
-
     init {
+        val katan = KatanCore(config, environment, locale)
+        val cli = KatanCLI(katan)
+        val webServer = KatanWS(katan)
+
         Runtime.getRuntime().addShutdownHook(Thread {
             runBlocking {
                 cli.close()
@@ -94,7 +98,7 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                     katan.start()
                 }
 
-                KatanCore.logger.info(katan.locale["katan.started", String.format("%.2f", time / 1000.0f)])
+                logger.info(katan.locale["katan.started", String.format("%.2f", time / 1000.0f)])
 
                 if (webServer.enabled)
                     webServer.init()
@@ -103,26 +107,9 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
             } catch (e: Throwable) {
                 when (e) {
                     is SilentException -> {
-                        val logger = e.logger
-                        val location = e.logger.name.substringAfterLast(".")
-                        var message = "?"
-                        var cause = "?"
-
-                        e.cause?.let { error ->
-                            if (error.cause == null) {
-                                cause = error::class.qualifiedName!!
-                                message = error.message!!
-                            } else {
-                                cause = error.cause!!::class.qualifiedName!!
-                                message = error.cause!!.message!!
-                            }
-                        }
-
-                        logger.error("+ ~~~~~~~ An error occurred while Katan starting ~~~~~~~ +")
-                        logger.error("  Location: $location")
-                        logger.error("  Cause: $cause")
-                        logger.error("  Message: $message")
-                        logger.error("+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ +")
+                        logger.error("An error occurred while Katan starting @ ${e.logger.name.substringAfterLast(".")}:")
+                        logger.error("\"${e.cause?.message ?: e.message}\"")
+                        logger.trace(null, e)
 
                         if (e.exit)
                             exitProcess(0)
