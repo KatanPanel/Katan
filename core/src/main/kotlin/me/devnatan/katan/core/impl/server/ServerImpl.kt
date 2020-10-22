@@ -11,7 +11,7 @@ data class ServerImpl @OptIn(UnstableKatanApi::class) constructor(
 ) : Server {
 
     override lateinit var container: ServerContainer
-    override var query: ServerQuery = NonQueryableServerQuery
+    override var query: ServerQuery = EmptyServerQuery
     override var state: ServerState = ServerState.UNKNOWN
     override val holders: MutableSet<ServerHolder> = hashSetOf()
 
