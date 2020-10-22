@@ -1,10 +1,8 @@
 package me.devnatan.katan.api.security.role
 
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.security.permission.PermissionsHolder
 import java.time.Instant
 
-@UnstableKatanApi
 interface Role : PermissionsHolder {
 
     /**

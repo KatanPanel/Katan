@@ -1,6 +1,5 @@
 package me.devnatan.katan.api.security.account
 
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.security.permission.PermissionsHolder
 import me.devnatan.katan.api.security.role.Role
 import java.time.Instant
@@ -27,7 +26,6 @@ interface Account : PermissionsHolder {
      */
     val registeredAt: Instant
 
-    @UnstableKatanApi
     var role: Role?
 
 }

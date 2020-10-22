@@ -13,30 +13,29 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import me.devnatan.katan.api.Katan
-import me.devnatan.katan.webserver.ACCOUNT_ALREADY_EXISTS_ERROR
-import me.devnatan.katan.webserver.ACCOUNT_INVALID_CREDENTIALS_ERROR
-import me.devnatan.katan.webserver.ACCOUNT_MISSING_CREDENTIALS_ERROR
-import me.devnatan.katan.webserver.ACCOUNT_NOT_FOUND_ERROR
+import me.devnatan.katan.webserver.*
 import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
-import me.devnatan.katan.webserver.environment.jwt.AccountPrincipal
 import me.devnatan.katan.webserver.environment.routes.AuthRoute
 import me.devnatan.katan.webserver.environment.routes.IndexRoute
 import me.devnatan.katan.webserver.environment.routes.ServersRoute
-import me.devnatan.katan.webserver.serializable.serializable
+import me.devnatan.katan.webserver.environment.routes.account
 import me.devnatan.katan.webserver.websocket.WebSocketManager
 import me.devnatan.katan.webserver.websocket.session.KtorWebSocketSession
 
-internal suspend fun PipelineContext<*, ApplicationCall>.respondWithOk(
+internal suspend fun PipelineContext<*, ApplicationCall>.respondOk(
+    response: Any,
+    status: HttpStatusCode = HttpStatusCode.OK,
+) = call.respond(
+    status, mapOf(
+        "response" to "success",
+        "data" to response
+    )
+)
+
+internal suspend fun PipelineContext<*, ApplicationCall>.respondOk(
     vararg response: Pair<Any, Any>,
     status: HttpStatusCode = HttpStatusCode.OK,
-) {
-    call.respond(
-        status, mapOf(
-            "response" to "success",
-            "data" to response.toMap()
-        )
-    )
-}
+) = respondOk(response.toMap(), status)
 
 internal fun respondWithError(
     response: Pair<Int, String>,
@@ -88,7 +87,7 @@ fun Application.router(
     installWebSocketRoute(env.webSocketManager)
 
     get<IndexRoute> {
-        respondWithOk("version" to Katan.VERSION.toString())
+        respondOk("version" to Katan.VERSION.toString())
     }
 
     post<AuthRoute.Login> {
@@ -109,7 +108,7 @@ fun Application.router(
             respondWithError(ACCOUNT_INVALID_CREDENTIALS_ERROR)
         }
 
-        respondWithOk("token" to token)
+        respondOk("token" to token)
     }
 
     post<AuthRoute.Register> {
@@ -123,20 +122,19 @@ fun Application.router(
 
         val entity = env.server.accountManager.createAccount(username, account.getValue("password"))
         env.server.accountManager.registerAccount(entity)
-        respondWithOk("account" to entity)
+        respondOk("account" to entity)
     }
 
     authenticate {
         get<AuthRoute.Verify> {
-            val account = call.authentication.principal<AccountPrincipal>()?.account!!
-            respondWithOk("account" to account)
+            respondOk("account" to call.account.serialize())
         }
         get<ServersRoute> {
-            respondWithOk("servers" to env.server.serverManager.getServerList().map { it.serializable() })
+            respondOk(env.server.serverManager.getServerList().map { it.serialize() })
         }
 
         get<ServersRoute.Server> { data ->
-            respondWithOk("server" to data.server.serializable())
+            respondOk("server" to data.server.serialize())
         }
     }
 }

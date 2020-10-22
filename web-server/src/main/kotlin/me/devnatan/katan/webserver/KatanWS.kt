@@ -21,7 +21,7 @@ class KatanWS(val katan: Katan) {
     lateinit var server: ApplicationEngine
     lateinit var environment: Environment
     val config: Config = ConfigFactory.load(ConfigFactory.parseFile(exportResource("webserver.conf")))!!
-    lateinit var internalAccountManager: WSAccountManager
+    lateinit var internalAccountManager: TokenManager
     val enabled = config.get("enabled", false)
 
     val accountManager get() = katan.accountManager
@@ -30,7 +30,7 @@ class KatanWS(val katan: Katan) {
     @OptIn(KtorExperimentalAPI::class)
     fun init() {
         logger.info("Creating environment...")
-        internalAccountManager = WSAccountManager(this)
+        internalAccountManager = TokenManager(this)
         environment = Environment(this)
         environment.start()
         server = embeddedServer(Jetty, environment.environment)

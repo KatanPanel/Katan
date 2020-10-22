@@ -10,7 +10,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.*
 
-class WSAccountManager(val webserver: KatanWS) {
+class TokenManager(val webserver: KatanWS) {
 
     companion object {
 
@@ -31,7 +31,7 @@ class WSAccountManager(val webserver: KatanWS) {
         if (len < AUTH_SECRET_MIN_LENGTH)
             throwSilent(
                 IllegalArgumentException(
-                    "JWT secret must have at least %d characters (given: %d).".format(
+                    "JWT secret must have at least %d characters (given: %d). Change this in the web server settings at \"jwt.secret\".".format(
                         AUTH_SECRET_MIN_LENGTH,
                         len
                     )
@@ -41,7 +41,7 @@ class WSAccountManager(val webserver: KatanWS) {
         if (len > AUTH_SECRET_MAX_LENGTH)
             throwSilent(
                 IllegalArgumentException(
-                    "JWT secret cannot exceed %d characters (given: %d).".format(
+                    "JWT secret cannot exceed %d characters (given: %d). Change this in the web server settings at \"jwt.secret\".".format(
                         AUTH_SECRET_MAX_LENGTH,
                         len
                     )

@@ -30,7 +30,7 @@ sealed class PermissionFlag constructor(val code: Int) {
  * Returns `true` if this flag has a positive value.
  * @throws UnsupportedOperationException if is [PermissionFlag.Inherit].
  */
-fun PermissionFlag.allowed(): Boolean {
+fun PermissionFlag.isAllowed(): Boolean {
     return when (this) {
         is PermissionFlag.Allowed -> true
         is PermissionFlag.NotAllowed -> false
@@ -42,7 +42,7 @@ fun PermissionFlag.allowed(): Boolean {
  * Returns `true` if this flag has a negative value.
  * @throws UnsupportedOperationException if is [PermissionFlag.Inherit].
  */
-fun PermissionFlag.notAllowed(): Boolean {
+fun PermissionFlag.isNotAllowed(): Boolean {
     return when (this) {
         is PermissionFlag.Allowed -> true
         is PermissionFlag.NotAllowed -> false
