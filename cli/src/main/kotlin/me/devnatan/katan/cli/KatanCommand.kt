@@ -21,6 +21,7 @@ class KatanCommand(cli: KatanCLI) : NoOpCliktCommand(
     init {
         context {
             console = cli.console
+            localization = KatanLocalization(cli.katan.locale)
         }
 
         subcommands(
@@ -36,7 +37,7 @@ class KatanCommand(cli: KatanCLI) : NoOpCliktCommand(
 
 class VersionCommand(private val cli: KatanCLI) : CliktCommand(
     name = "version",
-    help = "Shows the current version of Katan and its platform."
+    help = cli.locale["cli.help.version"]
 ) {
 
     override fun run() {

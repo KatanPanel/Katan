@@ -38,6 +38,7 @@ class KatanCLI(val katan: KatanCore) {
     val serverManager: ServerManager get() = katan.serverManager
     val accountManager: AccountManager get() = katan.accountManager
     val pluginManager get() = katan.pluginManager
+    val locale get() = katan.locale
 
     private var running = false
     private val command = KatanCommand(this)

@@ -6,7 +6,7 @@ import me.devnatan.katan.cli.KatanCLI
 
 class ServerCommand(cli: KatanCLI) : NoOpCliktCommand(
     name = "server",
-    help = "Create, remove and manage servers",
+    help = cli.locale["cli.help.server"],
     printHelpOnEmptyArgs = true
 ) {
 

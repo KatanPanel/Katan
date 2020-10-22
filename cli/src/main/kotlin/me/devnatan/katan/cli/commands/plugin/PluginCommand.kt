@@ -6,7 +6,7 @@ import me.devnatan.katan.cli.KatanCLI
 
 class PluginCommand(cli: KatanCLI) : NoOpCliktCommand(
     name = "plugin",
-    help = "List, load, unload, start and stop plugins.",
+    help = cli.locale["cli.help.plugin"],
     printHelpOnEmptyArgs = true
 ) {
 

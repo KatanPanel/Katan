@@ -6,7 +6,7 @@ import me.devnatan.katan.cli.KatanCLI
 
 class ComposeCommand(cli: KatanCLI) : NoOpCliktCommand(
     name = "compose",
-    help = "Manipulation of servers using the Docker Compose file.",
+    help = cli.locale["cli.help.compose"],
     printHelpOnEmptyArgs = true
 ) {
 

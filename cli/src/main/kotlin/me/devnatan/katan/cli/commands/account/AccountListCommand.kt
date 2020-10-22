@@ -1,8 +1,6 @@
 package me.devnatan.katan.cli.commands.account
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.options.flag
-import com.github.ajalt.clikt.parameters.options.option
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.common.account.SecureAccount
 
@@ -11,20 +9,16 @@ class AccountListCommand(private val cli: KatanCLI) : CliktCommand(
     help = "Lists all registered accounts."
 ) {
 
-    private val detailed by option("-d", "--detailed").flag()
-
     override fun run() {
         val accounts = cli.accountManager.getAccounts()
-        echo("List of all accounts (${accounts.size}):")
-        for (account in accounts) {
-            echo(buildString {
-                if (detailed)
-                    append("${account.id} - ")
-
-                append(account.username)
-                if (account is SecureAccount && account.password.isNotEmpty())
-                    append(" (with password)")
-            })
+        echo(cli.locale["cli.accounts-list", accounts.size])
+        for (account in accounts.map { it as SecureAccount }) {
+            val accountId = account.id.toString().substringBefore("-")
+            val registeredAt = cli.katan.dateTimeFormatter.format(account.registeredAt)
+            if (account.password.isNotEmpty())
+                echo(cli.locale["cli.accounts-list-secure", accountId, account.username, registeredAt])
+            else
+                echo(cli.locale["cli.accounts-list-insecure", accountId, account.username, registeredAt])
         }
     }
 
