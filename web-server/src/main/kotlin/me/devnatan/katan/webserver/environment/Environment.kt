@@ -47,7 +47,7 @@ class Environment(val server: KatanWS) {
     lateinit var webSocketManager: WebSocketManager
     lateinit var environment: ApplicationEngineEnvironment
 
-    private val config: Config get() = server.config
+    val config: Config get() = server.config
 
     fun start() {
         webSocketManager = WebSocketManager().registerEventHandler(WebSocketServerHandler)
@@ -59,12 +59,12 @@ class Environment(val server: KatanWS) {
 
             val deploy = server.config.getConfig("deployment")
             connector {
-                host = deploy.getString("host")
-                port = deploy.getInt("port")
+                host = deploy.get("host", "localhost")
+                port = deploy.get("port", 80)
                 logger.info("HTTP connector available at: $host:$port")
             }
 
-            if (deploy.hasPath("sslPort")) {
+            if (deploy.get("ssl.enabled", false)) {
                 val ssl = deploy.getConfig("ssl")
                 val ks = KeyStore.getInstance(KeyStore.getDefaultType())
                 val pass = ssl.getString("keyStorePassword").toCharArray()
@@ -76,8 +76,8 @@ class Environment(val server: KatanWS) {
                     { pass },
                     { ssl.getString("privateKeyPassword").toCharArray() }
                 ) {
-                    port = deploy.getInt("sslPort")
-                    logger.info("HTTP secure connector available at: $host:$port")
+                    port = ssl.get("port", 443)
+                    logger.info("HTTPS connector available at: $host:$port")
                 }
             }
         }
@@ -212,22 +212,20 @@ class Environment(val server: KatanWS) {
         }
 
         if (config.get("deployment.secure", false) && config.hasPath("deployment.sslPort")) {
-            val hsts = config.getConfig("features.hsts")
-            if (hsts.get("enabled", true)) {
-                install(HSTS)
-                logger.info("Enabled Strict Transport Security (HSTS)")
-            }
-
-            val forwardedHeader = config.getConfig("features.reverse-proxy")
-            if (forwardedHeader.get("enabled", true)) {
-                install(ForwardedHeaderSupport)
-                logger.info("Enabled Forwarded Header support (for reverse proxy).")
-            }
-
             install(HttpsRedirect) {
                 sslPort = config.getInt("deployment.sslPort")
-                permanentRedirect = true
+                permanentRedirect = config.get("https-redirect", true)
             }
+        }
+
+        if (config.get("hsts", true)) {
+            install(HSTS)
+            logger.info("Enabled Strict Transport Security (HSTS)")
+        }
+
+        if (config.get("under-reverse-proxy", false)) {
+            install(ForwardedHeaderSupport)
+            logger.info("Enabled Forwarded Header support (for reverse proxy).")
         }
     }
 
