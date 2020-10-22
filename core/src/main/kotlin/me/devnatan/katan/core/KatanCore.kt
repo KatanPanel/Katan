@@ -4,6 +4,7 @@ import br.com.devsrsouza.eventkt.EventScope
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.core.KeystoreSSLConfig
@@ -44,6 +45,9 @@ import redis.clients.jedis.JedisPoolConfig
 import java.io.UncheckedIOException
 import java.net.ConnectException
 import java.security.KeyStore
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.*
 import kotlin.system.measureTimeMillis
 
 @OptIn(UnstableKatanApi::class)
@@ -103,17 +107,17 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
         val (connector, settings) = SUPPORTED_CONNECTORS.getValue(dialectName).invoke(config)
         logger.info(locale["katan.database.connector", connector::class.simpleName!!])
 
-        runCatching {
+        try {
             database = connector
             logger.info(locale["katan.database.connecting", settings.toString()])
             val took = measureTimeMillis {
                 connector.connect(settings)
             }
             logger.info(locale["katan.database.connected", String.format("%.2f", took / 1000.0f)])
-        }.onFailure {
+        } catch (e: Throwable) {
             logger.error(locale["katan.database.fail", dialect])
             if (strict || dialect.equals(DATABASE_DIALECT_FALLBACK, true))
-                throwSilent(it, logger)
+                throwSilent(e, logger)
 
             logger.info(locale["katan.database.strict", DATABASE_DIALECT_FALLBACK])
             connectWith(DATABASE_DIALECT_FALLBACK, config, strict)
@@ -122,7 +126,7 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
 
     private fun docker() {
         logger.info(locale["katan.docker.config"])
-        val dockerLogger = LoggerFactory.getLogger(DockerClient::class.java)
+        val dockerLogger = LoggerFactory.getLogger("Docker")
         val dockerConfig = config.getConfig("docker")
         val tls = dockerConfig.get("tls.verify", false)
         val clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
@@ -160,11 +164,11 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
             )
         }
 
-        val properties = dockerConfig.getConfig("properties")
-        val httpConfig = clientConfig.build()
-
-        docker = runCatching {
-            DockerClientImpl.getInstance(
+        // sends a ping to see if the connection will be established.
+        try {
+            val properties = dockerConfig.getConfig("properties")
+            val httpConfig = clientConfig.build()
+            docker = DockerClientImpl.getInstance(
                 httpConfig, OkDockerHttpClient.Builder()
                     .dockerHost(httpConfig.dockerHost)
                     .sslConfig(httpConfig.sslConfig)
@@ -172,15 +176,11 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
                     .readTimeout(properties.get("readTimeout", 5000))
                     .build()
             )
-        }.onFailure {
-            throwSilent(it, dockerLogger)
-        }.getOrThrow()
-
-        // sends a ping to see if the connection will be established.
-        try {
             docker.pingCmd().exec()
             dockerLogger.info(locale["katan.docker.ready"])
         } catch (e: ConnectException) {
+            throwSilent(e, dockerLogger)
+        } catch (e: DockerClientException) {
             throwSilent(e, dockerLogger)
         } catch (e: UncheckedIOException) {
             throwSilent(e.cause!!, dockerLogger)
@@ -195,13 +195,10 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
             return
         }
 
-        val host = redis.get("host", "localhost")
-        logger.info(locale["katan.redis.host-info", host])
-
         try {
             // we have to use the pool instead of the direct client due to Katan nature,
             // the default instance of Jedis (without pool) is not thread-safe
-            cache = RedisCacheProvider(JedisPool(JedisPoolConfig(), host))
+            cache = RedisCacheProvider(JedisPool(JedisPoolConfig(), redis.get("host", "localhost")))
             logger.info(locale["katan.redis.ready"])
         } catch (e: Throwable) {
             cache = UnavailableCacheProvider()
