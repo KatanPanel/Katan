@@ -28,7 +28,9 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
     companion object {
 
         const val ENV_PROPERTY = "katan.environment"
-        private val logger: Logger = LoggerFactory.getLogger(KatanLauncher::class.java)
+        private val logger: Logger by lazy {
+            LoggerFactory.getLogger(KatanLauncher::class.java)
+        }
 
         @JvmStatic
         fun main(args: Array<out String>) {
