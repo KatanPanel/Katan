@@ -3,6 +3,7 @@ package me.devnatan.katan.api
 import br.com.devsrsouza.eventkt.EventScope
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
+import me.devnatan.katan.api.game.GameManager
 import me.devnatan.katan.api.plugin.Plugin
 import me.devnatan.katan.api.plugin.PluginManager
 import me.devnatan.katan.api.security.account.AccountManager
@@ -62,6 +63,8 @@ interface Katan {
      * Returns the Katan [Plugin] manager.
      */
     val pluginManager: PluginManager
+
+    val gameManager: GameManager
 
     /**
      * Returns the event publisher for this entire instance.

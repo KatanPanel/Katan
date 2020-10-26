@@ -6,6 +6,7 @@ import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionOptions
 import me.devnatan.katan.api.server.addSupportedKey
 import me.devnatan.katan.api.server.prompt
+import me.devnatan.katan.common.impl.game.GameImageImpl
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.impl.server.compositions.compose.DockerComposeComposition
 import me.devnatan.katan.core.impl.server.compositions.compose.DockerComposeOptions
@@ -54,7 +55,14 @@ class DockerCompositionFactory(val core: KatanCore) : InvisibleCompositionFactor
 
     override suspend fun generate(key: ServerComposition.Key<*>, data: Map<String, Any>): ServerCompositionOptions {
         return when (key) {
-            is DockerImageComposition.Key -> DockerImageOptions(data.getValue("image") as String)
+            is DockerImageComposition.Key -> DockerImageOptions(
+                data.getValue("host") as String,
+                data.getValue("port") as Int,
+                data.getValue("memory") as Long,
+                (data.getValue("image") as Map<String, Any>).let {
+                    GameImageImpl(it["id"] as String, it["environment"] as Map<String, Any>)
+                }
+            )
             is DockerComposeComposition.Key -> DockerComposeOptions(
                 data.getValue("compose") as String,
                 data.getValue("properties") as Map<String, String>

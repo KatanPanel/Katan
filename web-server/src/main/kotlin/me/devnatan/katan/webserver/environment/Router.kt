@@ -13,12 +13,10 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import me.devnatan.katan.api.Katan
+import me.devnatan.katan.api.game.GameType
 import me.devnatan.katan.webserver.*
 import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
-import me.devnatan.katan.webserver.environment.routes.AuthRoute
-import me.devnatan.katan.webserver.environment.routes.IndexRoute
-import me.devnatan.katan.webserver.environment.routes.ServersRoute
-import me.devnatan.katan.webserver.environment.routes.account
+import me.devnatan.katan.webserver.environment.routes.*
 import me.devnatan.katan.webserver.websocket.WebSocketManager
 import me.devnatan.katan.webserver.websocket.session.KtorWebSocketSession
 
@@ -126,6 +124,20 @@ fun Application.router(
     }
 
     authenticate {
+        get<InfoRoute> {
+            respondOk(
+                "plugins" to env.server.katan.pluginManager.getPlugins().map {
+                    mapOf(
+                        "name" to it.descriptor.name,
+                        "version" to it.descriptor.version,
+                        "author" to it.descriptor.author,
+                        "state" to it.state.order
+                    )
+                },
+                "games" to env.server.katan.gameManager.getSupportedGames().map(GameType::name)
+            )
+        }
+
         get<AuthRoute.Verify> {
             respondOk("account" to call.account.serialize())
         }

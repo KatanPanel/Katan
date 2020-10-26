@@ -15,18 +15,12 @@ fun Server.serialize(): Map<String, Any?> = mapOf(
     "id" to id,
     "name" to name,
     "state" to state,
-    "target" to target,
+    "target" to gameType,
     "compositions" to compositions.map { it.factory[it.key] },
     "container" to mapOf(
         "id" to container.id,
         "is-inspected" to container.isInspected(),
         "inspection" to container.inspection
-    ),
-    "query" to mapOf(
-        "was-queried" to query.wasQueried(),
-        "last-queried" to query.getLastQueried()?.toHttpDateString(),
-        "latency" to query.getLatency(),
-        "data" to query.data()
     )
 )
 

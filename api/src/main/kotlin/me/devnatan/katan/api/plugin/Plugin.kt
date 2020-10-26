@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.Version
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.internal.InitOnceProperty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -138,7 +137,6 @@ open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin
 
     final override val katan: Katan by InitOnceProperty()
 
-    @OptIn(UnstableKatanApi::class)
     final override val dependencyManager: PluginDependencyManager = GenericPluginDependencyManager()
     final override val directory: File by InitOnceProperty()
     private var _config: Config by InitOnceProperty()

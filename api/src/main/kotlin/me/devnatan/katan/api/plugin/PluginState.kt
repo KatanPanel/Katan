@@ -6,7 +6,7 @@ import java.time.Instant
  * Represents the current state of a plugin.
  * @property order state switch order.
  */
-sealed class PluginState(private val order: Int) : Comparable<PluginState> {
+sealed class PluginState(val order: Int) : Comparable<PluginState> {
 
     /**
      * Represents the unloaded state of the plugin, represented as initial, of the first [order], but implicitly,

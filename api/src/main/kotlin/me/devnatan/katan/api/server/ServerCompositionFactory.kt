@@ -26,7 +26,7 @@ abstract class ServerCompositionFactory(
 
     /**
      * Returns a composition created from its key and options.
-     * @param key the composition key
+     * @param key the composition key.
      * @param options the options of that composition.
      */
     abstract suspend fun create(key: ServerComposition.Key<*>, options: ServerCompositionOptions): ServerComposition<*>

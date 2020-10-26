@@ -6,8 +6,6 @@ import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.api.model.PullResponseItem
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
@@ -15,9 +13,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.event.*
+import me.devnatan.katan.api.game.GameType
 import me.devnatan.katan.api.server.*
 import me.devnatan.katan.common.exceptions.silent
-import me.devnatan.katan.common.server.ServerCompositionsImpl
+import me.devnatan.katan.common.impl.server.ServerCompositionsImpl
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.impl.server.compositions.DockerCompositionFactory
 import me.devnatan.katan.core.impl.server.compositions.InvisibleCompositionFactory
@@ -28,7 +27,6 @@ import java.io.*
 import java.time.Duration
 import kotlin.system.measureTimeMillis
 
-@Suppress("BlockingMethodInNonBlockingContext")
 @OptIn(UnstableKatanApi::class)
 class DockerServerManager(
     private val core: KatanCore,
@@ -37,7 +35,6 @@ class DockerServerManager(
 
     companion object {
 
-        const val COROUTINE_SCOPE_NAME = "Katan::ServerManager"
         const val CONTAINER_NAME_PATTERN = "katan_server_%s"
         const val COMPOSE_ROOT = "composer"
         const val NETWORK_ID = "katan0"
@@ -46,7 +43,6 @@ class DockerServerManager(
     }
 
     private val lastId: AtomicInt = atomic(0)
-    private val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName(COROUTINE_SCOPE_NAME))
     private val servers: MutableSet<Server> = hashSetOf()
     val composer = DockerCompose(core.platform, logger)
     private val compositionFactories: MutableList<ServerCompositionFactory> = arrayListOf()
@@ -73,8 +69,10 @@ class DockerServerManager(
                     val server = ServerImpl(
                         entity.id.value,
                         entity.name,
-                        ServerTarget.byGame(entity.target),
-                        ServerCompositionsImpl()
+                        core.gameManager.getGame(entity.game)!!.type,
+                        ServerCompositionsImpl(),
+                        entity.host,
+                        entity.port.toShort()
                     ).apply {
                         container = DockerServerContainer(entity.containerId, core.docker)
                     }
@@ -160,21 +158,23 @@ class DockerServerManager(
         return servers.any { it.name.equals(name, true) }
     }
 
-    @Suppress("BlockingMethodInNonBlockingContext")
-    override suspend fun createServer(server: Server): Server {
-        val id = lastId.incrementAndGet()
-        val impl = ServerImpl(id, server.name, server.target, server.compositions)
-        impl.container = DockerServerContainer(CONTAINER_NAME_PATTERN.format(id), core.docker)
+    override suspend fun prepareServer(name: String, game: GameType, host: String, port: Short): Server {
+        return ServerImpl(lastId.incrementAndGet(), name, game, ServerCompositionsImpl(), host, port)
+    }
 
-        core.eventBus.publish(ServerCreateEvent(impl))
-        for (composition in impl.compositions) {
-            composition.write(impl)
+    @Suppress("BlockingMethodInNonBlockingContext")
+    override suspend fun createServer(server: Server) {
+        (server as ServerImpl).container = DockerServerContainer(CONTAINER_NAME_PATTERN.format(server.id), core.docker)
+
+        core.eventBus.publish(ServerCreateEvent(server))
+        for (composition in server.compositions) {
+            composition.write(server)
         }
 
-        for (composition in impl.compositions) {
+        for (composition in server.compositions) {
             OutputStreamWriter(
                 FileOutputStream(localDataManager.getCompositionOptions(
-                    impl, composition.factory.get(
+                    server, composition.factory.get(
                         composition.key
                     )!!
                 ).apply {
@@ -183,8 +183,7 @@ class DockerServerManager(
             ).use { core.objectMapper.writeValue(it, composition.options) }
         }
 
-        core.eventBus.publish(ServerComposedEvent(impl))
-        return impl
+        core.eventBus.publish(ServerComposedEvent(server))
     }
 
     override suspend fun registerServer(server: Server) {
@@ -227,7 +226,7 @@ class DockerServerManager(
         server.container.inspection = inspection
     }
 
-    @ExperimentalCoroutinesApi
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun runServerCommand(server: Server, command: String): Flow<String> {
         return callbackFlow {
             val callback = object : ResultCallback.Adapter<Frame>() {

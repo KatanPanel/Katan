@@ -5,9 +5,7 @@ import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionFactory
-import me.devnatan.katan.core.impl.server.DockerServerContainer
 import me.devnatan.katan.core.impl.server.DockerServerManager
-import me.devnatan.katan.core.impl.server.ServerImpl
 import me.devnatan.katan.core.impl.server.compositions.DockerCompositionFactory
 import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.Logger
@@ -52,19 +50,16 @@ class DockerComposeComposition(
             "-e $key=$value"
         }.joinToString(" ")
 
-        val containerName = DockerServerManager.CONTAINER_NAME_PATTERN.format(server.id.toString())
         for ((serviceName, _) in config.services ?: emptyMap()) {
             logger.info("Building service \"$serviceName\"...")
 
             katan.serverManager.composer.runCommand(
-                "run -d --name $containerName $environmentArgs $serviceName", mapOf(
+                "run -d --name ${server.container.id} $environmentArgs $serviceName", mapOf(
                     DockerCompose.COMPOSE_FILE to composeFile.absolutePath,
-                    DockerCompose.COMPOSE_PROJECT to containerName
-                ), showOutput = false, showErrors = false
+                    DockerCompose.COMPOSE_PROJECT to server.container.id
+                ), showOutput = false, showErrors = true
             )
         }
-
-        (server as ServerImpl).container = DockerServerContainer(containerName, katan.docker)
     }
 
 }

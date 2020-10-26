@@ -1,4 +1,4 @@
-package me.devnatan.katan.common.account
+package me.devnatan.katan.common.impl.account
 
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.security.account.Account
@@ -16,7 +16,6 @@ data class SecureAccount(
 
     var password: String = ""
 
-    @UnstableKatanApi
     override var role: Role? = null
     override val permissions: MutableMap<Permission, PermissionFlag> = hashMapOf()
 

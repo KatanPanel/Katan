@@ -1,9 +1,9 @@
 package me.devnatan.katan.api.server
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import me.devnatan.katan.api.annotations.UnstableKatanApi
+import me.devnatan.katan.api.game.GameType
 import java.time.Duration
 
 /**
@@ -51,10 +51,20 @@ interface ServerManager {
     fun existsServer(name: String): Boolean
 
     /**
-     * Initializes the attributes of a server (creates the container for example).
-     * @param server the server to be created.
+     * Returns a [Server] generated with the specified [name], [game], [host] and [port].
+     * @param name the server name.
+     * @param game the server game target.
+     * @param host the server remote connection host address.
+     * @param port the server remote connection port.
      */
-    suspend fun createServer(server: Server): Server
+    suspend fun prepareServer(name: String, game: GameType, host: String, port: Short): Server
+
+    /**
+     * Creates a previously prepared server by defining its container and writing compositions.
+     * @param server the server to be created.
+     * @see prepareServer
+     */
+    suspend fun createServer(server: Server)
 
     /**
      * Register a new server in the database.
@@ -110,7 +120,6 @@ interface ServerManager {
      * @param server the server.
      * @param command the command to be executed.
      */
-    @ExperimentalCoroutinesApi
     suspend fun runServerCommand(server: Server, command: String): Flow<String>
 
     /**

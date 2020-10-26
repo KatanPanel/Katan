@@ -10,11 +10,15 @@ class BcryptHash(
 ) : SaltedHash {
 
     companion object {
+
+        const val NAME = "BCrypt"
         const val SALT_LENGTH = 16
+
         val random: Random = SecureRandom()
+
     }
 
-    override val name: String get() = "Bcrypt"
+    override val name: String get() = NAME
     override val saltLength: Int get() = SALT_LENGTH
 
     private fun generateSalt(): ByteArray {

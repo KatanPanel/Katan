@@ -1,10 +1,13 @@
 package me.devnatan.katan.api.server
 
 import me.devnatan.katan.api.annotations.UnstableKatanApi
+import me.devnatan.katan.api.game.Game
+import me.devnatan.katan.api.game.GameType
 
 /**
- * A server is based on a [container], can be turned on, off and composed.
- * Every server targets a game, its [target] and it is used as information for other things.
+ * Represents a server created by Katan.
+ * Servers can be created, composed (using Server Compositions API) and modified dynamically.
+ * Every server targets a [Game], its [gameType] and it is used as information for other things.
  */
 interface Server {
 
@@ -29,9 +32,9 @@ interface Server {
     val container: ServerContainer
 
     /**
-     * Returns the remote server address search results.
+     * Returns the server's temporarily metadata values.
      */
-    val query: ServerQuery
+    val metadata: MutableMap<String, Any>
 
     /**
      * Returns the current server state.
@@ -39,14 +42,24 @@ interface Server {
     var state: ServerState
 
     /**
-     * Returns all server compositions.
+     * Returns the server compositions container.
      */
     @UnstableKatanApi
     val compositions: ServerCompositions
 
     /**
-     * Returns the game that this server is targeting.
+     * Returns the [GameType] that this server is targeting.
      */
-    val target: ServerTarget
+    val gameType: GameType
+
+    /**
+     * Returns the server remote connection address.
+     */
+    val host: String
+
+    /**
+     * Returns the server remote connection port.
+     */
+    val port: Short
 
 }

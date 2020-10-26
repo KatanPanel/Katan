@@ -1,4 +1,4 @@
-package me.devnatan.katan.common.server
+package me.devnatan.katan.common.impl.server
 
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositions
@@ -14,7 +14,7 @@ class ServerCompositionsImpl : ServerCompositions {
         }
     }
 
-    operator fun set(key: ServerComposition.Key<*>, composition: ServerComposition<*>) {
+    override operator fun set(key: ServerComposition.Key<*>, composition: ServerComposition<*>) {
         return synchronized(lock) {
             registered[key] = composition
         }

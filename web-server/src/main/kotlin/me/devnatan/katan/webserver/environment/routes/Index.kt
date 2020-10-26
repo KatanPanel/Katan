@@ -6,3 +6,6 @@ import io.ktor.locations.*
 
 @Location("/")
 class IndexRoute
+
+@Location("/info")
+class InfoRoute

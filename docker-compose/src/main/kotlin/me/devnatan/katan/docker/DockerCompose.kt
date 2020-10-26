@@ -6,7 +6,6 @@ import org.slf4j.Logger
 import org.zeroturnaround.exec.ProcessExecutor
 import org.zeroturnaround.exec.stream.slf4j.Slf4jStream
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.Paths
 
 class DockerCompose(platform: Platform, logger: Logger) {
@@ -32,12 +31,9 @@ class DockerCompose(platform: Platform, logger: Logger) {
 
         // search the executable
         for (path in System.getenv("PATH").split(File.pathSeparatorChar).map { Paths.get(it) }) {
-            val location = path.resolve(target)
-            if (Files.exists(location) &&
-                Files.isExecutable(location) &&
-                !Files.isDirectory(location)
-            ) {
-                executable = location.toFile()
+            val file = path.resolve(target).toFile()
+            if (file.exists() && file.canExecute() && !file.isDirectory) {
+                executable = file
                 break
             }
         }

@@ -2,7 +2,7 @@ package me.devnatan.katan.core.impl.account
 
 import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.security.account.AccountManager
-import me.devnatan.katan.common.account.SecureAccount
+import me.devnatan.katan.common.impl.account.SecureAccount
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.repository.AccountsRepository
 import java.time.Instant

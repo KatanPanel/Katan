@@ -6,7 +6,7 @@ import java.nio.file.Files
 
 class ServerLocalDataManager {
 
-    private val dataFolder = File("data")
+    private val dataFolder = File(".data")
 
     init {
         dataFolder.mkdir()

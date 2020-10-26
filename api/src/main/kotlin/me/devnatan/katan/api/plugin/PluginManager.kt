@@ -5,6 +5,8 @@ package me.devnatan.katan.api.plugin
  */
 interface PluginManager {
 
+    fun getPlugins(): List<Plugin>
+
     /**
      * Returns a plugin that has the same descriptions as the
      * specified [descriptor] or null if it is not registered.

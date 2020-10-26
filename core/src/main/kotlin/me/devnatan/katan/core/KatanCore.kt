@@ -11,6 +11,7 @@ import com.github.dockerjava.core.KeystoreSSLConfig
 import com.github.dockerjava.core.LocalDirectorySSLConfig
 import com.github.dockerjava.okhttp.OkDockerHttpClient
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
@@ -20,19 +21,27 @@ import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
 import me.devnatan.katan.api.currentPlatform
+import me.devnatan.katan.api.game.GameType
+import me.devnatan.katan.api.game.MinecraftGame
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
 import me.devnatan.katan.api.services.get
 import me.devnatan.katan.common.exceptions.silent
 import me.devnatan.katan.common.exceptions.throwSilent
+import me.devnatan.katan.common.impl.game.GameImageImpl
+import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
+import me.devnatan.katan.common.util.getMap
 import me.devnatan.katan.core.cache.RedisCacheProvider
 import me.devnatan.katan.core.crypto.BcryptHash
 import me.devnatan.katan.core.database.DatabaseConnector
 import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.impl.account.AccountsManagerImpl
+import me.devnatan.katan.core.impl.game.GameImpl
+import me.devnatan.katan.core.impl.game.GameManagerImpl
+import me.devnatan.katan.core.impl.game.GameSettingsImpl
 import me.devnatan.katan.core.impl.plugin.DefaultPluginManager
 import me.devnatan.katan.core.impl.server.DockerServerManager
 import me.devnatan.katan.core.impl.services.ServicesManagerImpl
@@ -42,6 +51,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
+import java.io.File
 import java.io.UncheckedIOException
 import java.net.ConnectException
 import java.security.KeyStore
@@ -51,7 +61,7 @@ import java.util.*
 import kotlin.system.measureTimeMillis
 
 @OptIn(UnstableKatanApi::class)
-class KatanCore(private val config: Config, override val environment: KatanEnvironment, val locale: KatanLocale) :
+class KatanCore(val config: Config, override val environment: KatanEnvironment, val locale: KatanLocale) :
     CoroutineScope by CoroutineScope(CoroutineName("Katan")), Katan {
 
     companion object {
@@ -70,6 +80,7 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
     override lateinit var serverManager: DockerServerManager
     override val pluginManager = DefaultPluginManager(this)
     override val servicesManager = ServicesManagerImpl()
+    override val gameManager = GameManagerImpl()
     override lateinit var cache: Cache<Any>
     override val eventBus: EventScope = LocalEventScope()
     lateinit var hash: Hash
@@ -207,6 +218,30 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
         }
     }
 
+    private fun loadGames() {
+        val root = "games"
+        val directory = File(root)
+        if (!directory.exists())
+            directory.mkdirs()
+
+        exportResource("$root/${MinecraftGame.name.toLowerCase()}.conf")
+
+        for (file in directory.listFiles()?.filterNotNull() ?: emptyList()) {
+            val config = ConfigFactory.parseFile(file)
+            val defaults = config.getConfig("settings")
+            val image = defaults.getConfig("image")
+            gameManager.registerGame(
+                GameImpl(
+                    GameType.native(config.get("name", file.nameWithoutExtension))!!,
+                    GameSettingsImpl(
+                        GameImageImpl(image.getString("id"), image.getMap("environment")),
+                        defaults.getInt("ports.min")..defaults.getInt("ports.max")
+                    )
+                )
+            )
+        }
+    }
+
     private fun throwUnavailableRepository(repository: String): Nothing {
         throwSilent(IllegalArgumentException("No repository available: $repository"), logger)
     }
@@ -232,15 +267,16 @@ class KatanCore(private val config: Config, override val environment: KatanEnvir
             }
         )
         docker()
+        loadGames()
         serverManager.loadServers()
 
         hash = servicesManager.get<Hash> {
             when (val algorithm = config.getString("security.crypto.hash")) {
-                "BCrypt" -> BcryptHash()
+                BcryptHash.NAME -> BcryptHash()
                 else -> throw IllegalArgumentException("Unsupported hash algorithm: $algorithm").silent(logger)
             }
         }
-        logger.info("Selected hashing algorithm: ${hash.name}.")
+        logger.info(locale["katan.selected-hash", hash.name])
         accountManager.loadAccounts()
 
         caching()

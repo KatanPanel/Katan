@@ -2,7 +2,7 @@ package me.devnatan.katan.cli.commands.account
 
 import com.github.ajalt.clikt.core.CliktCommand
 import me.devnatan.katan.cli.KatanCLI
-import me.devnatan.katan.common.account.SecureAccount
+import me.devnatan.katan.common.impl.account.SecureAccount
 
 class AccountListCommand(private val cli: KatanCLI) : CliktCommand(
     name = "ls",

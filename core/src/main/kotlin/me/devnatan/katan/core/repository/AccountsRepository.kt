@@ -1,7 +1,7 @@
 package me.devnatan.katan.core.repository
 
 import me.devnatan.katan.api.security.account.Account
-import me.devnatan.katan.common.account.SecureAccount
+import me.devnatan.katan.common.impl.account.SecureAccount
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.database.jdbc.entity.AccountEntity

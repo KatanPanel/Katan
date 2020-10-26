@@ -41,7 +41,9 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
             pwd.mkdirs()
     }
 
-    fun getPlugins() = plugins
+    override fun getPlugins() = synchronized(this) {
+        plugins.toList()
+    }
 
     override fun getPlugin(descriptor: PluginDescriptor): Plugin? {
         return plugins.firstOrNull { it.descriptor == descriptor }
