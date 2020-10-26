@@ -31,7 +31,6 @@ import me.devnatan.katan.webserver.websocket.WebSocketManager
 import me.devnatan.katan.webserver.websocket.handler.WebSocketServerHandler
 import org.mpierce.ktor.csrf.CsrfProtection
 import org.mpierce.ktor.csrf.HeaderPresent
-import org.mpierce.ktor.csrf.OriginMatchesKnownHost
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.security.KeyStore
@@ -167,18 +166,6 @@ class Environment(val server: KatanWS) {
 
         install(CsrfProtection) {
             validate(HeaderPresent(XSRF_HEADER))
-            if (!config.hasPath("csrf.hosts")) {
-                logger.info("No hosts are listed as known for CSRF protection.")
-                logger.info("All requests from (on specific routes) will require special credentials to access.")
-            } else {
-                logger.info("Whitelisted CSRF hosts: " + config.getConfigList("csrf.hosts").map { host ->
-                    Triple(host.getString("protocol"), host.getString("hostname"), host.getInt("port"))
-                }.onEach { (protocol, hostname, port) ->
-                    validate(OriginMatchesKnownHost(protocol, hostname, port))
-                }.joinToString(", ") { (protocol, hostname, port) ->
-                    "$protocol://$hostname:$port"
-                })
-            }
         }
 
         install(Authentication) {
