@@ -26,6 +26,9 @@ interface Account : PermissionsHolder {
      */
     val registeredAt: Instant
 
+    /**
+     * Returns the current [Role] of the account or `null` if it has no role.
+     */
     var role: Role?
 
 }

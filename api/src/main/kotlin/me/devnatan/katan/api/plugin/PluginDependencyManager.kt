@@ -3,7 +3,7 @@ package me.devnatan.katan.api.plugin
 import me.devnatan.katan.api.Descriptor
 import me.devnatan.katan.api.Version
 import me.devnatan.katan.api.services.ServiceDescriptor
-import me.devnatan.katan.api.services.ServicesManager
+import me.devnatan.katan.api.services.ServiceManager
 import kotlin.reflect.KClass
 
 /**
@@ -116,7 +116,7 @@ inline fun <reified T : Any> PluginDependencyManager.service(optional: Boolean =
 class GenericPluginDependencyManager : PluginDependencyManager {
 
     lateinit var pluginManager: PluginManager
-    lateinit var servicesManager: ServicesManager
+    lateinit var serviceManager: ServiceManager
     private val dependencies = HashSet<PluginDependency>()
 
     override fun addDependency(descriptor: Descriptor): PluginDependency {

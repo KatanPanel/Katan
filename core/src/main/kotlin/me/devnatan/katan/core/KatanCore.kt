@@ -44,7 +44,7 @@ import me.devnatan.katan.core.impl.game.GameManagerImpl
 import me.devnatan.katan.core.impl.game.GameSettingsImpl
 import me.devnatan.katan.core.impl.plugin.DefaultPluginManager
 import me.devnatan.katan.core.impl.server.DockerServerManager
-import me.devnatan.katan.core.impl.services.ServicesManagerImpl
+import me.devnatan.katan.core.impl.services.ServiceManagerImpl
 import me.devnatan.katan.core.repository.JDBCAccountsRepository
 import me.devnatan.katan.core.repository.JDBCServersRepository
 import org.slf4j.Logger
@@ -79,7 +79,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
     override lateinit var accountManager: AccountsManagerImpl
     override lateinit var serverManager: DockerServerManager
     override val pluginManager = DefaultPluginManager(this)
-    override val servicesManager = ServicesManagerImpl()
+    override val serviceManager = ServiceManagerImpl()
     override val gameManager = GameManagerImpl()
     override lateinit var cache: Cache<Any>
     override val eventBus: EventScope = LocalEventScope()
@@ -270,7 +270,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
         loadGames()
         serverManager.loadServers()
 
-        hash = servicesManager.get<Hash> {
+        hash = serviceManager.get<Hash> {
             when (val algorithm = config.getString("security.crypto.hash")) {
                 BcryptHash.NAME -> BcryptHash()
                 else -> throw IllegalArgumentException("Unsupported hash algorithm: $algorithm").silent(logger)

@@ -10,12 +10,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.Version
+import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.internal.InitOnceProperty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 
 /**
  * Plugin is an extension of Katan, plugins have access to several functions
@@ -120,8 +122,29 @@ inline fun Plugin.dependencyManagement(crossinline block: PluginDependencyManage
     return dependencyManager.apply(block)
 }
 
+/**
+ * Delegates a dependency whether it is a plugin or a service.
+ */
 inline fun <reified T> Plugin.dependency(): ReadOnlyProperty<Plugin, T?> {
     return ReadOnlyProperty { _, _ -> (dependencyManager as GenericPluginDependencyManager).resolveDependency(T::class) as? T }
+}
+
+/**
+ * Registers a new service in the [ServiceManager] using this plugin as owner.
+ * @param service the service to be registered.
+ */
+@UnstableKatanApi
+inline fun <reified T : Any> Plugin.registerService(service: T) {
+    katan.serviceManager.register(T::class, service, descriptor)
+}
+
+/**
+ * Unregisters a previously registered [service] in the [ServiceManager].
+ * @param service the service to be unregistered.
+ */
+@UnstableKatanApi
+fun Plugin.unregisterService(service: KClass<out Any>) {
+    katan.serviceManager.unregister(service, descriptor)
 }
 
 /**

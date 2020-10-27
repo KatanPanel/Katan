@@ -1,7 +1,6 @@
 package me.devnatan.katan.core.impl.server.compositions.image
 
-import com.github.dockerjava.api.model.ExposedPort
-import com.github.dockerjava.api.model.HostConfig
+import com.github.dockerjava.api.model.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onStart
@@ -9,10 +8,13 @@ import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionFactory
+import me.devnatan.katan.common.util.replaceVars
 import me.devnatan.katan.core.impl.server.DockerServerManager
+import me.devnatan.katan.core.impl.server.ServerImpl
 import me.devnatan.katan.core.impl.server.compositions.DockerCompositionFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.math.pow
 
 @OptIn(UnstableKatanApi::class)
 class DockerImageComposition(
@@ -39,25 +41,37 @@ class DockerImageComposition(
                 logger.info("Pulling image \"${image.id}\"...")
             }.collect { logger.info(it) }
         } catch (e: Throwable) {
-            e.printStackTrace()
             logger.error("An error occurred while pulling the image \"${image.id}\":", "Cause: ${e.message}")
+            e.printStackTrace()
         }
 
         logger.info("Creating container (${options.host}:${options.port})...")
+
+        val memory = (options.memory * 1024.toDouble().pow(2)).toLong()
+        val port = ExposedPort.tcp(options.port)
         val containerId = katan.docker.createContainerCmd(image.id)
             .withName(server.container.id)
-            .withEnv(image.environment.entries.joinToString(" ") { (key, value) ->
-                "-e $key=$value"
-            })
-            .withIpv4Address(options.host)
-            .withExposedPorts(ExposedPort.tcp(options.port))
+            .withEnv(image.environment.entries.map { (key, value) ->
+                "$key=${
+                    value.toString().replaceVars {
+                        ServerImpl.HOST_ENV by server.host
+                        ServerImpl.PORT_ENV by server.port
+                    }
+                }"
+            }.toList())
+            .withExposedPorts(port)
+            .withHostName(server.container.id)
+            .withTty(true)
+            .withAttachStdin(true)
+            .withAttachStderr(true)
+            .withAttachStdout(true)
+            .withStdinOpen(true)
             .withHostConfig(
                 HostConfig.newHostConfig()
-                    .withNetworkMode("bridge")
-                    .withMemory(options.memory)
-                    .withMemorySwap(options.memory)
-            )
-            .exec().id
+                    .withPortBindings(Ports(PortBinding(Ports.Binding.bindIpAndPort(options.host, options.port), port)))
+                    .withMemory(memory)
+                    .withMemorySwap(memory)
+            ).withVolumes(Volume("/data")).exec().id
 
         logger.debug("Attaching container to \"${DockerServerManager.NETWORK_ID}\" network...")
         katan.docker.connectToNetworkCmd()

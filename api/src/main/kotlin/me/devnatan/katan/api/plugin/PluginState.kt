@@ -3,7 +3,7 @@ package me.devnatan.katan.api.plugin
 import java.time.Instant
 
 /**
- * Represents the current state of a plugin.
+ * Represents the current state of a [Plugin].
  * @property order state switch order.
  */
 sealed class PluginState(val order: Int) : Comparable<PluginState> {

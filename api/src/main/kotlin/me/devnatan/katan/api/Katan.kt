@@ -9,7 +9,7 @@ import me.devnatan.katan.api.plugin.PluginManager
 import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerManager
-import me.devnatan.katan.api.services.ServicesManager
+import me.devnatan.katan.api.services.ServiceManager
 import org.slf4j.event.Level
 
 /**
@@ -46,7 +46,7 @@ interface Katan {
      * Returns the Katan services manager.
      */
     @UnstableKatanApi
-    val servicesManager: ServicesManager
+    val serviceManager: ServiceManager
 
     /**
      * The caching provider for that instance.

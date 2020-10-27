@@ -1,5 +1,6 @@
 package me.devnatan.katan.api.services
 
+import me.devnatan.katan.api.Descriptor
 import kotlin.reflect.KClass
 
 /**
@@ -12,14 +13,13 @@ import kotlin.reflect.KClass
  *
  * Always check first, using [exists] so that there are no conflicts.
  */
-interface ServicesManager {
+interface ServiceManager {
 
     /**
-     * Returns the value of a registered service.
+     * Returns the value of a registered service or `null` if the service is not registered.
      * @param service the service to be get.
-     * @throws NoSuchElementException if the service is not found.
      */
-    fun <T : Any> get(service: KClass<out T>): T
+    fun <T : Any> get(service: KClass<out T>): T?
 
     /**
      * Returns `true` if there is a registered value for that service or `false` otherwise.
@@ -31,14 +31,22 @@ interface ServicesManager {
      * Registers a new value for the specified service.
      * @param service the service key.
      * @param value the service value.
+     * @param owner who registered the service.
      */
-    fun <T : Any> register(service: KClass<out T>, value: T)
+    fun <T : Any> register(service: KClass<out T>, value: T, owner: Descriptor)
+
+    /**
+     * Unregisters a previously registered service.
+     * @param service the service to be unregistered
+     */
+    fun unregister(service: KClass<out Any>)
 
     /**
      * Unregisters a previously registered service.
      * @param service the service to be unregistered.
+     * @param owner who registered the service.
      */
-    fun unregister(service: KClass<out Any>)
+    fun unregister(service: KClass<out Any>, owner: Descriptor)
 
 }
 
@@ -46,7 +54,7 @@ interface ServicesManager {
  * Returns the value of a registered service.
  * @param T the service to be get.
  */
-inline fun <reified T : Any> ServicesManager.get(): T? {
+inline fun <reified T : Any> ServiceManager.get(): T? {
     return get(T::class)
 }
 
@@ -54,7 +62,7 @@ inline fun <reified T : Any> ServicesManager.get(): T? {
  * Returns the value of a registered service or [defaultValue] if not registered.
  * @param T the service to be get.
  */
-inline fun <reified T : Any> ServicesManager.get(crossinline defaultValue: () -> T): T {
+inline fun <reified T : Any> ServiceManager.get(crossinline defaultValue: () -> T): T {
     return get(T::class, defaultValue)
 }
 
@@ -62,8 +70,8 @@ inline fun <reified T : Any> ServicesManager.get(crossinline defaultValue: () ->
  * Returns the value of a registered service or [defaultValue] if not registered.
  * @param service the service to be get.
  */
-inline fun <T : Any> ServicesManager.get(service: KClass<out T>, crossinline defaultValue: () -> T): T {
+inline fun <T : Any> ServiceManager.get(service: KClass<out T>, crossinline defaultValue: () -> T): T {
     return runCatching {
         get(service)
-    }.getOrElse { defaultValue() }
+    }.getOrNull() ?: defaultValue()
 }

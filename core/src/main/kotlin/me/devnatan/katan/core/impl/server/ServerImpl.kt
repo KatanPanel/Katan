@@ -13,6 +13,13 @@ data class ServerImpl @OptIn(UnstableKatanApi::class) constructor(
     override val port: Short
 ) : Server {
 
+    companion object {
+
+        const val HOST_ENV = "K_SERVER_HOST"
+        const val PORT_ENV = "K_SERVER_PORT"
+
+    }
+
     override lateinit var container: ServerContainer
     override val metadata: MutableMap<String, Any> = hashMapOf()
     override var state: ServerState = ServerState.UNKNOWN

@@ -1,6 +1,7 @@
 package me.devnatan.katan.cli.commands.server
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
@@ -28,7 +29,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
     help = "Creates a new server"
 ) {
 
-    private val name by option("-n", "--name", help = "The name of the server.").required()
+    private val name by argument(help = "Name of the server.")
     private val game by option("-g", "--game", help = "A game that is supported by Katan.").required()
     private val host by option(
         "-h",

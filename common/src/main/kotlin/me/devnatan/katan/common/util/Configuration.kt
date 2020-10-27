@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package me.devnatan.katan.common.util
 
 import com.typesafe.config.Config
@@ -9,7 +11,7 @@ fun <T> Config.get(path: String, defaultValue: T): T {
 }
 
 fun <T> Config.get(path: String): T? {
-    return getValue(path).unwrapped() as T
+    return getValue(path).unwrapped() as? T
 }
 
 inline fun <V> Config.getMap(path: String, mapper: (Any?) -> V = { it!! as V }): Map<String, V> {

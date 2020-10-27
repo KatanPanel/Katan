@@ -1,10 +1,13 @@
 package me.devnatan.katan.api.plugin
 
 /**
- * Responsible for loading, unloading, enabling and stopping plugins and their dependencies.
+ * Responsible for loading, unloading, enabling and stopping [Plugin]s and their dependencies.
  */
 interface PluginManager {
 
+    /**
+     * Returns all registered plugins.
+     */
     fun getPlugins(): List<Plugin>
 
     /**

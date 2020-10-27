@@ -246,52 +246,6 @@ class DockerServerManager(
         }
     }
 
-    override fun getCompositionFactory(key: ServerComposition.Key<*>): ServerCompositionFactory? {
-        return compositionFactories.filterNot {
-            it is InvisibleCompositionFactory
-        }.firstOrNull { factory ->
-            factory.registrations.any { it == key }
-        }
-    }
-
-    override fun getCompositionFactory(name: String): ServerCompositionFactory? {
-        return compositionFactories.filterNot {
-            it is InvisibleCompositionFactory
-        }.firstOrNull { factory ->
-            factory.get(name) != null
-        }
-    }
-
-    override fun registerCompositionFactory(factory: ServerCompositionFactory) {
-        synchronized(compositionFactories) {
-            compositionFactories.add(factory)
-        }
-
-        if (factory !is InvisibleCompositionFactory)
-            logger.debug(
-                "Composition factory registered for ${
-                    factory.registrations.entries.joinToString {
-                        it.key
-                    }
-                }."
-            )
-    }
-
-    override fun unregisterCompositionFactory(factory: ServerCompositionFactory) {
-        synchronized(compositionFactories) {
-            compositionFactories.remove(factory)
-        }
-
-        if (factory !is InvisibleCompositionFactory)
-            logger.debug(
-                "Unregistered composition factory of ${
-                    factory.registrations.entries.joinToString {
-                        it.key
-                    }
-                }."
-            )
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     fun pullImage(image: String): Flow<String> = callbackFlow {
         val callback = object : ResultCallback<PullResponseItem> {
@@ -343,6 +297,52 @@ class DockerServerManager(
         awaitClose {
             callback.close()
         }
+    }
+
+    override fun getCompositionFactory(key: ServerComposition.Key<*>): ServerCompositionFactory? {
+        return compositionFactories.filterNot {
+            it is InvisibleCompositionFactory
+        }.firstOrNull { factory ->
+            factory.registrations.any { it == key }
+        }
+    }
+
+    override fun getCompositionFactory(name: String): ServerCompositionFactory? {
+        return compositionFactories.filterNot {
+            it is InvisibleCompositionFactory
+        }.firstOrNull { factory ->
+            factory.get(name) != null
+        }
+    }
+
+    override fun registerCompositionFactory(factory: ServerCompositionFactory) {
+        synchronized(compositionFactories) {
+            compositionFactories.add(factory)
+        }
+
+        if (factory !is InvisibleCompositionFactory)
+            logger.debug(
+                "Composition factory registered for ${
+                    factory.registrations.entries.joinToString {
+                        it.key
+                    }
+                }."
+            )
+    }
+
+    override fun unregisterCompositionFactory(factory: ServerCompositionFactory) {
+        synchronized(compositionFactories) {
+            compositionFactories.remove(factory)
+        }
+
+        if (factory !is InvisibleCompositionFactory)
+            logger.debug(
+                "Unregistered composition factory of ${
+                    factory.registrations.entries.joinToString {
+                        it.key
+                    }
+                }."
+            )
     }
 
 }
