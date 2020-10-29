@@ -57,7 +57,7 @@ class DockerCompositionFactory(val core: KatanCore) : InvisibleCompositionFactor
         return when (key) {
             is DockerImageComposition.Key -> DockerImageOptions(
                 data.getValue("host") as String,
-                data.getValue("port") as Int,
+                (data.getValue("port") as Long).toInt(),
                 data.getValue("memory") as Long,
                 (data.getValue("image") as Map<String, Any>).let {
                     GameImageImpl(it["id"] as String, it["environment"] as Map<String, Any>)
