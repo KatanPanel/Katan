@@ -11,7 +11,7 @@ class BcryptHash(
 
     companion object {
 
-        const val NAME = "BCrypt"
+        const val NAME = "Bcrypt"
         const val SALT_LENGTH = 16
 
         val random: Random = SecureRandom()
