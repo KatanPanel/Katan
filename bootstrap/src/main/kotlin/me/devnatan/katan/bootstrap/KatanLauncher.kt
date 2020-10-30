@@ -28,17 +28,18 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
     companion object {
 
         const val ENV_PROPERTY = "katan.environment"
+        const val LOCALE_ENV_PROPERTY = "katan.locale"
+        const val LOG_LEVEL_ENV_PROPERTY = "katan.log.level"
+        const val TRANSLATION_FILE_PATTERN = "translations/%s.properties"
+        const val FALLBACK_LANGUAGE = "en"
+
         private val logger: Logger by lazy {
             LoggerFactory.getLogger(KatanLauncher::class.java)
         }
 
         @JvmStatic
         fun main(args: Array<out String>) {
-            val env = System.getProperty(ENV_PROPERTY, KatanEnvironment.DEVELOPMENT).toLowerCase()
-            var configFile = File("katan.$env.conf")
-            if (!configFile.exists())
-                configFile = exportResource("katan.conf")
-
+            val env = System.getProperty(ENV_PROPERTY, KatanEnvironment.LOCAL).toLowerCase()
             if (env !in KatanEnvironment.ALL)
                 return System.err.println(
                     "Environment \"$env\" is not valid for Katan. You can only choose these: ${
@@ -48,15 +49,40 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                     }"
                 )
 
-            val config = ConfigFactory.parseFile(configFile)
-            val userLocale: Locale = if (config.get("locale", DEFAULT_VALUE) == DEFAULT_VALUE) Locale.getDefault()
-            else Locale.forLanguageTag(config.get("locale", "en-US"))
+            val katanEnv = KatanEnvironment(env)
+            System.setProperty(LOG_LEVEL_ENV_PROPERTY, katanEnv.defaultLogLevel().toString())
 
-            val languageTag = userLocale.toLanguageTag()
-            System.setProperty("katan.locale", languageTag)
+            var config = ConfigFactory.parseFile(exportResource("katan.conf"))
 
-            val messages = exportResource("translations/$languageTag.properties")
+            val environmentConfig = File("katan.$env.conf")
+            if (environmentConfig.exists()) {
+                config = ConfigFactory.parseFile(environmentConfig).withFallback(config)
+            } else {
+                val localConfig = File("katan.local.conf")
+                if (localConfig.exists())
+                    config = ConfigFactory.parseFile(localConfig).withFallback(config)
+            }
 
+            var userLocale: Locale = if (config.get("locale", DEFAULT_VALUE) == DEFAULT_VALUE)
+                Locale.getDefault()
+            else
+                Locale.forLanguageTag(config.get("locale", FALLBACK_LANGUAGE))
+
+            val messages = runCatching {
+                exportResource(TRANSLATION_FILE_PATTERN.format(userLocale.toLanguageTag()))
+            }.getOrElse {
+                runCatching {
+                    exportResource(TRANSLATION_FILE_PATTERN.format(userLocale.toLanguageTag().substringBefore("-")))
+                }.getOrNull()
+            } ?: run {
+                logger.error("Language \"${userLocale.toLanguageTag()}\" is not supported by Katan.")
+                logger.error("We will use the fallback language for messages, change the language in the configuration file to one that is supported.")
+
+                userLocale = Locale(FALLBACK_LANGUAGE)
+                exportResource(TRANSLATION_FILE_PATTERN.format(userLocale.toLanguageTag()))
+            }
+
+            System.setProperty(LOCALE_ENV_PROPERTY, userLocale.toLanguageTag())
             val locale = KatanLocale(userLocale, Properties().apply {
                 // force UTF-8 encoding
                 BufferedReader(
@@ -67,8 +93,6 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                 ).use { input -> load(input) }
             })
 
-            val katanEnv = KatanEnvironment(env)
-            System.setProperty("katan.log.level", katanEnv.defaultLogLevel().toString())
             System.setProperty(
                 DEBUG_PROPERTY_NAME, when {
                     katanEnv.isDevelopment() || katanEnv.isTesting() -> DEBUG_PROPERTY_VALUE_ON
@@ -94,7 +118,7 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
             }
         })
 
-        runBlocking(CoroutineName("KatanLauncher")) {
+        runBlocking {
             try {
                 val time = measureTimeMillis {
                     katan.start()
@@ -109,13 +133,13 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
             } catch (e: Throwable) {
                 when (e) {
                     is SilentException -> {
-                        logger.error("An error occurred while Katan starting @ ${e.logger.name.substringAfterLast(".")}:")
-                        logger.error("\"${e.cause?.message ?: e.message}\"")
+                        logger.error("An error occurred while starting Katan @ ${e.logger.name.substringAfterLast(".")}:")
+                        (e.cause?.message ?: e.message)?.let {
+                            logger.error("Cause: ${it.substringBefore(":")}")
+                            logger.error("Message: \"${it.substringAfter(":").trim()}\"")
+                        }
                         logger.trace(null, e)
 
-                        if (!katan.environment.isProduction())
-                            e.printStackTrace()
-                        
                         if (e.exit)
                             exitProcess(0)
                     }

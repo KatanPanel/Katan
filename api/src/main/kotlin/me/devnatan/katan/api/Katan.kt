@@ -93,17 +93,17 @@ inline class KatanEnvironment(private val value: String) {
     }
 
     /**
-     * Returns `true` if the current environment mode is in [DEVELOPMENT].
+     * Returns `true` if the current environment mode is [LOCAL].
      */
     fun isLocal(): Boolean {
         return value == LOCAL
     }
 
     /**
-     * Returns `true` if the current environment mode is in [DEVELOPMENT] or [LOCAL].
+     * Returns `true` if the current environment mode is [LOCAL] or [DEVELOPMENT]
      */
     fun isDevelopment(): Boolean {
-        return value == LOCAL || value == DEVELOPMENT
+        return isLocal() || value == DEVELOPMENT
     }
 
     /**

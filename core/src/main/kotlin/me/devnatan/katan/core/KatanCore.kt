@@ -4,7 +4,6 @@ import br.com.devsrsouza.eventkt.EventScope
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.exception.DockerClientException
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.core.KeystoreSSLConfig
@@ -26,7 +25,6 @@ import me.devnatan.katan.api.game.MinecraftGame
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
-import me.devnatan.katan.api.services.get
 import me.devnatan.katan.common.exceptions.silent
 import me.devnatan.katan.common.exceptions.throwSilent
 import me.devnatan.katan.common.impl.game.GameImageImpl
@@ -52,8 +50,6 @@ import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
 import java.io.File
-import java.io.UncheckedIOException
-import java.net.ConnectException
 import java.security.KeyStore
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -189,12 +185,8 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
             )
             docker.pingCmd().exec()
             dockerLogger.info(locale["katan.docker.ready"])
-        } catch (e: ConnectException) {
+        } catch (e: Throwable) {
             throwSilent(e, dockerLogger)
-        } catch (e: DockerClientException) {
-            throwSilent(e, dockerLogger)
-        } catch (e: UncheckedIOException) {
-            throwSilent(e.cause!!, dockerLogger)
         }
     }
 
@@ -270,11 +262,9 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
         loadGames()
         serverManager.loadServers()
 
-        hash = serviceManager.get<Hash> {
-            when (val algorithm = config.getString("security.crypto.hash")) {
-                BcryptHash.NAME -> BcryptHash()
-                else -> throw IllegalArgumentException("Unsupported hash algorithm: $algorithm").silent(logger)
-            }
+        hash = when (val algorithm = config.getString("security.crypto.hash")) {
+            BcryptHash.NAME -> BcryptHash()
+            else -> throw IllegalArgumentException("Unsupported hash algorithm: $algorithm").silent(logger)
         }
         logger.info(locale["katan.selected-hash", hash.name])
         accountManager.loadAccounts()
