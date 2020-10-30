@@ -1,4 +1,4 @@
-<p align="center"><img src="https://i.imgur.com/w9UAzwS.png" alt="Katan Logo"/></p>
+<p align="center"><img src="https://i.imgur.com/A4T861z.png" alt="Katan Logo"/></p>
 <h1 align="center">Katan</h1>
 <p align="center">An open source project built to serve the community.</p>
 
@@ -29,20 +29,24 @@
   <th>Description</th>
  </tr>
  <tr>
+  <td><a href="https://github.com/KatanPanel/Katan/tree/master/api">katan-api</a></td>
+  <td>Public shared Katan high-level API.</td>
+ </tr> 
+ <tr>
   <td><a href="https://github.com/KatanPanel/Katan/tree/master/cli">katan-cli</a></td>
   <td>Integrated command line interface.</td>
+ </tr>
+<tr>
+  <td><a href="https://github.com/KatanPanel/Katan/tree/master/core">katan-core</a></td>
+  <td>In addition to being the core, it contains game implementations supported by Katan.</td>
  </tr>
  <tr>
   <td><a href="https://github.com/KatanPanel/Katan/tree/master/web-server">katan-webserver</a></td>
   <td>Web server for HTTP and WSS requests to Katan.</td>
  </tr>
  <tr>
-  <td><a href="https://github.com/KatanPanel/Katan/tree/master/api">katan-api</a></td>
-  <td>Contains all the public and shared high-level code for Katan.</td>
- </tr> 
- <tr>
   <td><a href="https://github.com/KatanPanel/Katan/tree/master/docker-compose">katan-docker-compose</a></td>
-  <td>Support for handling <a href="https://docs.docker.com/compose/">Docker Compose</a> files.</td>
+  <td>Support for handling <a href="https://docs.docker.com/compose/">Docker Compose</a> file and CLI.</td>
  </tr>
 </table>
 
@@ -53,10 +57,7 @@
 Please make sure to read the Issue Reporting Checklist before opening an issue. Issues not conforming to the guidelines may be closed immediately.
   
 <h2>Stay In Touch</h2>
-<p>Join our Discord community, discuss changes, discover news and things to come on Katan.</p>
-<a href="https://discord.gg/ey8dwsv">
-  <img src="https://invidget.switchblade.xyz/ey8dwsv" alt="Katan Discord">
-</a>
+<p>Join our <a href="https://discord.gg/ey8dwsv">Discord</a> community, discuss changes, discover news and things to come on Katan.</p>
 
 <h2>License</h2>
 <p>Katan is licensed under the permissive <a href="https://github.com/KatanPanel/Katan/blob/master/LICENSE">MIT license</a>.</p>
