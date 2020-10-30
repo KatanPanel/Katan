@@ -113,6 +113,9 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                         logger.error("\"${e.cause?.message ?: e.message}\"")
                         logger.trace(null, e)
 
+                        if (!katan.environment.isProduction())
+                            e.printStackTrace()
+                        
                         if (e.exit)
                             exitProcess(0)
                     }

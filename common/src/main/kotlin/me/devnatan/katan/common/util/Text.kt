@@ -5,7 +5,6 @@ import java.util.regex.Pattern
 open class StringReplacer(value: String) {
 
     protected var _value: String = value
-        private set
 
     open infix fun String.by(other: Any) {
         _value = _value.replace(this, other.toString())
@@ -49,14 +48,43 @@ class EnvironmentVarStringReplacer(
 
 }
 
+class PrefixStringReplacer(
+    value: String,
+    private val prefix: String,
+    private val suffix: String,
+    private val replacements: MutableMap<String, Any> = HashMap()
+) : StringReplacer(value) {
+
+    override infix fun String.by(other: Any) {
+        replacements[this] = other.toString()
+    }
+
+    override fun toString(): String {
+        for (replacement in replacements) {
+            _value = _value.replace(prefix + replacement.key + suffix, replacement.value.toString())
+        }
+
+        return _value
+    }
+
+}
+
 inline fun String.replaceEach(block: StringReplacer.() -> Unit): String {
     return StringReplacer(this).apply(block).toString()
 }
 
-inline fun String.replaceVars(block: StringReplacer.() -> Unit): String {
+inline fun String.replaceEnvironmentVars(block: StringReplacer.() -> Unit): String {
     return EnvironmentVarStringReplacer(this).apply(block).toString()
 }
 
-fun String.replaceVars(replacements: Map<String, Any>): String {
+fun String.replaceEnvironmentVars(replacements: Map<String, Any>): String {
     return EnvironmentVarStringReplacer(this, replacements.toMutableMap()).toString()
+}
+
+inline fun String.replaceBetween(between: String = "", block: StringReplacer.() -> Unit): String {
+    return PrefixStringReplacer(between, between, this).apply(block).toString()
+}
+
+inline fun String.replaceBetween(prefix: String = "", suffix: String = "", block: StringReplacer.() -> Unit): String {
+    return PrefixStringReplacer(prefix, suffix, this).apply(block).toString()
 }
