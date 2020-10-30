@@ -20,9 +20,9 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Root level="${sys:katan.log.level}">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="File" level="DEBUG"/>
+        <Root level="ALL">
+            <AppenderRef ref="Console" level="${sys:katan.log.level}"/>
+            <AppenderRef ref="File" level="ALL"/>
         </Root>
     </Loggers>
 </Configuration>
