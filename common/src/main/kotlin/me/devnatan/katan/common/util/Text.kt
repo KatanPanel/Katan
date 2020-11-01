@@ -82,9 +82,9 @@ fun String.replaceEnvironmentVars(replacements: Map<String, Any>): String {
 }
 
 inline fun String.replaceBetween(between: String = "", block: StringReplacer.() -> Unit): String {
-    return PrefixStringReplacer(between, between, this).apply(block).toString()
+    return PrefixStringReplacer(this, between, between).apply(block).toString()
 }
 
 inline fun String.replaceBetween(prefix: String = "", suffix: String = "", block: StringReplacer.() -> Unit): String {
-    return PrefixStringReplacer(prefix, suffix, this).apply(block).toString()
+    return PrefixStringReplacer(this, prefix, suffix).apply(block).toString()
 }
