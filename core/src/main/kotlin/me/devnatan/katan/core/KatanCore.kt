@@ -11,6 +11,7 @@ import com.github.dockerjava.core.LocalDirectorySSLConfig
 import com.github.dockerjava.okhttp.OkDockerHttpClient
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigObject
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.Katan
@@ -21,12 +22,10 @@ import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
 import me.devnatan.katan.api.currentPlatform
 import me.devnatan.katan.api.game.GameType
-import me.devnatan.katan.api.game.MinecraftGame
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
 import me.devnatan.katan.common.exceptions.throwSilent
-import me.devnatan.katan.common.impl.game.GameImageImpl
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.common.util.getMap
@@ -39,6 +38,7 @@ import me.devnatan.katan.core.impl.account.AccountsManagerImpl
 import me.devnatan.katan.core.impl.game.GameImpl
 import me.devnatan.katan.core.impl.game.GameManagerImpl
 import me.devnatan.katan.core.impl.game.GameSettingsImpl
+import me.devnatan.katan.core.impl.game.GameVersionImpl
 import me.devnatan.katan.core.impl.plugin.DefaultPluginManager
 import me.devnatan.katan.core.impl.server.DockerServerManager
 import me.devnatan.katan.core.impl.services.ServiceManagerImpl
@@ -170,23 +170,20 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
             )
         }
 
+        val properties = dockerConfig.getConfig("properties")
+        val httpConfig = clientConfig.build()
+        docker = DockerClientImpl.getInstance(
+            httpConfig, OkDockerHttpClient.Builder()
+                .dockerHost(httpConfig.dockerHost)
+                .sslConfig(httpConfig.sslConfig)
+                .connectTimeout(properties.get("connectTimeout", 5000))
+                .readTimeout(properties.get("readTimeout", 5000))
+                .build()
+        )
+
         // sends a ping to see if the connection will be established.
-        try {
-            val properties = dockerConfig.getConfig("properties")
-            val httpConfig = clientConfig.build()
-            docker = DockerClientImpl.getInstance(
-                httpConfig, OkDockerHttpClient.Builder()
-                    .dockerHost(httpConfig.dockerHost)
-                    .sslConfig(httpConfig.sslConfig)
-                    .connectTimeout(properties.get("connectTimeout", 5000))
-                    .readTimeout(properties.get("readTimeout", 5000))
-                    .build()
-            )
-            docker.pingCmd().exec()
-            dockerLogger.info(locale["katan.docker.ready"])
-        } catch (e: Throwable) {
-            throwSilent(e, dockerLogger)
-        }
+        docker.pingCmd().exec()
+        dockerLogger.info(locale["katan.docker.ready"])
     }
 
     private fun caching() {
@@ -214,22 +211,39 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
         val directory = File(root)
         if (!directory.exists())
             directory.mkdirs()
-
-        exportResource("$root/${MinecraftGame.name.toLowerCase()}.conf")
+        
+        for (supported in GameType.supported) {
+            exportResource("$root/${supported.name.toLowerCase(locale.locale)}.conf")
+        }
 
         for (file in directory.listFiles()?.filterNotNull() ?: emptyList()) {
             val config = ConfigFactory.parseFile(file)
-            val defaults = config.getConfig("settings")
-            val image = defaults.getConfig("image")
-            gameManager.registerGame(
-                GameImpl(
-                    GameType.native(config.get("name", file.nameWithoutExtension))!!,
-                    GameSettingsImpl(
-                        GameImageImpl(image.getString("id"), image.getMap("environment")),
-                        defaults.getInt("ports.min")..defaults.getInt("ports.max")
-                    )
-                )
+            val gameName = config.get("name", file.nameWithoutExtension)
+            val settings = config.getConfig("settings").let {
+                GameSettingsImpl(it.get("ports.min", 0)..it.get("ports.max", Short.MAX_VALUE * 2 - 1));
+            }
+
+            val versions = config.getConfig("versions").root().entries.map { (key, value) ->
+                val versionConfig = (value as ConfigObject).toConfig()
+                GameVersionImpl(key, versionConfig.get("image", null), versionConfig.getMap("environment"))
+            }.toTypedArray()
+
+            // TODO: check for non-native game type
+            val game = GameImpl(
+                gameName,
+                GameType.native(gameName)!!,
+                settings,
+                config.get("defaults.image", null),
+                config.getMap("defaults.environment"),
+                versions
             )
+
+            logger.info(if (game.versions.isEmpty())
+                locale["katan.game-registered", game.name]
+            else
+                locale["katan.versioned-game-registered", game.name, game.versions.size]
+            )
+            gameManager.registerGame(game)
         }
     }
 

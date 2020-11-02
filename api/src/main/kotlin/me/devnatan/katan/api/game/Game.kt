@@ -1,10 +1,9 @@
 package me.devnatan.katan.api.game
 
 /**
- * It represents a game supported by Katan, whether it is supported natively or added dynamically.
- * New games can be supported by being registered through [GameManager].
+ * Represents a game supported by Katan, whether it is supported natively or added dynamically.
  */
-interface Game {
+interface Game : GameVersion {
 
     /**
      * Returns the game type.
@@ -12,8 +11,13 @@ interface Game {
     val type: GameType
 
     /**
-     * Returns the default settings that will be used for that game.
+     * Returns the settings that will be used for that game.
      */
     val settings: GameSettings
+
+    /**
+     * Returns the list of [GameVersion] available for this game.
+     */
+    val versions: Array<out GameVersion>
 
 }

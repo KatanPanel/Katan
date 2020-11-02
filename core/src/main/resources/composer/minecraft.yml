@@ -5,11 +5,14 @@ services:
     environment:
       EULA: "true"
       TYPE: PAPER
-      VERSION: 1.9.4
+      VERSION: latest
       CONSOLE: "false"
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
     volumes:
       - minecraft:/data
+    tty: true
+      stdin_open: true
+      restart: always
 volumes:
   minecraft:

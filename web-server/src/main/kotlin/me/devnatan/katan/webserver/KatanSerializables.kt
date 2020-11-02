@@ -15,7 +15,7 @@ fun Server.serialize(): Map<String, Any?> = mapOf(
     "id" to id,
     "name" to name,
     "state" to state,
-    "game" to gameType.name,
+    "game" to game,
     "host" to host,
     "port" to port,
     "compositions" to compositions.map { it.factory[it.key] },

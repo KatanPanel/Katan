@@ -3,7 +3,6 @@ package me.devnatan.katan.core.impl.game
 import me.devnatan.katan.api.game.Game
 import me.devnatan.katan.api.game.GameManager
 import me.devnatan.katan.api.game.GameType
-import me.devnatan.katan.api.game.MinecraftGame
 
 class GameManagerImpl : GameManager {
 
@@ -17,7 +16,7 @@ class GameManagerImpl : GameManager {
 
     override fun getGame(name: String): Game? {
         return synchronized(this) {
-            games[name]
+            games.entries.find { it.key.equals(name, true) }?.value
         }
     }
 
@@ -28,10 +27,7 @@ class GameManagerImpl : GameManager {
     }
 
     override fun isNative(name: String): Boolean {
-        return when (name) {
-            MinecraftGame.name -> true
-            else -> false
-        }
+        return GameType.native(name) != null
     }
 
     override fun registerGame(game: Game) {

@@ -2,12 +2,10 @@ package me.devnatan.katan.api.server
 
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.game.Game
-import me.devnatan.katan.api.game.GameType
 
 /**
- * Represents a server created by Katan.
- * Servers can be created, composed (using Server Compositions API) and modified dynamically.
- * Every server targets a [Game], its [gameType] and it is used as information for other things.
+ * Represents a server created by Katan, servers can be
+ * composed (using Server Compositions API) and modified dynamically.
  */
 interface Server {
 
@@ -48,9 +46,9 @@ interface Server {
     val compositions: ServerCompositions
 
     /**
-     * Returns the [GameType] that this server is targeting.
+     * Returns the [Game] that this server is targeting.
      */
-    val gameType: GameType
+    val game: ServerGame
 
     /**
      * Returns the server remote connection address.

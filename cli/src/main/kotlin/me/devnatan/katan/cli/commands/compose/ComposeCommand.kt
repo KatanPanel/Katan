@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.core.subcommands
 import me.devnatan.katan.cli.KatanCLI
 
 class ComposeCommand(cli: KatanCLI) : NoOpCliktCommand(
-    name = "compose",
+    name = "composer",
     help = cli.locale["cli.help.compose"],
     printHelpOnEmptyArgs = true
 ) {

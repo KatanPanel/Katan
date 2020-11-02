@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.event.*
-import me.devnatan.katan.api.game.GameType
 import me.devnatan.katan.api.server.*
 import me.devnatan.katan.common.exceptions.silent
 import me.devnatan.katan.common.impl.server.ServerCompositionsImpl
@@ -66,10 +65,13 @@ class DockerServerManager(
         try {
             repository.listServers { entities ->
                 for (entity in entities) {
+                    val game = core.gameManager.getGame(entity.gameType)!!
                     val server = ServerImpl(
                         entity.id.value,
                         entity.name,
-                        core.gameManager.getGame(entity.game)!!.type,
+                        ServerGameImpl(game.type, entity.gameVersion?.let {
+                            game.versions.find { it.name == entity.gameVersion }
+                        }),
                         ServerCompositionsImpl(),
                         entity.host,
                         entity.port.toShort()
@@ -158,7 +160,7 @@ class DockerServerManager(
         return servers.any { it.name.equals(name, true) }
     }
 
-    override suspend fun prepareServer(name: String, game: GameType, host: String, port: Short): Server {
+    override suspend fun prepareServer(name: String, game: ServerGame, host: String, port: Short): Server {
         return ServerImpl(lastId.incrementAndGet(), name, game, ServerCompositionsImpl(), host, port)
     }
 
@@ -249,32 +251,10 @@ class DockerServerManager(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun pullImage(image: String): Flow<String> = callbackFlow {
         val callback = object : ResultCallback<PullResponseItem> {
-            val progress = arrayListOf<String>()
             override fun onNext(response: PullResponseItem) {
-                if (response.status === "Waiting" ||
-                    (response.id == null || response.id == image.substringAfterLast(":")) &&
-                    !response.status!!.contains("Image is up to date")
-                ) {
-                    sendBlocking("${response.status} (${response.id}) - ignored.")
-                    return
-                }
-
                 sendBlocking(response.toString())
-                if (response.progressDetail != null &&
-                    response.progressDetail!!.current != null &&
-                    !progress.contains(response.id)
-                ) {
-                    progress.add(response.id!!)
-                    sendBlocking("${response.id}: ${response.status}....")
-                }
-
                 if (response.isPullSuccessIndicated)
-                    progress.remove(response.id)
-
-                if (progress.isEmpty())
                     channel.close()
-
-                // sendBlocking("${response.status}: ${response.progress}")
             }
 
             override fun close() {}

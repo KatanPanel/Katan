@@ -3,7 +3,6 @@ package me.devnatan.katan.api.server
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import me.devnatan.katan.api.annotations.UnstableKatanApi
-import me.devnatan.katan.api.game.GameType
 import java.time.Duration
 
 /**
@@ -57,7 +56,7 @@ interface ServerManager {
      * @param host the server remote connection host address.
      * @param port the server remote connection port.
      */
-    suspend fun prepareServer(name: String, game: GameType, host: String, port: Short): Server
+    suspend fun prepareServer(name: String, game: ServerGame, host: String, port: Short): Server
 
     /**
      * Creates a previously prepared server by defining its container and writing compositions.

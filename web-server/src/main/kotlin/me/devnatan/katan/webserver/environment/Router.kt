@@ -13,7 +13,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import me.devnatan.katan.api.Katan
-import me.devnatan.katan.api.game.GameType
 import me.devnatan.katan.webserver.*
 import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
 import me.devnatan.katan.webserver.environment.routes.*
@@ -134,7 +133,7 @@ fun Application.router(
                         "state" to it.state.order
                     )
                 },
-                "games" to env.server.katan.gameManager.getSupportedGames().map(GameType::name)
+                "games" to env.server.katan.gameManager.getSupportedGames()
             )
         }
 

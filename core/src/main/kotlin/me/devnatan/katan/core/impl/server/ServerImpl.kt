@@ -1,13 +1,12 @@
 package me.devnatan.katan.core.impl.server
 
 import me.devnatan.katan.api.annotations.UnstableKatanApi
-import me.devnatan.katan.api.game.GameType
 import me.devnatan.katan.api.server.*
 
 data class ServerImpl @OptIn(UnstableKatanApi::class) constructor(
     override val id: Int,
     override var name: String,
-    override val gameType: GameType,
+    override val game: ServerGame,
     override val compositions: ServerCompositions,
     override val host: String,
     override val port: Short

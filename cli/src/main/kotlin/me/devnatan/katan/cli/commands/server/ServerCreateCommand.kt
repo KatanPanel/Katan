@@ -13,14 +13,15 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.sendBlocking
 import me.devnatan.katan.api.annotations.InternalKatanApi
 import me.devnatan.katan.api.annotations.UnstableKatanApi
+import me.devnatan.katan.api.game.GameVersion
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionOptions
 import me.devnatan.katan.api.server.ServerCompositionPacket
 import me.devnatan.katan.api.server.get
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.cli.err
-import me.devnatan.katan.common.impl.game.GameImageImpl
 import me.devnatan.katan.common.util.get
+import me.devnatan.katan.core.impl.server.ServerGameImpl
 import me.devnatan.katan.core.impl.server.compositions.image.DockerImageComposition
 import me.devnatan.katan.core.impl.server.compositions.image.DockerImageOptions
 
@@ -43,7 +44,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
         "--with",
         help = "List of compositions to be applied to the server (comma-separated)."
     ).split(",").default(emptyList())
-    private val memory by option("-m", "--memory", help = "Amount of memory to allocate on the server.").long()
+    private val memory by option("-m", "--memory", help = "Amount of memory to allocate on the server (in MB).").long()
         .default(1024)
 
     @OptIn(ExperimentalCoroutinesApi::class, InternalKatanApi::class, UnstableKatanApi::class)
@@ -54,21 +55,35 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                 "Use \"katan server ls\" to find out which servers already exist."
             )
 
-        val target = cli.katan.gameManager.getGame(game)
+        val gameTarget = game.split(":")
+        val target = cli.katan.gameManager.getGame(gameTarget[0])
             ?: return err("Game \"$game\" is not valid or unsupported.")
 
+        val version: GameVersion? = if (gameTarget.size > 1) {
+            val gameVersion = gameTarget[1].replace("-", " ")
+            target.versions.find { it.name.equals(gameVersion, true) }
+                ?: return err("Game version \"${gameVersion}\" not found for ${target.name} (available: ${target.versions.joinToString { it.name }}).")
+        } else null
+
         if (port !in target.settings.ports)
-            return err("The port $port does not respect the ${target.type.name}'s default port limits (${target.settings.ports}).")
+            return err("The port $port does not respect the ${target.name}'s default port range (${target.settings.ports}).")
+
+        val targetImage = (image ?: (version?.image ?: target.image)) ?:
+            return err("No image was provided.")
 
         runBlocking(CoroutineName("KatanCLI::server-create-main")) {
-            val server = cli.katan.serverManager.prepareServer(name, target.type, host, port.toShort())
+            val server = cli.katan.serverManager.prepareServer(name, ServerGameImpl(target.type, version), host, port.toShort())
             server.compositions[DockerImageComposition] = cli.katan.serverManager.compositionFactory.create(
                 DockerImageComposition.Key,
                 DockerImageOptions(
                     host,
                     port,
                     memory,
-                    image?.let { GameImageImpl(it, emptyMap()) } ?: target.settings.image)
+                    targetImage,
+                    version?.environment?.let {
+                        target.environment + it
+                    } ?: target.environment
+                )
             )
 
             cli.coroutineScope.launch(cli.coroutineExecutor + CoroutineName("KatanCLI::server-create-job")) {

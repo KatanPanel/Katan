@@ -6,7 +6,6 @@ import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionOptions
 import me.devnatan.katan.api.server.addSupportedKey
 import me.devnatan.katan.api.server.prompt
-import me.devnatan.katan.common.impl.game.GameImageImpl
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.impl.server.compositions.compose.DockerComposeComposition
 import me.devnatan.katan.core.impl.server.compositions.compose.DockerComposeOptions
@@ -59,12 +58,11 @@ class DockerCompositionFactory(val core: KatanCore) : InvisibleCompositionFactor
                 data.getValue("host") as String,
                 (data.getValue("port") as Number).toInt(),
                 (data.getValue("memory") as Number).toLong(),
-                (data.getValue("image") as Map<String, Any>).let {
-                    GameImageImpl(it["id"] as String, it["environment"] as Map<String, Any>)
-                }
+                (data.getValue("image") as String),
+                (data.getValue("environment") as Map<String, Any>)
             )
             is DockerComposeComposition.Key -> DockerComposeOptions(
-                data.getValue("compose") as String,
+                data.getValue("composer") as String,
                 data.getValue("properties") as Map<String, String>
             )
             else -> throw IllegalArgumentException(key.toString())

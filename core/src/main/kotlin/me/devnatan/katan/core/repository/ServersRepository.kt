@@ -31,7 +31,8 @@ class JDBCServersRepository(private val connector: JDBCConnector) : ServersRepos
             val serverId = ServerEntity.new(server.id) {
                 this.name = server.name
                 this.containerId = server.container.id
-                this.game = server.gameType.name
+                this.gameType = server.game.type.name
+                this.gameVersion = server.game.version?.name
                 this.host = server.host
                 this.port = server.port.toInt()
             }.id

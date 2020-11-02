@@ -22,9 +22,11 @@ class DockerImageComposition(
 
     companion object Key : ServerComposition.Key<DockerImageComposition> {
 
-        private const val ENV_VAR_SEPARATOR = "%";
+        private const val ENV_VAR_SEPARATOR = "%"
+        const val SERVER_NAME_ENV_KEY = "SERVER_NAME"
         const val SERVER_HOST_ENV_KEY = "SERVER_HOST"
         const val SERVER_PORT_ENV_KEY = "SERVER_PORT"
+        const val SERVER_MEMORY_ENV_KEY = "SERVER_MEMORY"
 
         private val logger: Logger = LoggerFactory.getLogger(DockerImageComposition::class.java)
 
@@ -36,25 +38,29 @@ class DockerImageComposition(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun write(server: Server) {
-        val image = options.image
         val katan = (factory as DockerCompositionFactory).core
         try {
-            katan.serverManager.pullImage(image.id).collect { logger.debug(it) }
+            katan.serverManager.pullImage(options.image).collect {
+                logger.debug(it)
+            }
         } catch (e: Throwable) {
-            logger.error("An error occurred while pulling the image \"${image.id}\":", "Cause: ${e.message}")
-            e.printStackTrace()
+            logger.error("An error occurred while pulling the image \"${options.image}\":", "Cause: ${e.message}")
+            logger.trace(null, e)
+            throw e
         }
 
         logger.debug("Creating container (${options.host}:${options.port})...")
 
         val memory = (options.memory * 1024.toDouble().pow(2)).toLong()
         val port = ExposedPort.tcp(options.port)
-        val containerId = katan.docker.createContainerCmd(image.id)
+        val containerId = katan.docker.createContainerCmd(options.image)
             .withName(server.container.id)
-            .withEnv(image.environment.entries.map { (key, value) ->
+            .withEnv(options.environment.entries.map { (key, value) ->
                 val replacement = value.toString().replaceBetween(ENV_VAR_SEPARATOR) {
+                    SERVER_NAME_ENV_KEY by server.name
                     SERVER_HOST_ENV_KEY by server.host
                     SERVER_PORT_ENV_KEY by server.port
+                    SERVER_MEMORY_ENV_KEY by options.memory
                 }
 
                 "$key=$replacement"
