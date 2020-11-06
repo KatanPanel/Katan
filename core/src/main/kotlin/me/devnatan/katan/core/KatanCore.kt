@@ -133,8 +133,12 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
         val dockerLogger = LoggerFactory.getLogger("Docker")
         val dockerConfig = config.getConfig("docker")
         val tls = dockerConfig.get("tls.verify", false)
+        val host = dockerConfig.getString("host")
+        if (host.substringBefore("://") == "unix" && platform.isWindows())
+            throwSilent(IllegalArgumentException("Unix domain sockets ($host) are not supported on Windows platform."), dockerLogger)
+
         val clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost(dockerConfig.getString("host"))
+            .withDockerHost(host)
             .withDockerTlsVerify(tls)
 
         if (tls) {
