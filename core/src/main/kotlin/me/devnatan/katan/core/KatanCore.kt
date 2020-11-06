@@ -22,6 +22,7 @@ import me.devnatan.katan.api.game.GameType
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
+import me.devnatan.katan.api.services.get
 import me.devnatan.katan.common.exceptions.throwSilent
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
@@ -274,7 +275,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
 
         hash = when (val algorithm = config.getString("security.crypto.hash")) {
             DEFAULT_VALUE, BcryptHash.NAME -> BcryptHash()
-            else -> throwSilent(IllegalArgumentException("Unsupported hash algorithm: $algorithm"), logger)
+            else -> serviceManager.get() ?: throwSilent(IllegalArgumentException("Unsupported hash algorithm: $algorithm"), logger)
         }
         logger.info(locale["katan.selected-hash", hash.name])
         accountManager.loadAccounts()
