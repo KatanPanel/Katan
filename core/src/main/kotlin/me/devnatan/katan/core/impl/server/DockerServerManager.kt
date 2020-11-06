@@ -97,8 +97,14 @@ class DockerServerManager(
                             continue
                         }
 
+                        val optionsFile = localDataManager.getCompositionOptions(server, composition.key)
+                        if (!optionsFile.exists()) {
+                            logger.warn("${server.name}: No options found for ${composition.key}, skipping.")
+                            continue
+                        }
+
                         val optionsData =
-                            FileInputStream(localDataManager.getCompositionOptions(server, composition.key)).use {
+                            FileInputStream(optionsFile).use {
                                 core.objectMapper.readValue(it, Map::class.java)
                             } as Map<String, Any>
 
