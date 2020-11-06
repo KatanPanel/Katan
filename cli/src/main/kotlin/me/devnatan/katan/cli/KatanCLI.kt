@@ -3,7 +3,9 @@ package me.devnatan.katan.cli
 import com.github.ajalt.clikt.core.PrintHelpMessage
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.output.CliktConsole
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
 import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.api.server.ServerManager
 import me.devnatan.katan.core.KatanCore
@@ -33,7 +35,7 @@ class KatanCLI(val katan: KatanCore) {
         }
     }
 
-    val logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
+    val logger: Logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
 
     val serverManager: ServerManager get() = katan.serverManager
     val accountManager: AccountManager get() = katan.accountManager
@@ -43,7 +45,7 @@ class KatanCLI(val katan: KatanCore) {
     private var running = false
     private val command = KatanCommand(this)
     val coroutineExecutor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-    val coroutineScope = CoroutineScope(CoroutineName("KatanCLI"))
+    val coroutineScope = CoroutineScope(coroutineExecutor + CoroutineName("KatanCLI"))
     val console = Console(logger)
 
     fun init() {
@@ -52,8 +54,8 @@ class KatanCLI(val katan: KatanCore) {
         do {
             line = readLine()
             try {
-                val args = line?.split(" ") ?: emptyList()
-                if (!args[0].equals("katan", true))
+                val args = line?.split(" ") ?: continue
+                if (args.isEmpty() || args.getOrNull(0)?.equals("katan", true) == false)
                     continue
 
                 if (args.size == 1)
@@ -71,8 +73,6 @@ class KatanCLI(val katan: KatanCore) {
     }
 
     fun close() {
-        if (coroutineExecutor.isActive)
-            coroutineScope.cancel()
         coroutineExecutor.close()
     }
 
