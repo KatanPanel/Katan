@@ -20,7 +20,7 @@ class ServerInfoCommand(private val cli: KatanCLI) : CliktCommand(
             return err("Server $serverName not found.")
         }
 
-        cli.coroutineScope.launch(cli.coroutineExecutor) {
+        cli.coroutineScope.launch {
             cli.serverManager.inspectServer(server)
         }.invokeOnCompletion { error ->
             if (error != null)
