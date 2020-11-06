@@ -1,7 +1,6 @@
 package me.devnatan.katan.api
 
 import br.com.devsrsouza.eventkt.EventScope
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.game.GameManager
 import me.devnatan.katan.api.plugin.Plugin
@@ -45,7 +44,6 @@ interface Katan {
     /**
      * Returns the Katan services manager.
      */
-    @UnstableKatanApi
     val serviceManager: ServiceManager
 
     /**
@@ -64,6 +62,9 @@ interface Katan {
      */
     val pluginManager: PluginManager
 
+    /**
+     * Returns the Katan [Game] manager.
+     */
     val gameManager: GameManager
 
     /**
