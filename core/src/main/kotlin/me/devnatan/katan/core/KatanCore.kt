@@ -14,13 +14,10 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigObject
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import me.devnatan.katan.api.Katan
-import me.devnatan.katan.api.KatanEnvironment
-import me.devnatan.katan.api.Platform
+import me.devnatan.katan.api.*
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
-import me.devnatan.katan.api.currentPlatform
 import me.devnatan.katan.api.game.GameType
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
@@ -255,9 +252,8 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
         logger.info(locale["katan.starting", Katan.VERSION, locale["katan.env.$environment"].toLowerCase(locale.locale)])
         logger.info(locale["katan.platform", "$platform"])
         database()
+        docker()
         pluginManager.loadPlugins()
-
-        pluginManager.callHandlers(KatanInit)
         serverManager = DockerServerManager(
             this, when (database) {
                 is JDBCConnector -> JDBCServersRepository(database as JDBCConnector)
@@ -271,7 +267,8 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
                 else -> throwUnavailableRepository("accounts")
             }
         )
-        docker()
+        caching()
+        pluginManager.callHandlers(KatanInit)
         loadGames()
         serverManager.loadServers()
 
@@ -282,7 +279,6 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
         logger.info(locale["katan.selected-hash", hash.name])
         accountManager.loadAccounts()
 
-        caching()
         pluginManager.callHandlers(KatanStarted)
     }
 
