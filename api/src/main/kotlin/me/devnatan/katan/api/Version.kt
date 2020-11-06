@@ -24,7 +24,7 @@ data class Version(
                 append("-$preRelease")
 
             if (buildMetadata.isNotEmpty())
-                append(" $buildMetadata")
+                append(" (build $buildMetadata)")
         }
     }
 
