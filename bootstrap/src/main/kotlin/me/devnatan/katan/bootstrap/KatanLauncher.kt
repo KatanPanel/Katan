@@ -135,8 +135,7 @@ private class KatanLauncher(config: Config, environment: KatanEnvironment, local
                     is SilentException -> {
                         logger.error("An error occurred while starting Katan @ ${e.logger.name.substringAfterLast(".")}:")
                         (e.cause?.message ?: e.message)?.let {
-                            logger.error("Cause: ${it.substringBefore(":")}")
-                            logger.error("Message: \"${it.substringAfter(":").trim()}\"")
+                            logger.error("Cause: \"$it\"")
                         }
                         logger.trace(null, e)
 
