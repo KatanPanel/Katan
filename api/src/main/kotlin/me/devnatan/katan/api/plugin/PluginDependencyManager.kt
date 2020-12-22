@@ -2,8 +2,8 @@ package me.devnatan.katan.api.plugin
 
 import me.devnatan.katan.api.Descriptor
 import me.devnatan.katan.api.Version
-import me.devnatan.katan.api.services.ServiceDescriptor
-import me.devnatan.katan.api.services.ServiceManager
+import me.devnatan.katan.api.service.ServiceDescriptor
+import me.devnatan.katan.api.service.ServiceManager
 import kotlin.reflect.KClass
 
 /**

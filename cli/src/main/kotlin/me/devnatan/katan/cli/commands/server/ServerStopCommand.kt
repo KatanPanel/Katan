@@ -27,7 +27,7 @@ class ServerStopCommand(private val cli: KatanCLI) : CliktCommand(
             }
 
             echo("Stopping server \"${server.name}\"...")
-            cli.coroutineScope.launch(cli.coroutineExecutor) {
+            cli.coroutineScope.launch {
                 cli.serverManager.stopServer(server, Duration.ofSeconds(timeout))
             }.invokeOnCompletion { error ->
                 if (error != null) {

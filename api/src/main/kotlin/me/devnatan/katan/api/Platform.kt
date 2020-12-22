@@ -3,20 +3,19 @@ package me.devnatan.katan.api
 /**
  * Represents the platform in which Katan is running.
  * @property os operating system information.
- * @see Katan.platform
  */
 data class Platform(val os: OS) {
 
     /**
      * Platform operational system info.
-     * @property name the name of the operating system
-     * @property arch the operating system architecture information
-     * @property version the operating system version
+     * @property name the name of the operating system.
+     * @property arch the operating system architecture information.
+     * @property version the operating system version.
      */
     data class OS(val name: String, val arch: String, val version: String) {
 
         override fun toString(): String {
-            return "$name $version ($arch)"
+            return "$name v$version ($arch)"
         }
 
     }

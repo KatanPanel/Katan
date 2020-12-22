@@ -14,41 +14,9 @@
 <p>
  Katan is a fast, simple and <b>modularly adaptable panel</b> built to manage game servers running isolated in Docker containers. Developed with the intention of being free and for the community, using a <a href="https://github.com/KatanPanel/Katan/blob/master/LICENSE">open source license</a>, anyone is able to build Katan.
 </p>
-
-<h4>Compatibility</h4>
 <p>
  Katan works on any machine that contains Java version 8 running on it.
- <br>
- Additional features such as Redis, cryptography dependent on native libraries and others, are not required dependencies for use.
 </p>
-
-<h2>Ecosystem</h2>
-<table>
- <tr>
-  <th>Module</th>
-  <th>Description</th>
- </tr>
- <tr>
-  <td><a href="https://github.com/KatanPanel/Katan/tree/master/api">katan-api</a></td>
-  <td>Public shared Katan high-level API.</td>
- </tr> 
- <tr>
-  <td><a href="https://github.com/KatanPanel/Katan/tree/master/cli">katan-cli</a></td>
-  <td>Integrated command line interface.</td>
- </tr>
-<tr>
-  <td><a href="https://github.com/KatanPanel/Katan/tree/master/core">katan-core</a></td>
-  <td>In addition to being the core, it contains game implementations supported by Katan.</td>
- </tr>
- <tr>
-  <td><a href="https://github.com/KatanPanel/Katan/tree/master/web-server">katan-webserver</a></td>
-  <td>Web server for HTTP and WSS requests to Katan.</td>
- </tr>
- <tr>
-  <td><a href="https://github.com/KatanPanel/Katan/tree/master/docker-compose">katan-docker-compose</a></td>
-  <td>Support for handling <a href="https://docs.docker.com/compose/">Docker Compose</a> file and CLI.</td>
- </tr>
-</table>
 
 <h2>Documentation</h2>
 <p>Check out the <a href="https://github.com/KatanPanel/Katan/wiki">Wiki</a> for installation steps and developer API.</p>

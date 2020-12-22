@@ -2,7 +2,6 @@ package me.devnatan.katan.api.server
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 import java.time.Duration
 
 /**
@@ -125,28 +124,24 @@ interface ServerManager {
      * Returns the [ServerCompositionFactory] that was registered
      * for the supplied [key] or null if no factory is found for the key.
      */
-    @UnstableKatanApi
     fun getCompositionFactory(key: ServerComposition.Key<*>): ServerCompositionFactory?
 
     /**
      * Returns the [ServerCompositionFactory] that was registered
      * for the supplied [name] or null if no factory is found for the key.
      */
-    @UnstableKatanApi
     fun getCompositionFactory(name: String): ServerCompositionFactory?
 
     /**
      * Registers a new compositions factory.
-     * @param factory the compositions facotry.
+     * @param factory the compositions factory.
      */
-    @UnstableKatanApi
     fun registerCompositionFactory(factory: ServerCompositionFactory)
 
     /**
      * Unregisters a compositions factory.
      * @param factory the factory to be unregistered.
      */
-    @UnstableKatanApi
     fun unregisterCompositionFactory(factory: ServerCompositionFactory)
 
 }

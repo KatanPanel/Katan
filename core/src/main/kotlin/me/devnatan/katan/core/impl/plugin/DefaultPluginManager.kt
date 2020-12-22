@@ -3,10 +3,8 @@ package me.devnatan.katan.core.impl.plugin
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import me.devnatan.katan.api.internal.InitOnceProperty
 import me.devnatan.katan.api.plugin.*
+import me.devnatan.katan.api.util.InitOnceProperty
 import me.devnatan.katan.core.KatanCore
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -33,7 +31,6 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
 
     private val logger = LoggerFactory.getLogger(PluginManager::class.java)!!
     private val pwd = File("plugins")
-    private val mutex: Mutex = Mutex()
     private val plugins: MutableList<Plugin> = ArrayList()
 
     init {
@@ -41,7 +38,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
             pwd.mkdirs()
     }
 
-    override fun getPlugins() = synchronized(this) {
+    override fun getPlugins() = synchronized(plugins) {
         plugins.toList()
     }
 
@@ -61,7 +58,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
                 loadPlugin0(plugin, classloader)
             }
         }.onSuccess {
-            mutex.withLock {
+            synchronized (plugins) {
                 plugins.add(it!!)
             }
         }.getOrThrow()!!
@@ -70,11 +67,11 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
     override suspend fun unloadPlugin(plugin: Plugin): Plugin {
         check(plugin.state !is PluginState.Unloaded) { "Plugin is not loaded." }
         plugin.coroutineScope.cancel()
-        mutex.withLock { plugins.remove(plugin) }
+        synchronized (plugins) { plugins.remove(plugin) }
         return plugin
     }
 
-    override suspend fun stopPlugin(plugin: Plugin): Plugin? {
+    override suspend fun stopPlugin(plugin: Plugin): Plugin {
         check(plugin.state is PluginState.Started) { "Plugin is not enabled." }
         plugin.coroutineScope.cancel()
         plugin.state = PluginState.Disabled(Instant.now())
@@ -142,7 +139,10 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
                     val plugin = initializePlugin(entry, classloader)
                     if (plugin != null) {
                         loadPlugin0(plugin, classloader)
-                        plugins.add(plugin)
+                        synchronized (plugins) {
+                            plugins.add(plugin)
+                        }
+
                         startPlugin(plugin)
                     }
                 }
@@ -183,12 +183,12 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
     }
 
     private suspend fun callHandlers(phase: PluginPhase, plugin: Plugin) {
-        for (handler in plugin.handlers[phase] ?: emptyList()) {
+        for (handler in plugin.handlers[phase] ?: return) {
             handler.handle()
         }
     }
 
-    suspend fun callHandlers(phase: PluginPhase) = mutex.withLock {
+    suspend fun callHandlers(phase: PluginPhase) {
         for (plugin in plugins)
             callHandlers(phase, plugin)
     }
@@ -214,14 +214,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
     }
 
     suspend fun disableAll() {
-        mutex.lock()
-        try {
-            for (plugin in plugins) {
-                stopPlugin(plugin)
-            }
-        } finally {
-            mutex.unlock()
-        }
+        plugins.forEach { stopPlugin(it) }
     }
 
 }

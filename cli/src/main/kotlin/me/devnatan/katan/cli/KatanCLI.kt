@@ -5,15 +5,14 @@ import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.output.CliktConsole
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.api.server.ServerManager
-import me.devnatan.katan.core.KatanCore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.concurrent.Executors
 
-class KatanCLI(val katan: KatanCore) {
+class KatanCLI(val katan: Katan) {
 
     class Console(private val logger: Logger) : CliktConsole {
 
@@ -40,12 +39,10 @@ class KatanCLI(val katan: KatanCore) {
     val serverManager: ServerManager get() = katan.serverManager
     val accountManager: AccountManager get() = katan.accountManager
     val pluginManager get() = katan.pluginManager
-    val locale get() = katan.locale
 
     private var running = false
     private val command = KatanCommand(this)
-    val coroutineExecutor = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-    val coroutineScope = CoroutineScope(coroutineExecutor + CoroutineName("KatanCLI"))
+    val coroutineScope = CoroutineScope(CoroutineName("KatanCLI"))
     val console = Console(logger)
 
     fun init() {
@@ -73,7 +70,7 @@ class KatanCLI(val katan: KatanCore) {
     }
 
     fun close() {
-        coroutineExecutor.close()
+        coroutineScope.cancel()
     }
 
 }

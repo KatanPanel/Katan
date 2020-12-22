@@ -1,16 +1,14 @@
 package me.devnatan.katan.api.server
 
 import kotlinx.coroutines.CompletableDeferred
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 
 /**
  * Represents saved data from a composition, named options.
  */
-@UnstableKatanApi
 interface ServerCompositionOptions {
 
     /**
-     * Using this composition means that the composition is being manufactured directly by the CLI
+     * Using this composition option means that the composition is being manufactured directly by the CLI
      * and needs information from those who are executing the creation command, and not synthetically.
      */
     object CLI : ServerCompositionOptions
@@ -20,7 +18,6 @@ interface ServerCompositionOptions {
 /**
  * A packet is data used for communication between the CLI and the [ServerCompositionFactory].
  */
-@UnstableKatanApi
 sealed class ServerCompositionPacket {
 
     /**

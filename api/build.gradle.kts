@@ -1,5 +1,6 @@
 plugins {
     `maven-publish`
+    id("org.jetbrains.dokka") version "1.4.10.2"
 }
 
 dependencies {

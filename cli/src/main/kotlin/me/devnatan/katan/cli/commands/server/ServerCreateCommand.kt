@@ -14,16 +14,10 @@ import kotlinx.coroutines.channels.sendBlocking
 import me.devnatan.katan.api.annotations.InternalKatanApi
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.game.GameVersion
-import me.devnatan.katan.api.server.ServerComposition
-import me.devnatan.katan.api.server.ServerCompositionOptions
-import me.devnatan.katan.api.server.ServerCompositionPacket
-import me.devnatan.katan.api.server.get
+import me.devnatan.katan.api.server.*
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.cli.err
-import me.devnatan.katan.common.util.get
-import me.devnatan.katan.core.impl.server.ServerGameImpl
-import me.devnatan.katan.core.impl.server.compositions.image.DockerImageComposition
-import me.devnatan.katan.core.impl.server.compositions.image.DockerImageOptions
+import me.devnatan.katan.common.impl.server.ServerGameImpl
 
 class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
     name = "create",
@@ -36,7 +30,8 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
         "-h",
         "--host",
         help = "Remote server connection address."
-    ).default(cli.katan.config.get("default-host", "localhost"))
+    ).default("127.0.0.1")
+
     private val port by option("-p", "--port", help = "Remote server connection port.").int().required()
     private val image by option("-i", "--image", help = "Docker image that will be used to build the server.")
     private val compositions by option(
@@ -57,7 +52,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
 
         val gameTarget = game.split(":")
         val target = cli.katan.gameManager.getGame(gameTarget[0])
-            ?: return err("Game \"$game\" is not valid or unsupported.")
+            ?: return err("Game \"$game\" is invalid or unsupported.")
 
         val version: GameVersion? = if (gameTarget.size > 1) {
             val gameVersion = gameTarget[1].replace("-", " ")
@@ -68,14 +63,30 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
         if (port !in target.settings.ports)
             return err("The port $port does not respect the ${target.name}'s default port range (${target.settings.ports}).")
 
-        val targetImage = (image ?: (version?.image ?: target.image)) ?:
-            return err("No image was provided.")
+        val targetImage = (image ?: (version?.image ?: target.image)) ?: return err("No image was provided.")
 
+        val completion = Job()
         runBlocking(CoroutineName("KatanCLI::server-create-main")) {
-            val server = cli.katan.serverManager.prepareServer(name, ServerGameImpl(target.type, version), host, port.toShort())
-            server.compositions[DockerImageComposition] = cli.katan.serverManager.compositionFactory.create(
-                DockerImageComposition.Key,
-                DockerImageOptions(
+            val server =
+                cli.katan.serverManager.prepareServer(name, ServerGameImpl(target.type, version), host, port.toShort())
+
+            completion.invokeOnCompletion { error ->
+                if (error == null) {
+                    cli.coroutineScope.launch(CoroutineName("KatanCLI::server-create")) {
+                        cli.serverManager.addServer(server)
+
+                        echo("Registering server....")
+                        cli.serverManager.registerServer(server)
+                        cli.serverManager.inspectServer(server)
+
+                        echo("Server $name created successfully!")
+                    }
+                }
+            }
+
+            server.compositions[DockerImageServerComposition] = cli.katan.serverManager.getCompositionFactory(DockerImageServerComposition)!!.create(
+                DockerImageServerComposition,
+                DockerImageServerComposition.Options(
                     host,
                     port,
                     memory,
@@ -86,13 +97,13 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                 )
             )
 
-            cli.coroutineScope.launch(cli.coroutineExecutor + CoroutineName("KatanCLI::server-create-job")) {
+            cli.coroutineScope.launch(completion + CoroutineName("KatanCLI::server-create-job")) {
                 cli.serverManager.createServer(server)
             }.join()
 
             if (compositions.isNotEmpty()) {
                 val length = compositions.size
-                echo("Applying $length custom compositions...")
+                echo("Applying $length compositions...")
 
                 val applied = arrayListOf<ServerComposition.Key<*>>()
                 for ((index, name) in compositions.withIndex()) {
@@ -186,13 +197,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                 }
             }
 
-            cli.serverManager.addServer(server)
-
-            echo("Registering server....")
-            cli.serverManager.registerServer(server)
-            cli.serverManager.inspectServer(server)
-
-            echo("Server $name created successfully!")
+            completion.complete()
         }
     }
 }

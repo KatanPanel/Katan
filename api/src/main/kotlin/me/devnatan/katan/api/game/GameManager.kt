@@ -12,6 +12,8 @@ interface GameManager {
      */
     fun getSupportedGames(): List<GameType>
 
+    fun getRegisteredGames(): Collection<Game>
+
     /**
      * Returns a supported [Game] from its [name] (case-insensitive) or `null` if not found.
      * @param name the game name.

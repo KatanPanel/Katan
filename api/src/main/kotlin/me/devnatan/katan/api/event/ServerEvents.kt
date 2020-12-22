@@ -19,21 +19,11 @@ interface ServerEvent : Event {
 }
 
 /**
- * Called when a new server is created.
+ * Called when a new server is created, when all compositions on a server are applied to it.
  * @property server the server.
  * @property account the account that created the server.
  */
 open class ServerCreateEvent(
-    override val server: Server,
-    override val account: Account? = null,
-) : ServerEvent, AccountEvent
-
-/**
- * Called after [ServerCreateEvent] when all compositions on a server are applied to it.
- * @property server the server.
- * @property account the account that created the server.
- */
-open class ServerComposedEvent(
     override val server: Server,
     override val account: Account? = null,
 ) : ServerEvent, AccountEvent
@@ -80,16 +70,6 @@ open class ServerStoppedEvent(
     override val server: Server,
     override val account: Account? = null,
     val duration: Duration
-) : ServerEvent, AccountEvent
-
-/**
- * Called when the inspection of a server starts.
- * @property server the server
- * @property account the account that requested the server inspection.
- */
-open class ServerInspectionStartedEvent(
-    override val server: Server?,
-    override val account: Account? = null
 ) : ServerEvent, AccountEvent
 
 /**

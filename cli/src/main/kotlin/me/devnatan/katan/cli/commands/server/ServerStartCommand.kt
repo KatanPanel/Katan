@@ -22,7 +22,7 @@ class ServerStartCommand(private val cli: KatanCLI) : CliktCommand(
             }
 
             echo("Starting server \"${server.name}\"...")
-            cli.coroutineScope.launch(cli.coroutineExecutor) {
+            cli.coroutineScope.launch {
                 cli.serverManager.startServer(server)
             }
         } catch (e: NoSuchElementException) {

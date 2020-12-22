@@ -20,14 +20,14 @@ interface ServersRepository {
 class JDBCServersRepository(private val connector: JDBCConnector) : ServersRepository {
 
     override suspend fun listServers(context: suspend (List<ServerEntity>) -> Unit) {
-        newSuspendedTransaction(Dispatchers.Default, connector.database) {
+        newSuspendedTransaction(Dispatchers.IO, connector.database) {
             context(ServerEntity.all().toList())
         }
     }
 
     @OptIn(UnstableKatanApi::class)
     override suspend fun insertServer(server: Server) {
-        newSuspendedTransaction(Dispatchers.Default, connector.database) {
+        newSuspendedTransaction(Dispatchers.IO, connector.database) {
             val serverId = ServerEntity.new(server.id) {
                 this.name = server.name
                 this.containerId = server.container.id

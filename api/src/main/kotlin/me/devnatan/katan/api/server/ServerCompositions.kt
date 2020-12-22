@@ -1,11 +1,8 @@
 package me.devnatan.katan.api.server
 
-import me.devnatan.katan.api.annotations.UnstableKatanApi
-
 /**
  * Represents the container of all the compositions present in a [Server].
  */
-@UnstableKatanApi
 interface ServerCompositions : Iterable<ServerComposition<*>> {
 
     /**

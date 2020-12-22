@@ -7,7 +7,6 @@ import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.output.TermUi
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.cli.commands.account.AccountCommand
-import me.devnatan.katan.cli.commands.compose.ComposeCommand
 import me.devnatan.katan.cli.commands.plugin.PluginCommand
 import me.devnatan.katan.cli.commands.server.ServerCommand
 
@@ -21,15 +20,14 @@ class KatanCommand(cli: KatanCLI) : NoOpCliktCommand(
     init {
         context {
             console = cli.console
-            localization = KatanLocalization(cli.katan.locale)
+            localization = KatanLocalization(cli.katan.translator)
         }
 
         subcommands(
             VersionCommand(cli),
             AccountCommand(cli),
             ServerCommand(cli),
-            PluginCommand(cli),
-            ComposeCommand(cli)
+            PluginCommand(cli)
         )
     }
 
@@ -37,7 +35,7 @@ class KatanCommand(cli: KatanCLI) : NoOpCliktCommand(
 
 class VersionCommand(private val cli: KatanCLI) : CliktCommand(
     name = "version",
-    help = cli.locale["cli.help.version"]
+    help = cli.katan.translator.translate("cli.help.version")
 ) {
 
     override fun run() {

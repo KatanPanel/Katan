@@ -18,13 +18,12 @@ class AccountRegisterCommand(private val cli: KatanCLI) : CliktCommand(
 
     override fun run() {
         if (cli.accountManager.existsAccount(username))
-            return echo("There is already an account registered as $username.")
+            return echo(cli.katan.translator.translate("cli.account-already-registered", username))
 
-        echo("Creating account $username...")
-        cli.coroutineScope.launch(cli.coroutineExecutor + CoroutineName("KatanCLI::account-create:$username")) {
+        cli.coroutineScope.launch(CoroutineName("KatanCLI::account-create:$username")) {
             cli.accountManager.registerAccount(cli.accountManager.createAccount(username, password))
         }.invokeOnCompletion {
-            echo("Account $username created successfully.")
+            echo(cli.katan.translator.translate("cli.account-created", username))
         }
     }
 

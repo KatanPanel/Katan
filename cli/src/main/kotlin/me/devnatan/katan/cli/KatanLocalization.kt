@@ -1,40 +1,40 @@
 package me.devnatan.katan.cli
 
 import com.github.ajalt.clikt.output.Localization
-import me.devnatan.katan.core.KatanLocale
+import me.devnatan.katan.api.Translator
 
-class KatanLocalization(private val locale: KatanLocale) : Localization {
+class KatanLocalization(private val translator: Translator) : Localization {
 
     override fun optionsTitle(): String {
-        return locale["cli.extent.options-title"]
+        return translator.translate("cli.extent.options-title")
     }
 
     override fun usageTitle(): String {
-        return locale["cli.extent.usage-title"]
+        return translator.translate("cli.extent.usage-title")
     }
 
     override fun argumentsTitle(): String {
-        return locale["cli.extent.args-title"]
+        return translator.translate("cli.extent.args-title")
     }
 
     override fun helpTagDefault(): String {
-        return locale["cli.extent.tag-default"]
+        return translator.translate("cli.extent.tag-default")
     }
 
     override fun helpTagRequired(): String {
-        return locale["cli.extent.tag-required"]
+        return translator.translate("cli.extent.tag-required")
     }
 
     override fun optionsMetavar(): String {
-        return locale["cli.extent.meta-options"]
+        return translator.translate("cli.extent.meta-options")
     }
 
     override fun commandMetavar(): String {
-        return locale["cli.extent.meta-command"]
+        return translator.translate("cli.extent.meta-command")
     }
 
     override fun helpOptionMessage(): String {
-        return locale["cli.extent.help"]
+        return translator.translate("cli.extent.help")
     }
 
 }

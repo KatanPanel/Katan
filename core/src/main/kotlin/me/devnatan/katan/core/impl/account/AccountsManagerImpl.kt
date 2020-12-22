@@ -2,6 +2,8 @@ package me.devnatan.katan.core.impl.account
 
 import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.security.account.AccountManager
+import me.devnatan.katan.api.security.credentials.Credentials
+import me.devnatan.katan.api.security.credentials.PasswordCredentials
 import me.devnatan.katan.common.impl.account.SecureAccount
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.repository.AccountsRepository
@@ -60,12 +62,12 @@ class AccountsManagerImpl(
         return accounts.any { it.username == username }
     }
 
-    override suspend fun authenticateAccount(account: Account, password: String): Boolean {
+    override suspend fun authenticateAccount(account: Account, credentials: Credentials): Boolean {
         check(account is SecureAccount)
-        return if (account.password.isEmpty())
-            password.isEmpty()
-        else
-            core.hash.compare(password.toCharArray(), account.password)
+        check(credentials is PasswordCredentials)
+
+        return if (account.password.isEmpty()) credentials.password.isEmpty()
+        else core.hash.compare(credentials.password.toCharArray(), account.password)
     }
 
 }

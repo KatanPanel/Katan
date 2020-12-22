@@ -11,22 +11,21 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.event.*
 import me.devnatan.katan.api.server.*
-import me.devnatan.katan.common.exceptions.silent
 import me.devnatan.katan.common.impl.server.ServerCompositionsImpl
+import me.devnatan.katan.common.impl.server.ServerGameImpl
 import me.devnatan.katan.core.KatanCore
-import me.devnatan.katan.core.impl.server.compositions.DockerCompositionFactory
-import me.devnatan.katan.core.impl.server.compositions.InvisibleCompositionFactory
+import me.devnatan.katan.core.impl.server.compositions.DockerImageServerCompositionFactory
 import me.devnatan.katan.core.repository.ServersRepository
-import me.devnatan.katan.docker.DockerCompose
 import org.slf4j.LoggerFactory
-import java.io.*
+import java.io.Closeable
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.time.Duration
 import kotlin.system.measureTimeMillis
 
-@OptIn(UnstableKatanApi::class)
 class DockerServerManager(
     private val core: KatanCore,
     private val repository: ServersRepository,
@@ -35,7 +34,6 @@ class DockerServerManager(
     companion object {
 
         const val CONTAINER_NAME_PATTERN = "katan_server_%s"
-        const val COMPOSE_ROOT = "composer"
         const val NETWORK_ID = "katan0"
         val logger = LoggerFactory.getLogger(ServerManager::class.java)!!
 
@@ -43,24 +41,21 @@ class DockerServerManager(
 
     private val lastId: AtomicInt = atomic(0)
     private val servers: MutableSet<Server> = hashSetOf()
-    val composer = DockerCompose(core.platform, logger)
     private val compositionFactories: MutableList<ServerCompositionFactory> = arrayListOf()
-    val compositionFactory = DockerCompositionFactory(core)
     private val localDataManager = ServerLocalDataManager()
 
     init {
-        registerCompositionFactory(DockerCompositionFactory(core))
-        File(COMPOSE_ROOT).let { if (!it.exists()) it.mkdirs() }
+        registerCompositionFactory(DockerImageServerCompositionFactory(core))
     }
 
     internal suspend fun loadServers() {
-        try {
+        /* try {
             core.docker.inspectNetworkCmd().withNetworkId(NETWORK_ID).exec()
         } catch (e: NotFoundException) {
             core.docker.createNetworkCmd().withName(NETWORK_ID)
                 .withAttachable(true)
                 .exec()
-        }
+        } */
 
         try {
             repository.listServers { entities ->
@@ -134,7 +129,7 @@ class DockerServerManager(
                 logger.debug("${servers.size} server(s) have been loaded.")
         } catch (e: Throwable) {
             // if it's SQLErrorSyntaxException probably the Katan version is different
-            throw e.silent(logger)
+            throw e
         }
     }
 
@@ -174,7 +169,6 @@ class DockerServerManager(
     override suspend fun createServer(server: Server) {
         (server as ServerImpl).container = DockerServerContainer(CONTAINER_NAME_PATTERN.format(server.id), core.docker)
 
-        core.eventBus.publish(ServerCreateEvent(server))
         for (composition in server.compositions) {
             composition.write(server)
         }
@@ -191,7 +185,7 @@ class DockerServerManager(
             ).use { core.objectMapper.writeValue(it, composition.options) }
         }
 
-        core.eventBus.publish(ServerComposedEvent(server))
+        core.eventBus.publish(ServerCreateEvent(server))
     }
 
     override suspend fun registerServer(server: Server) {
@@ -200,22 +194,24 @@ class DockerServerManager(
 
     override suspend fun startServer(server: Server) {
         core.eventBus.publish(ServerStartingEvent(server))
-        val duration = Duration.ofMillis(measureTimeMillis {
+        core.eventBus.publish(ServerStartedEvent(server, duration = Duration.ofMillis(measureTimeMillis {
             server.container.start()
-        })
-        core.eventBus.publish(ServerStartedEvent(server, duration = duration))
+        })))
     }
 
     override suspend fun stopServer(server: Server, killAfter: Duration) {
         core.eventBus.publish(ServerStoppingEvent(server))
-        val duration = Duration.ofMillis(measureTimeMillis {
+        core.eventBus.publish(ServerStoppedEvent(server, duration = Duration.ofMillis(measureTimeMillis {
             server.container.stop()
-        })
-        core.eventBus.publish(ServerStoppedEvent(server, duration = duration))
+        })))
     }
 
     override suspend fun inspectServer(server: Server) {
         val response = core.docker.inspectContainerCmd(server.container.id).exec()
+        val inspection = DockerServerContainerInspection(response)
+        core.eventBus.publish(ServerInspectedEvent(server, result = inspection))
+        server.container.inspection = inspection
+
         val state = response.state.run {
             when {
                 dead ?: false -> ServerState.DEAD
@@ -228,10 +224,6 @@ class DockerServerManager(
 
         core.eventBus.publish(ServerStateChangeEvent(server, state))
         server.state = state
-
-        val inspection = DockerServerContainerInspection(response)
-        core.eventBus.publish(ServerInspectedEvent(server, result = inspection))
-        server.container.inspection = inspection
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -254,13 +246,15 @@ class DockerServerManager(
         }
     }
 
+    fun test() {
+        core.docker.statsCmd()
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     fun pullImage(image: String): Flow<String> = callbackFlow {
         val callback = object : ResultCallback<PullResponseItem> {
             override fun onNext(response: PullResponseItem) {
                 sendBlocking(response.toString())
-                if (response.isPullSuccessIndicated)
-                    channel.close()
             }
 
             override fun close() {}
@@ -275,7 +269,9 @@ class DockerServerManager(
                 channel.close(cause)
             }
 
-            override fun onComplete() {}
+            override fun onComplete() {
+                channel.close()
+            }
         }
 
         core.docker.pullImageCmd(image).exec(callback)
@@ -286,18 +282,14 @@ class DockerServerManager(
     }
 
     override fun getCompositionFactory(key: ServerComposition.Key<*>): ServerCompositionFactory? {
-        return compositionFactories.filterNot {
-            it is InvisibleCompositionFactory
-        }.firstOrNull { factory ->
-            factory.registrations.any { it == key }
+        return compositionFactories.firstOrNull { factory ->
+            factory.registrations.any { it.value == key }
         }
     }
 
     override fun getCompositionFactory(name: String): ServerCompositionFactory? {
-        return compositionFactories.filterNot {
-            it is InvisibleCompositionFactory
-        }.firstOrNull { factory ->
-            factory.get(name) != null
+        return compositionFactories.firstOrNull { factory ->
+            factory[name] != null
         }
     }
 
@@ -305,30 +297,12 @@ class DockerServerManager(
         synchronized(compositionFactories) {
             compositionFactories.add(factory)
         }
-
-        if (factory !is InvisibleCompositionFactory)
-            logger.debug(
-                "Composition factory registered for ${
-                    factory.registrations.entries.joinToString {
-                        it.key
-                    }
-                }."
-            )
     }
 
     override fun unregisterCompositionFactory(factory: ServerCompositionFactory) {
         synchronized(compositionFactories) {
             compositionFactories.remove(factory)
         }
-
-        if (factory !is InvisibleCompositionFactory)
-            logger.debug(
-                "Unregistered composition factory of ${
-                    factory.registrations.entries.joinToString {
-                        it.key
-                    }
-                }."
-            )
     }
 
 }

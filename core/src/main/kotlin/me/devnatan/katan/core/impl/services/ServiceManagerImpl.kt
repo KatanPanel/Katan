@@ -2,7 +2,7 @@ package me.devnatan.katan.core.impl.services
 
 import me.devnatan.katan.api.Descriptor
 import me.devnatan.katan.api.annotations.UnstableKatanApi
-import me.devnatan.katan.api.services.ServiceManager
+import me.devnatan.katan.api.service.ServiceManager
 import kotlin.reflect.KClass
 
 @OptIn(UnstableKatanApi::class)

@@ -5,58 +5,38 @@ package me.devnatan.katan.api.security.permission
  * They are used to determine the access of protected properties.
  * @property code flag identification code.
  */
-sealed class PermissionFlag constructor(val code: Int) {
+enum class PermissionFlag(val code: Int) {
 
     /**
-     * The holder has permission from the current context and it is allowed for him.
-     * It is the inverse of [NotAllowed].
+     * The holder has permission from the current context and it is allowed.
      */
-    object Allowed : PermissionFlag(1)
+    ALLOWED(1),
 
     /**
-     * The holder does not have permission from the current context or it is not allowed for him.
-     * It is the inverse of [Allowed].
+     * The holder does not have permission from the current context or it is not allowed.
      */
-    object NotAllowed : PermissionFlag(2)
-
-    /**
-     * Will use the flag of the [PermissionsHolder]’s parent.
-     */
-    object Inherit : PermissionFlag(3)
+    NOT_ALLOWED(-1)
 
 }
 
 /**
  * Returns `true` if this flag has a positive value.
- * @throws UnsupportedOperationException if is [PermissionFlag.Inherit].
  */
 fun PermissionFlag.isAllowed(): Boolean {
-    return when (this) {
-        is PermissionFlag.Allowed -> true
-        is PermissionFlag.NotAllowed -> false
-        else -> throw UnsupportedOperationException("Cannot check inherited permission flag value.")
-    }
+    return this == PermissionFlag.ALLOWED
 }
 
 /**
  * Returns `true` if this flag has a negative value.
- * @throws UnsupportedOperationException if is [PermissionFlag.Inherit].
  */
 fun PermissionFlag.isNotAllowed(): Boolean {
-    return when (this) {
-        is PermissionFlag.Allowed -> true
-        is PermissionFlag.NotAllowed -> false
-        else -> throw UnsupportedOperationException("Cannot check inherited permission flag value.")
-    }
+    return this == PermissionFlag.NOT_ALLOWED
 }
 
 /**
- * Returns the inverse value of this permission flag, or `this` for [PermissionFlag.Inherit].
+ * Returns the inverse value of this permission flag.
  */
 fun PermissionFlag.not(): PermissionFlag {
-    return when (this) {
-        is PermissionFlag.Allowed -> PermissionFlag.NotAllowed
-        is PermissionFlag.NotAllowed -> PermissionFlag.Allowed
-        else -> this
-    }
+    return if (this == PermissionFlag.ALLOWED) PermissionFlag.NOT_ALLOWED
+    else PermissionFlag.ALLOWED
 }

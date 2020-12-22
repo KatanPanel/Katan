@@ -10,33 +10,24 @@ import com.github.dockerjava.core.KeystoreSSLConfig
 import com.github.dockerjava.core.LocalDirectorySSLConfig
 import com.github.dockerjava.okhttp.OkDockerHttpClient
 import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigObject
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.*
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
-import me.devnatan.katan.api.game.GameType
+import me.devnatan.katan.api.game.GameManager
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
-import me.devnatan.katan.api.services.get
-import me.devnatan.katan.common.exceptions.throwSilent
-import me.devnatan.katan.common.util.exportResource
+import me.devnatan.katan.api.security.permission.DefaultPermissionKeys
+import me.devnatan.katan.api.service.get
 import me.devnatan.katan.common.util.get
-import me.devnatan.katan.common.util.getMap
 import me.devnatan.katan.core.cache.RedisCacheProvider
 import me.devnatan.katan.core.crypto.BcryptHash
-import me.devnatan.katan.core.database.DatabaseConnector
-import me.devnatan.katan.core.database.SUPPORTED_CONNECTORS
+import me.devnatan.katan.core.database.DatabaseManager
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.impl.account.AccountsManagerImpl
-import me.devnatan.katan.core.impl.game.GameImpl
 import me.devnatan.katan.core.impl.game.GameManagerImpl
-import me.devnatan.katan.core.impl.game.GameSettingsImpl
-import me.devnatan.katan.core.impl.game.GameVersionImpl
+import me.devnatan.katan.core.impl.permission.PermissionManagerImpl
 import me.devnatan.katan.core.impl.plugin.DefaultPluginManager
 import me.devnatan.katan.core.impl.server.DockerServerManager
 import me.devnatan.katan.core.impl.services.ServiceManagerImpl
@@ -46,16 +37,13 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
-import java.io.File
 import java.security.KeyStore
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.*
-import kotlin.system.measureTimeMillis
+import kotlin.system.exitProcess
 
 @OptIn(UnstableKatanApi::class)
-class KatanCore(val config: Config, override val environment: KatanEnvironment, val locale: KatanLocale) :
-    CoroutineScope by CoroutineScope(CoroutineName("Katan")), Katan {
+class KatanCore(val config: Config, override val environment: KatanEnvironment, override val translator: Translator) :
+    Katan {
 
     companion object {
 
@@ -67,86 +55,48 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
 
     val objectMapper = ObjectMapper()
     override val platform: Platform = currentPlatform()
-    lateinit var database: DatabaseConnector
     lateinit var docker: DockerClient
     override lateinit var accountManager: AccountsManagerImpl
     override lateinit var serverManager: DockerServerManager
     override val pluginManager = DefaultPluginManager(this)
     override val serviceManager = ServiceManagerImpl()
-    override val gameManager = GameManagerImpl()
+    override lateinit var gameManager: GameManager
     override lateinit var cache: Cache<Any>
     override val eventBus: EventScope = LocalEventScope()
     lateinit var hash: Hash
+    lateinit var databaseManager: DatabaseManager
+    override val permissionManager = PermissionManagerImpl()
 
-    val dateTimeFormatter: DateTimeFormatter by lazy {
+    init {
         val value = config.get("timezone", DEFAULT_VALUE)
-        val timezone = if (value == DEFAULT_VALUE)
-            TimeZone.getDefault()
-        else
-            TimeZone.getTimeZone(value)
-
-        logger.info(locale["katan.timezone", timezone.displayName])
-        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withZone(timezone.toZoneId())
-    }
-
-    private suspend fun database() {
-        val db = config.getConfig("database")
-        val dialect = db.get("source", DATABASE_DIALECT_FALLBACK)
-        logger.info(locale["katan.database.dialect", dialect, DATABASE_DIALECT_FALLBACK])
-
-        val dialectSettings = runCatching {
-            db.getConfig(dialect.toLowerCase())
-        }.onFailure {
-            throwSilent(IllegalArgumentException("Dialect properties not found: $dialect."), logger)
-        }.getOrThrow()
-
-        connectWith(dialect, dialectSettings, db.get("strict", false))
-    }
-
-    private suspend fun connectWith(dialect: String, config: Config, strict: Boolean) {
-        val dialectName = dialect.toLowerCase()
-        if (!SUPPORTED_CONNECTORS.containsKey(dialectName))
-            throwSilent(IllegalArgumentException("Database dialect $dialect is not supported"), logger)
-
-        val (connector, settings) = SUPPORTED_CONNECTORS.getValue(dialectName).invoke(config)
-        logger.info(locale["katan.database.connector", connector::class.simpleName!!])
-
-        try {
-            database = connector
-            logger.info(locale["katan.database.connecting", settings.toString()])
-            val took = measureTimeMillis {
-                connector.connect(settings)
-            }
-            logger.info(locale["katan.database.connected", String.format("%.2f", took / 1000.0f)])
-        } catch (e: Throwable) {
-            logger.error(locale["katan.database.fail", dialect])
-            if (strict || dialect.equals(DATABASE_DIALECT_FALLBACK, true))
-                throwSilent(e, logger)
-
-            logger.info(locale["katan.database.strict", DATABASE_DIALECT_FALLBACK])
-            connectWith(DATABASE_DIALECT_FALLBACK, config, strict)
+        if (value != DEFAULT_VALUE) {
+            val timezone = TimeZone.getTimeZone(value)
+            System.setProperty("katan.timezone", timezone.id)
+            logger.info(translator.translate("katan.timezone", timezone.displayName))
         }
     }
 
     private fun docker() {
-        logger.info(locale["katan.docker.config"])
+        logger.info(translator.translate("katan.docker.config"))
         val dockerLogger = LoggerFactory.getLogger("Docker")
         val dockerConfig = config.getConfig("docker")
-        val tls = dockerConfig.get("tls.verify", false)
-        val host = dockerConfig.getString("host")
-        if (host.substringBefore("://") == "unix" && platform.isWindows())
-            throwSilent(IllegalArgumentException("Unix domain sockets ($host) are not supported on Windows platform."), dockerLogger)
+        val host = System.getenv("KATAN_DOCKER_URI") ?: dockerConfig.getString("host")
+        if (host.startsWith("unix") && platform.isWindows()) {
+            logger.error(translator.translate("katan.docker.unix-domain-sockets", host))
+            exitProcess(0)
+        }
 
+        val tls = dockerConfig.get("tls.verify", false)
         val clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
             .withDockerHost(host)
             .withDockerTlsVerify(tls)
 
         if (tls) {
-            dockerLogger.info(locale["katan.docker.tls-enabled"])
+            dockerLogger.info(translator.translate("katan.docker.tls-enabled"))
             clientConfig.withDockerCertPath(dockerConfig.getString("tls.certPath"))
         } else
             dockerLogger.warn(
-                locale["katan.docker.tls-disabled", "https://docs.docker.com/engine/security/https/"]
+                translator.translate("katan.docker.tls-disabled", "https://docs.docker.com/engine/security/https/")
             )
 
         if (dockerConfig.get("ssl.enabled", false)) {
@@ -154,20 +104,17 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
                 when (dockerConfig.getString("ssl.provider")) {
                     "CERT" -> {
                         val path = dockerConfig.getString("ssl.certPath")
-                        dockerLogger.info(locale["katan.docker.cert-loaded", path])
+                        dockerLogger.info(translator.translate("katan.docker.cert-loaded", path))
                         LocalDirectorySSLConfig(path)
                     }
                     "KEY_STORE" -> {
                         val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
                         val keystore = KeyStore.getInstance(type)
-                        dockerLogger.info(locale["katan.docker.ks-loaded", type])
+                        dockerLogger.info(translator.translate("katan.docker.ks-loaded", type))
 
                         KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
                     }
-                    else -> throwSilent(
-                        IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE"),
-                        logger
-                    )
+                    else -> throw IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE")
                 }
             )
         }
@@ -185,14 +132,14 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
 
         // sends a ping to see if the connection will be established.
         docker.pingCmd().exec()
-        dockerLogger.info(locale["katan.docker.ready"])
+        dockerLogger.info(translator.translate("katan.docker.ready"))
     }
 
     private fun caching() {
         val redis = config.getConfig("redis")
         if (!redis.get("use", false)) {
-            logger.warn(locale["katan.redis.disabled"])
-            logger.warn(locale["katan.redis.alert", "https://redis.io/"])
+            logger.warn(translator.translate("katan.redis.disabled"))
+            logger.warn(translator.translate("katan.redis.alert", "https://redis.io/"))
             return
         }
 
@@ -200,88 +147,43 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
             // we have to use the pool instead of the direct client due to Katan nature,
             // the default instance of Jedis (without pool) is not thread-safe
             cache = RedisCacheProvider(JedisPool(JedisPoolConfig(), redis.get("host", "localhost")))
-            logger.info(locale["katan.redis.ready"])
+            logger.info(translator.translate("katan.redis.ready"))
         } catch (e: Throwable) {
             cache = UnavailableCacheProvider()
-            logger.error(locale["katan.redis.connection-failed"])
-            logger.error(e.message)
+            logger.error(translator.translate("katan.redis.connection-failed"))
         }
-    }
-
-    private fun loadGames() {
-        val root = "games"
-        val directory = File(root)
-        if (!directory.exists())
-            directory.mkdirs()
-        
-        for (supported in GameType.supported) {
-            exportResource("$root/${supported.name.toLowerCase(locale.locale)}.conf")
-        }
-
-        for (file in directory.listFiles()?.filterNotNull() ?: emptyList()) {
-            val config = ConfigFactory.parseFile(file)
-            val gameName = config.get("name", file.nameWithoutExtension)
-            val settings = config.getConfig("settings").let {
-                GameSettingsImpl(it.get("ports.min", 0)..it.get("ports.max", Short.MAX_VALUE * 2 - 1));
-            }
-
-            val versions = config.getConfig("versions").root().entries.map { (key, value) ->
-                val versionConfig = (value as ConfigObject).toConfig()
-                GameVersionImpl(key, versionConfig.get("image", null), versionConfig.getMap("environment"))
-            }.toTypedArray()
-
-            // TODO: check for non-native game type
-            val game = GameImpl(
-                gameName,
-                GameType.native(gameName)!!,
-                settings,
-                config.get("defaults.image", null),
-                config.getMap("defaults.environment"),
-                versions
-            )
-
-            logger.info(if (game.versions.isEmpty())
-                locale["katan.game-registered", game.name]
-            else
-                locale["katan.versioned-game-registered", game.name, game.versions.size]
-            )
-            gameManager.registerGame(game)
-        }
-    }
-
-    private fun throwUnavailableRepository(repository: String): Nothing {
-        throwSilent(IllegalArgumentException("No repository available: $repository"), logger)
     }
 
     suspend fun start() {
-        logger.info(locale["katan.starting", Katan.VERSION, locale["katan.env.$environment"].toLowerCase(locale.locale)])
-        logger.info(locale["katan.platform", "$platform"])
-        database()
+        logger.info(
+            translator.translate(
+                "katan.starting",
+                Katan.VERSION,
+                translator.translate("katan.env.$environment").toLowerCase(translator.locale)
+            )
+        )
+        logger.info(translator.translate("katan.platform", "$platform"))
         docker()
+        databaseManager = DatabaseManager(this)
+        databaseManager.connect()
         pluginManager.loadPlugins()
-        serverManager = DockerServerManager(
-            this, when (database) {
-                is JDBCConnector -> JDBCServersRepository(database as JDBCConnector)
-                else -> throwUnavailableRepository("servers")
-            }
-        )
-
-        accountManager = AccountsManagerImpl(
-            this, when (database) {
-                is JDBCConnector -> JDBCAccountsRepository(this, database as JDBCConnector)
-                else -> throwUnavailableRepository("accounts")
-            }
-        )
+        serverManager = DockerServerManager(this, JDBCServersRepository(databaseManager.database as JDBCConnector))
+        accountManager = AccountsManagerImpl(this, JDBCAccountsRepository(databaseManager.database as JDBCConnector))
         caching()
+
+        DefaultPermissionKeys.DEFAULTS.forEach { key ->
+            permissionManager.registerPermissionKey(key)
+        }
+
+        gameManager = GameManagerImpl(this)
         pluginManager.callHandlers(KatanInit)
-        loadGames()
         serverManager.loadServers()
 
         hash = when (val algorithm = config.getString("security.crypto.hash")) {
             DEFAULT_VALUE, BcryptHash.NAME -> BcryptHash()
-            else -> serviceManager.get() ?: throwSilent(IllegalArgumentException("Unsupported hash algorithm: $algorithm"), logger)
+            else -> serviceManager.get() ?: throw IllegalArgumentException("Unsupported hash algorithm: $algorithm")
         }
-        logger.info(locale["katan.selected-hash", hash.name])
+        logger.info(translator.translate("katan.selected-hash", hash.name))
         accountManager.loadAccounts()
 
         pluginManager.callHandlers(KatanStarted)

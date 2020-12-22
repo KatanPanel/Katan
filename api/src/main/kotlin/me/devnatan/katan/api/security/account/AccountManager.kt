@@ -1,5 +1,6 @@
 package me.devnatan.katan.api.security.account
 
+import me.devnatan.katan.api.security.credentials.Credentials
 import java.util.*
 
 /**
@@ -47,9 +48,9 @@ interface AccountManager {
     /**
      * Attempts to authenticate an account with the specified password.
      * @param account the account to be authenticated.
-     * @param password the password that will be used for authentication.
+     * @param credentials the credentials that will be used for authentication.
      * @return `true` if the account has been successfully authenticated or` false` otherwise.
      */
-    suspend fun authenticateAccount(account: Account, password: String): Boolean
+    suspend fun authenticateAccount(account: Account, credentials: Credentials): Boolean
 
 }

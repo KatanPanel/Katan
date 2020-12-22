@@ -1,6 +1,5 @@
 package me.devnatan.katan.api.server
 
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.game.Game
 
 /**
@@ -42,7 +41,6 @@ interface Server {
     /**
      * Returns the server compositions container.
      */
-    @UnstableKatanApi
     val compositions: ServerCompositions
 
     /**

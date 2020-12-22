@@ -1,8 +1,7 @@
 package me.devnatan.katan.api.server
 
 /**
- * Represents the result of the inspection of a container.
- * @see ServerContainer
+ * Represents the result of the inspection of a [ServerContainer].
  */
 interface ServerContainerInspection {
 
@@ -11,9 +10,7 @@ interface ServerContainerInspection {
      */
     object NotInspected : ServerContainerInspection {
 
-        override fun toString(): String {
-            return "Not inspected yet."
-        }
+        override fun toString() = "Not inspected yet."
 
     }
 

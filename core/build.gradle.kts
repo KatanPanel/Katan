@@ -1,9 +1,15 @@
 val exposedVersion = "0.27.1"
 val dockerJavaVersion = "3.2.5"
 
+plugins {
+    application
+    id("com.github.johnrengelman.shadow") version "6.0.0"
+}
+
 dependencies {
     api(project(":common"))
-    implementation(project(":docker-compose"))
+    implementation(project(":web-server"))
+    implementation(project(":cli"))
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
@@ -23,5 +29,30 @@ configurations {
     implementation {
         exclude(module = "bcpkix-jdk15on")
         exclude(module = "bcprov-jdk15on")
+    }
+}
+
+application {
+    mainClassName = "me.devnatan.katan.core.KatanLauncher"
+}
+
+tasks {
+    jar {
+        manifest {
+            attributes["Main-Class"] = application.mainClassName
+            attributes["Implementation-Version"] = project.version
+        }
+    }
+
+    shadowJar {
+        archiveBaseName.set("Katan")
+        archiveClassifier.set(null as String?)
+
+        // fix for "Could not initialize class org.eclipse.jetty.server.HttpConnection"
+        mergeServiceFiles()
+    }
+
+    build {
+        dependsOn(shadowJar)
     }
 }

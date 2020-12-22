@@ -21,12 +21,12 @@ abstract class ServerContainer(val id: String) {
     }
 
     /**
-     * Atomically starts a container by suspending the function until the container has been started.
+     * Starts this [ServerContainer] and suspend this function until the container has been started.
      */
     abstract suspend fun start()
 
     /**
-     * Atomically stops a container by suspending the function until the container has been stopped.
+     * Stops this [ServerContainer] and suspend this function until the container has been stopped.
      */
     abstract suspend fun stop()
 

@@ -1,7 +1,5 @@
 package me.devnatan.katan.api.server
 
-import me.devnatan.katan.api.annotations.UnstableKatanApi
-
 /**
  * Represents a composition of a server, as if it were a part of its body.
  *
@@ -13,7 +11,6 @@ import me.devnatan.katan.api.annotations.UnstableKatanApi
  * As identification, compositions have keys, determining
  * which key is which composition is a [ServerCompositionFactory] task.
  */
-@UnstableKatanApi
 interface ServerComposition<T : ServerCompositionOptions> {
 
     /**
@@ -53,9 +50,8 @@ interface ServerComposition<T : ServerCompositionOptions> {
  * Returns a [CombinedServerComposition] of the result of joining this composition with [other].
  * If any composition is combined it will be deconstructed.
  */
-@UnstableKatanApi
 operator fun ServerComposition<*>.plus(other: ServerComposition<*>): ServerComposition<*> {
-    return CombinedServerComposition(
+    return CombinedServerComposition(key,
         when {
             this is CombinedServerComposition -> compositions + other
             other is CombinedServerComposition -> other.compositions + this
@@ -69,7 +65,6 @@ operator fun ServerComposition<*>.plus(other: ServerComposition<*>): ServerCompo
  * Returns a composition of the compositions that are combined that contains
  * the specified [key] or `null` if the key composition has not been combined.
  */
-@UnstableKatanApi
 operator fun ServerComposition<*>.get(key: ServerComposition.Key<*>): ServerComposition<*>? {
     if (this !is CombinedServerComposition)
         throw UnsupportedOperationException("Only combined compositions have get operators")
@@ -78,18 +73,30 @@ operator fun ServerComposition<*>.get(key: ServerComposition.Key<*>): ServerComp
 }
 
 /**
+ * Returns the combination of that composition and [others]
+ * compositions using the specified [key] as identification.
+ *
+ * Compositions to be combined that are already [CombinedServerComposition] will be deconstructed.
+ */
+fun ServerComposition<*>.combine(key: ServerComposition.Key<*>, vararg others: ServerComposition<*>): ServerComposition<*> {
+    if (this is CombinedServerComposition)
+        return CombinedServerComposition(key, compositions + others)
+
+    return CombinedServerComposition(key, listOf(this) + others)
+}
+
+/**
  * A combination of compositions, created to serve as a "module" for compositions.
  * Combined compositions have indexing ([get]) and addition ([plus]) method.
  *
  * Combined compositions do not have properties as they use their own,
- * so it is not possible to access the combined [key], [factory] and [options].
+ * so it is not possible to access the combined [factory] and [options].
  */
-@UnstableKatanApi
 class CombinedServerComposition(
+    override val key: ServerComposition.Key<*>,
     val compositions: List<ServerComposition<*>>
 ) : ServerComposition<ServerCompositionOptions> {
 
-    override val key: ServerComposition.Key<*> get() = unsupported()
     override val factory: ServerCompositionFactory get() = unsupported()
     override val options: ServerCompositionOptions get() = unsupported()
 
@@ -104,7 +111,7 @@ class CombinedServerComposition(
     }
 
     private fun unsupported(): Nothing {
-        throw UnsupportedOperationException("Combined compositions cannot be accessed directly")
+        throw UnsupportedOperationException("Combined compositions properties cannot be accessed.")
     }
 
 }

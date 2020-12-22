@@ -10,8 +10,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.Version
-import me.devnatan.katan.api.annotations.UnstableKatanApi
-import me.devnatan.katan.api.internal.InitOnceProperty
+import me.devnatan.katan.api.util.InitOnceProperty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -133,7 +132,6 @@ inline fun <reified T> Plugin.dependency(): ReadOnlyProperty<Plugin, T?> {
  * Registers a new service in the [ServiceManager] using this plugin as owner.
  * @param service the service to be registered.
  */
-@UnstableKatanApi
 inline fun <reified T : Any> Plugin.registerService(service: T) {
     katan.serviceManager.register(T::class, service, descriptor)
 }
@@ -142,7 +140,6 @@ inline fun <reified T : Any> Plugin.registerService(service: T) {
  * Unregisters a previously registered [service] in the [ServiceManager].
  * @param service the service to be unregistered.
  */
-@UnstableKatanApi
 fun Plugin.unregisterService(service: KClass<out Any>) {
     katan.serviceManager.unregister(service, descriptor)
 }

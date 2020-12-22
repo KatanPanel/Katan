@@ -2,13 +2,15 @@ package me.devnatan.katan.api
 
 import br.com.devsrsouza.eventkt.EventScope
 import me.devnatan.katan.api.cache.Cache
+import me.devnatan.katan.api.game.Game
 import me.devnatan.katan.api.game.GameManager
 import me.devnatan.katan.api.plugin.Plugin
 import me.devnatan.katan.api.plugin.PluginManager
 import me.devnatan.katan.api.security.account.AccountManager
+import me.devnatan.katan.api.security.permission.PermissionManager
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerManager
-import me.devnatan.katan.api.services.ServiceManager
+import me.devnatan.katan.api.service.ServiceManager
 import org.slf4j.event.Level
 
 /**
@@ -23,6 +25,9 @@ interface Katan {
          * Returns the current version of the Katan.
          */
         val VERSION = Version(1, 0, 0, "alpha.1")
+
+        const val ENVIRONMENT_PROPERTY = "katan.environment"
+        const val LOCALE_PROPERTY = "katan.locale"
 
     }
 
@@ -72,39 +77,37 @@ interface Katan {
      */
     val eventBus: EventScope
 
+    /**
+     * Returns the Katan message translator.
+     */
+    val translator: Translator
+
+    val permissionManager: PermissionManager
+
 }
 
 /**
  * Represents the mode of the environment in which Katan is running.
  * @property value the name of the environment
- * @see Katan.environment
  */
 inline class KatanEnvironment(private val value: String) {
 
     companion object {
 
-        const val LOCAL = "local"
         const val DEVELOPMENT = "dev"
         const val TESTING = "test"
         const val STAGING = "stage"
         const val PRODUCTION = "production"
 
-        val ALL: Array<String> get() = arrayOf(LOCAL, DEVELOPMENT, TESTING, STAGING, PRODUCTION)
+        val ALL: Array<String> get() = arrayOf(DEVELOPMENT, TESTING, STAGING, PRODUCTION)
 
     }
 
     /**
-     * Returns `true` if the current environment mode is [LOCAL].
-     */
-    fun isLocal(): Boolean {
-        return value == LOCAL
-    }
-
-    /**
-     * Returns `true` if the current environment mode is [LOCAL] or [DEVELOPMENT]
+     * Returns `true` if the current environment mode is [DEVELOPMENT],
      */
     fun isDevelopment(): Boolean {
-        return isLocal() || value == DEVELOPMENT
+        return value == DEVELOPMENT
     }
 
     /**
@@ -128,10 +131,9 @@ inline class KatanEnvironment(private val value: String) {
 }
 
 /**
- * Returns the default recommended logging level for this environment mode.
+ * Returns the default recommended logging level for this environment.
  */
 fun KatanEnvironment.defaultLogLevel(): Level = when {
-    isLocal() -> Level.TRACE
-    isDevelopment() || isTesting() -> Level.DEBUG
+    isDevelopment() || isTesting() -> Level.TRACE
     else -> Level.INFO
 }

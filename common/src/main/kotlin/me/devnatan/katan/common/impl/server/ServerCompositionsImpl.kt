@@ -6,11 +6,11 @@ import me.devnatan.katan.api.server.ServerCompositions
 class ServerCompositionsImpl : ServerCompositions {
 
     private val lock = Any()
-    private val registered = linkedMapOf<ServerComposition.Key<*>, ServerComposition<*>>()
+    private val registered: MutableMap<ServerComposition.Key<*>, ServerComposition<*>> = hashMapOf()
 
     override operator fun <T : ServerComposition<*>> get(key: ServerComposition.Key<T>): T? {
         return synchronized(lock) {
-            registered[key] as? T
+            registered[key] as? T?
         }
     }
 

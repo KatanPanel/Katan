@@ -6,7 +6,7 @@ import me.devnatan.katan.cli.KatanCLI
 
 class AccountCommand(cli: KatanCLI) : NoOpCliktCommand(
     name = "account",
-    help = cli.locale["cli.help.accounts"],
+    help = cli.katan.translator.translate("cli.help.accounts"),
     printHelpOnEmptyArgs = true
 ) {
 
