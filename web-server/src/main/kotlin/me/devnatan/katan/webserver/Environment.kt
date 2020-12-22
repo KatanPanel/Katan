@@ -1,4 +1,4 @@
-package me.devnatan.katan.webserver.environment
+package me.devnatan.katan.webserver
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.core.util.DefaultIndenter
@@ -13,24 +13,17 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.jackson.*
 import io.ktor.locations.*
-import io.ktor.metrics.micrometer.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.websocket.*
-import io.micrometer.prometheus.PrometheusConfig
-import io.micrometer.prometheus.PrometheusMeterRegistry
 import me.devnatan.katan.api.defaultLogLevel
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.common.util.get
-import me.devnatan.katan.webserver.INVALID_ACCESS_TOKEN_ERROR
-import me.devnatan.katan.webserver.KatanWS
-import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
-import me.devnatan.katan.webserver.environment.jwt.AccountPrincipal
+import me.devnatan.katan.webserver.exceptions.KatanHTTPException
+import me.devnatan.katan.webserver.jwt.AccountPrincipal
 import me.devnatan.katan.webserver.websocket.WebSocketManager
 import me.devnatan.katan.webserver.websocket.handler.WebSocketServerHandler
-import org.mpierce.ktor.csrf.CsrfProtection
-import org.mpierce.ktor.csrf.HeaderPresent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.security.KeyStore
@@ -40,7 +33,6 @@ class Environment(val server: KatanWS) {
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(Environment::class.java)
-        const val XSRF_HEADER = "X-XSRF-TOKEN"
     }
 
     lateinit var webSocketManager: WebSocketManager
@@ -126,7 +118,6 @@ class Environment(val server: KatanWS) {
 
         install(CORS) {
             method(HttpMethod.Options)
-            header(XSRF_HEADER)
             header("Authorization")
             allowNonSimpleContentTypes = true
             allowCredentials = true
@@ -164,10 +155,6 @@ class Environment(val server: KatanWS) {
             }
         }
 
-        install(CsrfProtection) {
-            validate(HeaderPresent(XSRF_HEADER))
-        }
-
         install(Authentication) {
             jwt {
                 realm = "Katan WebServer"
@@ -179,12 +166,6 @@ class Environment(val server: KatanWS) {
 
                     AccountPrincipal(account)
                 }
-            }
-        }
-
-        install(MicrometerMetrics) {
-            registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT).apply {
-                config().commonTags("application", "Katan")
             }
         }
 

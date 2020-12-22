@@ -1,4 +1,4 @@
-package me.devnatan.katan.webserver.environment
+package me.devnatan.katan.webserver
 
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -13,9 +13,8 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import me.devnatan.katan.api.Katan
-import me.devnatan.katan.webserver.*
-import me.devnatan.katan.webserver.environment.exceptions.KatanHTTPException
-import me.devnatan.katan.webserver.environment.routes.*
+import me.devnatan.katan.webserver.exceptions.KatanHTTPException
+import me.devnatan.katan.webserver.routes.*
 import me.devnatan.katan.webserver.websocket.WebSocketManager
 import me.devnatan.katan.webserver.websocket.session.KtorWebSocketSession
 
@@ -77,9 +76,9 @@ fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
 fun Application.router(
     env: Environment
 ) = routing {
-    intercept(ApplicationCallPipeline.Fallback) {
+    /* intercept(ApplicationCallPipeline.Fallback) {
         call.respond(HttpStatusCode.NotFound)
-    }
+    } */
 
     installWebSocketRoute(env.webSocketManager)
 
@@ -125,21 +124,21 @@ fun Application.router(
     authenticate {
         get<InfoRoute> {
             respondOk(
+                "version" to Katan.VERSION,
+                "platform" to env.server.katan.platform,
+                "environment" to env.server.katan.environment,
                 "plugins" to env.server.katan.pluginManager.getPlugins().map {
-                    mapOf(
-                        "name" to it.descriptor.name,
-                        "version" to it.descriptor.version,
-                        "author" to it.descriptor.author,
-                        "state" to it.state.order
-                    )
+                    it.serialize()
                 },
-                "games" to env.server.katan.gameManager.getSupportedGames()
+                "games" to env.server.katan.gameManager.getRegisteredGames(),
             )
         }
 
         get<AuthRoute.Verify> {
-            respondOk("account" to call.account.serialize())
+            respondOk("account" to call.account.serialize(env.server.katan.permissionManager))
         }
+
+        /* start: servers */
         get<ServersRoute> {
             respondOk(env.server.serverManager.getServerList().map { it.serialize() })
         }
@@ -147,5 +146,12 @@ fun Application.router(
         get<ServersRoute.Server> { data ->
             respondOk("server" to data.server.serialize())
         }
+        /* end: servers */
+
+        /* start: accounts */
+        get<AccountsRoute> {
+            respondOk(env.server.accountManager.getAccounts().map { it.serialize(env.server.katan.permissionManager) })
+        }
+        /* end: accounts */
     }
 }

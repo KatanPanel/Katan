@@ -8,7 +8,6 @@ import io.ktor.util.*
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
-import me.devnatan.katan.webserver.environment.Environment
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 

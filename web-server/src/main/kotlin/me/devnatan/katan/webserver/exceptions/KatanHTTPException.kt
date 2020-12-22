@@ -1,4 +1,4 @@
-package me.devnatan.katan.webserver.environment.exceptions
+package me.devnatan.katan.webserver.exceptions
 
 import io.ktor.http.*
 
