@@ -13,12 +13,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.DATA_KEY
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.OP_KEY
 import me.devnatan.katan.webserver.websocket.handler.WebSocketHandler
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessageImpl
 import me.devnatan.katan.webserver.websocket.session.WebSocketSession
 import java.nio.channels.ClosedChannelException
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ConcurrentLinkedQueue
 
 class WebSocketManager {
 
@@ -29,10 +31,10 @@ class WebSocketManager {
         propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
     }
 
-    private val sessions = CopyOnWriteArrayList<WebSocketSession>()
+    private val sessions = ConcurrentLinkedQueue<WebSocketSession>()
     private val handlers = mutableListOf<WebSocketHandler>()
     private val eventbus = LocalEventScope().asSimple()
-    private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("Katan::WebSocketManager"))
+    private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("Katan::WSManager"))
     private val mutex = Mutex()
 
     init {
@@ -114,8 +116,8 @@ class WebSocketManager {
         val data = objectMapper.readValue<Map<String, Any>>(packet.readText())
         emitEvent(
             WebSocketMessageImpl(
-                data.getValue("op") as Int,
-                data.getValue("d") as Map<String, Any>,
+                data.getValue(OP_KEY) as Int,
+                data.getValue(DATA_KEY) as Map<String, Any>,
                 session
             )
         )

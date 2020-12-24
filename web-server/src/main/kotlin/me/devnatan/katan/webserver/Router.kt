@@ -16,6 +16,8 @@ import me.devnatan.katan.api.Katan
 import me.devnatan.katan.webserver.exceptions.KatanHTTPException
 import me.devnatan.katan.webserver.routes.*
 import me.devnatan.katan.webserver.websocket.WebSocketManager
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.DATA_KEY
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.OP_KEY
 import me.devnatan.katan.webserver.websocket.session.KtorWebSocketSession
 
 internal suspend fun PipelineContext<*, ApplicationCall>.respondOk(
@@ -46,8 +48,8 @@ fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
                 Frame.Text(
                     webSocketManager.objectMapper.writeValueAsString(
                         mapOf(
-                            "op" to it.op,
-                            "d" to it.content
+                            OP_KEY to it.op,
+                            DATA_KEY to it.content
                         )
                     )
                 )
