@@ -17,20 +17,29 @@ import me.devnatan.katan.api.game.GameVersion
 import me.devnatan.katan.api.server.*
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.cli.err
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ALIAS_SERVER_CREATE
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ARG_HELP_SERVER_NAME
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ARG_LABEL_SERVER_NAME
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_HELP_SERVER_CREATE
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_SERVER_NOT_FOUND
 import me.devnatan.katan.common.impl.server.ServerGameImpl
 
 class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
-    name = "create",
-    help = "Creates a new server"
+    name = cli.translate(CLI_ALIAS_SERVER_CREATE),
+    help = cli.translate(CLI_HELP_SERVER_CREATE)
 ) {
 
-    private val name by argument(help = "Name of the server.")
+    private val name by argument(
+        cli.translate(CLI_ARG_LABEL_SERVER_NAME),
+        cli.translate(CLI_ARG_HELP_SERVER_NAME)
+    )
+
     private val game by option("-g", "--game", help = "A game that is supported by Katan.").required()
     private val host by option(
         "-h",
         "--host",
         help = "Remote server connection address."
-    ).default("127.0.0.1")
+    ).default("0.0.0.0")
 
     private val port by option("-p", "--port", help = "Remote server connection port.").int().required()
     private val image by option("-i", "--image", help = "Docker image that will be used to build the server.")
@@ -45,10 +54,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
     @OptIn(ExperimentalCoroutinesApi::class, InternalKatanApi::class, UnstableKatanApi::class)
     override fun run() {
         if (cli.serverManager.existsServer(name))
-            return err(
-                "There is already a server with that name, try another one.",
-                "Use \"katan server ls\" to find out which servers already exist."
-            )
+            return err(cli.translate(CLI_SERVER_NOT_FOUND, name))
 
         val gameTarget = game.split(":")
         val target = cli.katan.gameManager.getGame(gameTarget[0])
@@ -74,12 +80,8 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                 if (error == null) {
                     cli.coroutineScope.launch(CoroutineName("KatanCLI::server-create")) {
                         cli.serverManager.addServer(server)
-
-                        echo("Registering server....")
                         cli.serverManager.registerServer(server)
                         cli.serverManager.inspectServer(server)
-
-                        echo("Server $name created successfully!")
                     }
                 }
             }

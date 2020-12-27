@@ -73,4 +73,8 @@ class KatanCLI(val katan: Katan) {
         coroutineScope.cancel()
     }
 
+    fun translate(key: String, vararg args: Any): String {
+        return katan.translator.translate(key, *args)
+    }
+
 }

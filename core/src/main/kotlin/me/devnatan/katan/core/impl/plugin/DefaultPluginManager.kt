@@ -47,7 +47,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
     }
 
     override suspend fun startPlugin(plugin: Plugin) {
-        (plugin as KatanPlugin).state = PluginState.Started(Instant.now())
+        (plugin as KatanPlugin).state = PluginState.Started(Instant.now(), plugin.state)
         callHandlers(PluginEnabled, plugin)
         logger.info("Plugin \"$plugin\" started.")
     }
@@ -74,7 +74,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
     override suspend fun stopPlugin(plugin: Plugin): Plugin {
         check(plugin.state is PluginState.Started) { "Plugin is not enabled." }
         plugin.coroutineScope.cancel()
-        plugin.state = PluginState.Disabled(Instant.now())
+        plugin.state = PluginState.Disabled(Instant.now(), plugin.state)
         callHandlers(PluginDisabled, plugin)
         return plugin
     }
@@ -108,7 +108,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
                 "_config" to loadPluginConfig(instance, workingDir, classloader)
             )
         )
-        plugin.state = PluginState.Loaded(Instant.now())
+        plugin.state = PluginState.Loaded(Instant.now(), plugin.state)
         callHandlers(PluginLoaded, plugin)
         logger.info("Plugin \"$plugin\" loaded")
         return plugin

@@ -1,7 +1,6 @@
 package me.devnatan.katan.core
 
 import br.com.devsrsouza.eventkt.EventScope
-import br.com.devsrsouza.eventkt.scopes.LocalEventScope
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DefaultDockerClientConfig
@@ -10,6 +9,8 @@ import com.github.dockerjava.core.KeystoreSSLConfig
 import com.github.dockerjava.core.LocalDirectorySSLConfig
 import com.github.dockerjava.okhttp.OkDockerHttpClient
 import com.typesafe.config.Config
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.*
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
@@ -25,6 +26,7 @@ import me.devnatan.katan.core.cache.RedisCacheProvider
 import me.devnatan.katan.core.crypto.BcryptHash
 import me.devnatan.katan.core.database.DatabaseManager
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
+import me.devnatan.katan.core.docker.DockerEventsListener
 import me.devnatan.katan.core.impl.account.AccountsManagerImpl
 import me.devnatan.katan.core.impl.game.GameManagerImpl
 import me.devnatan.katan.core.impl.permission.PermissionManagerImpl
@@ -43,7 +45,7 @@ import kotlin.system.exitProcess
 
 @OptIn(UnstableKatanApi::class)
 class KatanCore(val config: Config, override val environment: KatanEnvironment, override val translator: Translator) :
-    Katan {
+    Katan, CoroutineScope by CoroutineScope(CoroutineName("Katan")) {
 
     companion object {
 
@@ -62,10 +64,11 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
     override val serviceManager = ServiceManagerImpl()
     override lateinit var gameManager: GameManager
     override lateinit var cache: Cache<Any>
-    override val eventBus: EventScope = LocalEventScope()
+    override val eventBus: EventScope = EventBus()
     lateinit var hash: Hash
     lateinit var databaseManager: DatabaseManager
     override val permissionManager = PermissionManagerImpl()
+    private val dockerEventsListener = DockerEventsListener(this)
 
     init {
         val value = config.get("timezone", DEFAULT_VALUE)
@@ -171,17 +174,17 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
         accountManager = AccountsManagerImpl(this, JDBCAccountsRepository(databaseManager.database as JDBCConnector))
         caching()
 
-        DefaultPermissionKeys.DEFAULTS.forEach { key ->
-            permissionManager.registerPermissionKey(key)
-        }
+        for (defaultPermission in DefaultPermissionKeys.DEFAULTS)
+            permissionManager.registerPermissionKey(defaultPermission)
 
         gameManager = GameManagerImpl(this)
         pluginManager.callHandlers(KatanInit)
         serverManager.loadServers()
+        dockerEventsListener.listen()
 
         hash = when (val algorithm = config.getString("security.crypto.hash")) {
             DEFAULT_VALUE, BcryptHash.NAME -> BcryptHash()
-            else -> serviceManager.get() ?: throw IllegalArgumentException("Unsupported hash algorithm: $algorithm")
+            else -> serviceManager.get() ?: throw IllegalArgumentException("Unsupported hashing algorithm: $algorithm")
         }
         logger.info(translator.translate("katan.selected-hash", hash.name))
         accountManager.loadAccounts()
@@ -191,6 +194,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
 
     suspend fun close() {
         pluginManager.disableAll()
+        dockerEventsListener.close()
     }
 
 }

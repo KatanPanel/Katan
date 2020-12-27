@@ -4,7 +4,10 @@ package me.devnatan.katan.api.server
  * Represents a server's container.
  * @property id the container identification.
  */
-abstract class ServerContainer(val id: String) {
+abstract class ServerContainer(
+    val id: String,
+    val name: String
+) {
 
     /**
      * Returns the result of the server inspection.
@@ -29,5 +32,9 @@ abstract class ServerContainer(val id: String) {
      * Stops this [ServerContainer] and suspend this function until the container has been stopped.
      */
     abstract suspend fun stop()
+
+    override fun toString(): String {
+        return "$name ($id)"
+    }
 
 }

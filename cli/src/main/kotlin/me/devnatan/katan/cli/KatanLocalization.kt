@@ -17,6 +17,10 @@ class KatanLocalization(private val translator: Translator) : Localization {
         return translator.translate("cli.extent.args-title")
     }
 
+    override fun commandsTitle(): String {
+        return translator.translate("cli.extent.commands-title")
+    }
+
     override fun helpTagDefault(): String {
         return translator.translate("cli.extent.tag-default")
     }

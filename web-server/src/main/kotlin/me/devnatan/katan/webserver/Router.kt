@@ -57,6 +57,7 @@ fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
         }
 
         webSocketManager.attachSession(session)
+        println("$session attached")
         try {
             for (frame in incoming) {
                 when (frame) {
@@ -70,6 +71,7 @@ fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
             e.printStackTrace()
         } finally {
             webSocketManager.detachSession(session)
+            println("$session detached")
         }
     }
 }

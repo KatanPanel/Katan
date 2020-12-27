@@ -2,20 +2,25 @@ package me.devnatan.katan.cli.commands.account
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.jakewharton.picnic.TextAlignment
-import com.jakewharton.picnic.renderText
 import com.jakewharton.picnic.table
 import me.devnatan.katan.cli.KatanCLI
+import me.devnatan.katan.cli.render
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ACCOUNT_LIST
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ACCOUNT_LIST_ID
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ACCOUNT_LIST_REGISTERED_AT
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ACCOUNT_LIST_USERNAME
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ALIAS_ACCOUNT_LIST
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_HELP_ACCOUNT_LIST
 import me.devnatan.katan.common.util.dateTimeFormatter
 
 class AccountListCommand(private val cli: KatanCLI) : CliktCommand(
-    name = "ls",
-    help = "Lists all registered accounts."
+    name = cli.translate(CLI_ALIAS_ACCOUNT_LIST),
+    help = cli.translate(CLI_HELP_ACCOUNT_LIST)
 ) {
 
     override fun run() {
         val accounts = cli.accountManager.getAccounts()
-
-        table {
+        render(table {
             cellStyle {
                 paddingLeft = 1
                 paddingRight = 1
@@ -26,28 +31,28 @@ class AccountListCommand(private val cli: KatanCLI) : CliktCommand(
             header {
                 cellStyle { alignment = TextAlignment.BottomCenter }
                 row {
-                    cell(cli.katan.translator.translate("cli.accounts-list", accounts.size)) {
+                    cell(cli.translate(CLI_ACCOUNT_LIST, accounts.size)) {
                         columnSpan = 4
                         paddingBottom = 1
                     }
                 }
 
                 row("#",
-                    cli.katan.translator.translate("cli.accounts-list-id"),
-                    cli.katan.translator.translate("cli.accounts-list-username"),
-                    cli.katan.translator.translate("cli.accounts-list-registered-at")
+                    cli.translate(CLI_ACCOUNT_LIST_ID),
+                    cli.translate(CLI_ACCOUNT_LIST_USERNAME),
+                    cli.translate(CLI_ACCOUNT_LIST_REGISTERED_AT)
                 )
             }
 
             body {
-                for ((index, account) in accounts.sortedByDescending { account -> account.registeredAt }.withIndex()) {
+                for ((index, account) in accounts.sortedByDescending { it.registeredAt }.withIndex()) {
                     row(index + 1, account.id.toString().substringBefore("-"),
                         account.username,
                         dateTimeFormatter.format(account.registeredAt),
                     )
                 }
             }
-        }.renderText().split(System.lineSeparator()).forEach(::echo)
+        })
     }
 
 }

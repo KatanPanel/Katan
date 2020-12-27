@@ -2,7 +2,13 @@ package me.devnatan.katan.api.server
 
 interface DockerImageServerComposition : ServerComposition<DockerImageServerComposition.Options> {
 
-    companion object Key : ServerComposition.Key<DockerImageServerComposition>
+    companion object Key : ServerComposition.Key<DockerImageServerComposition> {
+
+        override fun toString(): String {
+            return "Docker Image Server Composition"
+        }
+
+    }
 
     data class Options(
         val host: String,

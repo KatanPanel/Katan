@@ -27,10 +27,23 @@ enum class ServerState {
     RUNNING,
 
     /**
+     * An error occurred while loading the server.
+     * One of the causes may be that the server container has not been found.
+     */
+    UNLOADED,
+
+    /**
      * The state of the server is unknown.
      */
     UNKNOWN
 
+}
+
+/**
+ * Returns `true` if the server is loaded or `false` otherwise.
+ */
+fun ServerState.isLoaded(): Boolean {
+    return this != ServerState.UNLOADED
 }
 
 /**

@@ -75,3 +75,11 @@ fun currentPlatform() = Platform(
         System.getProperty("os.version", "unknown")
     )
 )
+
+/**
+ * Clears the console screen according to the current platform.
+ */
+fun Platform.clearConsole() {
+    if (isWindows()) ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+    else Runtime.getRuntime().exec("clear");
+}

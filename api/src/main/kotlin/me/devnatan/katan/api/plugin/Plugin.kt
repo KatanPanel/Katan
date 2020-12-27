@@ -14,6 +14,7 @@ import me.devnatan.katan.api.util.InitOnceProperty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
@@ -161,7 +162,7 @@ open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin
     final override val directory: File by InitOnceProperty()
     private var _config: Config by InitOnceProperty()
     final override val config: Config get() = _config
-    final override var state: PluginState = PluginState.Unloaded()
+    final override var state: PluginState = PluginState.Unloaded(Instant.now())
     final override val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName("Katan-plugin:${descriptor.name}"))
     final override val eventListener: EventScope = LocalEventScope()
     final override val logger: Logger = LoggerFactory.getLogger(descriptor.name)

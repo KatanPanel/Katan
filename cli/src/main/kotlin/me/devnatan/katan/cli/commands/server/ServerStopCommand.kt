@@ -5,41 +5,42 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.long
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import me.devnatan.katan.api.server.isInactive
+import me.devnatan.katan.api.server.getServerOrNull
+import me.devnatan.katan.api.server.isActive
 import me.devnatan.katan.cli.KatanCLI
+import me.devnatan.katan.cli.err
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ALIAS_SERVER_STOP
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ARG_HELP_SERVER_NAME
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_ARG_LABEL_SERVER_NAME
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_HELP_SERVER_STOP
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_OPTION_SERVER_STOP_TIMEOUT
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_SERVER_NOT_FOUND
+import me.devnatan.katan.common.KatanTranslationKeys.CLI_SERVER_NOT_RUNNING
 import java.time.Duration
 
 class ServerStopCommand(private val cli: KatanCLI) : CliktCommand(
-    name = "stop",
-    help = "Stops a running server"
+    name = cli.translate(CLI_ALIAS_SERVER_STOP),
+    help = cli.translate(CLI_HELP_SERVER_STOP)
 ) {
 
-    private val serverName by argument("name", "Server name")
-    private val timeout by option("-t", "--timeout").long().default(10)
+    private val serverName by argument(
+        cli.translate(CLI_ARG_LABEL_SERVER_NAME),
+        cli.translate(CLI_ARG_HELP_SERVER_NAME)
+    )
+
+    private val timeout by option("-t", help = cli.translate(CLI_OPTION_SERVER_STOP_TIMEOUT)).long().default(10)
 
     override fun run() {
-        try {
-            val server = cli.serverManager.getServer(serverName)
-            if (server.state.isInactive()) {
-                echo("This server is not running, so it cannot be stopped.")
-                return
-            }
+        val server = cli.serverManager.getServerOrNull(serverName)
+            ?: return err(cli.translate(CLI_SERVER_NOT_FOUND, serverName))
 
-            echo("Stopping server \"${server.name}\"...")
-            cli.coroutineScope.launch {
-                cli.serverManager.stopServer(server, Duration.ofSeconds(timeout))
-            }.invokeOnCompletion { error ->
-                if (error != null) {
-                    echo("An error occurred during ${server.name} server stop.")
-                    echo(error)
-                    return@invokeOnCompletion
-                }
+        if (!server.state.isActive())
+            return err(cli.translate(CLI_SERVER_NOT_RUNNING, server.name))
 
-
-            }
-        } catch (e: NoSuchElementException) {
-            echo("Server $serverName not found.")
+        cli.coroutineScope.launch(Dispatchers.IO) {
+            cli.serverManager.stopServer(server, Duration.ofSeconds(timeout))
         }
     }
 

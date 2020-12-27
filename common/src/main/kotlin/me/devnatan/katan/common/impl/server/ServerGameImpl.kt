@@ -7,4 +7,12 @@ import me.devnatan.katan.api.server.ServerGame
 data class ServerGameImpl(
     override val type: GameType,
     override val version: GameVersion?
-) : ServerGame
+) : ServerGame {
+
+    override fun toString(): String {
+        return "${type.name}${version?.let {
+            " (${it.name})"
+        }}"
+    }
+
+}

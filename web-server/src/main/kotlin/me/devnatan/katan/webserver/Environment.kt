@@ -41,7 +41,7 @@ class Environment(val server: KatanWS) {
     val config: Config get() = server.config
 
     fun start() {
-        webSocketManager = WebSocketManager().registerEventHandler(WebSocketServerHandler)
+        webSocketManager = WebSocketManager().registerEventHandler(WebSocketServerHandler(server.katan))
         environment = applicationEngineEnvironment {
             module {
                 installFeatures()

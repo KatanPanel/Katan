@@ -3,7 +3,7 @@ package me.devnatan.katan.core.impl.server
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
 import com.github.dockerjava.api.model.Frame
-import com.github.dockerjava.api.model.PullResponseItem
+import com.github.dockerjava.api.model.Statistics
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,13 +18,13 @@ import me.devnatan.katan.common.impl.server.ServerGameImpl
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.impl.server.compositions.DockerImageServerCompositionFactory
 import me.devnatan.katan.core.repository.ServersRepository
+import me.devnatan.katan.core.util.attachResultCallback
+import me.devnatan.katan.core.util.deferredResultCallback
 import org.slf4j.LoggerFactory
-import java.io.Closeable
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.time.Duration
-import kotlin.system.measureTimeMillis
 
 class DockerServerManager(
     private val core: KatanCore,
@@ -49,13 +49,14 @@ class DockerServerManager(
     }
 
     internal suspend fun loadServers() {
-        /* try {
+        try {
             core.docker.inspectNetworkCmd().withNetworkId(NETWORK_ID).exec()
         } catch (e: NotFoundException) {
             core.docker.createNetworkCmd().withName(NETWORK_ID)
-                .withAttachable(true)
+                .withAttachable(false)
                 .exec()
-        } */
+            logger.info("Network $NETWORK_ID created.")
+        }
 
         try {
             repository.listServers { entities ->
@@ -71,7 +72,7 @@ class DockerServerManager(
                         entity.host,
                         entity.port.toShort()
                     ).apply {
-                        container = DockerServerContainer(entity.containerId, core.docker)
+                        container = DockerServerContainer(entity.containerId, CONTAINER_NAME_PATTERN.format(this.id), core.docker)
                     }
 
                     server.holders.addAll(entity.holders.mapNotNull {
@@ -84,7 +85,7 @@ class DockerServerManager(
 
                     for (composition in entity.compositions) {
                         val factory = compositionFactories.firstOrNull {
-                            it.get(composition.key) != null
+                            it[composition.key] != null
                         }
 
                         if (factory == null) {
@@ -114,14 +115,15 @@ class DockerServerManager(
 
                     try {
                         inspectServer(server)
-                        servers.add(server)
                     } catch (e: NotFoundException) {
                         logger.warn("Server \"${server.name}\" container was not found, it could not be initialized.")
+                        server.state = ServerState.UNLOADED
                     }
 
                     // Ensuring that the next id is after the id of any server
                     // already registered this will prevent future collisions.
                     lastId.lazySet(server.id)
+                    servers.add(server)
                 }
             }
 
@@ -134,9 +136,7 @@ class DockerServerManager(
     }
 
     override fun getServerList(): Collection<Server> {
-        return synchronized(servers) {
-            servers.toCollection(hashSetOf())
-        }
+        return servers.toList()
     }
 
     override fun getServer(id: Int): Server {
@@ -167,8 +167,7 @@ class DockerServerManager(
 
     @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun createServer(server: Server) {
-        (server as ServerImpl).container = DockerServerContainer(CONTAINER_NAME_PATTERN.format(server.id), core.docker)
-
+        (server as ServerImpl).container = UnresolvedServerContainer(CONTAINER_NAME_PATTERN.format(server.id))
         for (composition in server.compositions) {
             composition.write(server)
         }
@@ -190,20 +189,17 @@ class DockerServerManager(
 
     override suspend fun registerServer(server: Server) {
         repository.insertServer(server)
+        logger.info("Server ${server.name} registered.")
     }
 
     override suspend fun startServer(server: Server) {
         core.eventBus.publish(ServerStartingEvent(server))
-        core.eventBus.publish(ServerStartedEvent(server, duration = Duration.ofMillis(measureTimeMillis {
-            server.container.start()
-        })))
+        server.container.start()
     }
 
     override suspend fun stopServer(server: Server, killAfter: Duration) {
         core.eventBus.publish(ServerStoppingEvent(server))
-        core.eventBus.publish(ServerStoppedEvent(server, duration = Duration.ofMillis(measureTimeMillis {
-            server.container.stop()
-        })))
+        server.container.stop()
     }
 
     override suspend fun inspectServer(server: Server) {
@@ -224,6 +220,7 @@ class DockerServerManager(
 
         core.eventBus.publish(ServerStateChangeEvent(server, state))
         server.state = state
+        logger.debug("Server ${server.name} updated.")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -246,39 +243,60 @@ class DockerServerManager(
         }
     }
 
-    fun test() {
-        core.docker.statsCmd()
+    private fun statisticsToServerStats(statistics: Statistics): ServerStats {
+        val pid = statistics.pidsStats.current ?: error("Null pid")
+        val mem = statistics.memoryStats!!
+        val cpu = statistics.cpuStats!!
+        val last = statistics.preCpuStats!!
+
+        return ServerStatsImpl(
+            pid,
+            mem.usage!!,
+            mem.maxUsage!!,
+            mem.limit!!,
+            mem.stats!!.cache!!,
+            cpu.cpuUsage!!.totalUsage!!,
+            cpu.cpuUsage!!.percpuUsage!!.toLongArray(),
+            cpu.systemCpuUsage!!,
+            cpu.onlineCpus!!,
+            last.cpuUsage!!.totalUsage!!,
+            last.cpuUsage!!.percpuUsage!!.toLongArray(),
+            last.systemCpuUsage!!,
+            last.onlineCpus!!
+        )
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun pullImage(image: String): Flow<String> = callbackFlow {
-        val callback = object : ResultCallback<PullResponseItem> {
-            override fun onNext(response: PullResponseItem) {
-                sendBlocking(response.toString())
-            }
-
-            override fun close() {}
-
-            override fun onStart(closeable: Closeable?) {
-            }
-
-            override fun onError(cause: Throwable) {
-                if (cause is NullPointerException)
-                    cause.printStackTrace()
-
-                channel.close(cause)
-            }
-
-            override fun onComplete() {
-                channel.close()
-            }
+    override suspend fun getServerStats(server: Server): ServerStats {
+        val job = deferredResultCallback<Statistics, ServerStats> {
+            statisticsToServerStats(it)
         }
 
-        core.docker.pullImageCmd(image).exec(callback)
+        core.docker.statsCmd(server.container.id).withNoStream(true).exec(job)
+        return job.await()
+    }
 
-        awaitClose {
-            callback.close()
-        }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun receiveServerStats(server: Server): Flow<ServerStats> = callbackFlow {
+        core.docker.statsCmd(server.container.id).withNoStream(false).exec(attachResultCallback<Statistics, ServerStats> {
+            statisticsToServerStats(it)
+        })
+
+        awaitClose()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun getServerLogs(server: Server): Flow<String> = callbackFlow {
+        core.docker.logContainerCmd(server.container.id)
+            .withStdOut(true)
+            .withStdErr(true)
+            .withFollowStream(false)
+            .withTimestamps(true)
+            .exec(attachResultCallback<Frame, String> {
+                it.toString()
+            })
+
+        awaitClose()
     }
 
     override fun getCompositionFactory(key: ServerComposition.Key<*>): ServerCompositionFactory? {

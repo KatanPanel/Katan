@@ -2,18 +2,25 @@ package me.devnatan.katan.core.impl.server.compositions
 
 import com.github.dockerjava.api.model.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import me.devnatan.katan.api.annotations.UnstableKatanApi
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collect
 import me.devnatan.katan.api.server.DockerImageServerComposition
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerComposition
 import me.devnatan.katan.api.server.ServerCompositionFactory
 import me.devnatan.katan.common.util.replaceBetween
+import me.devnatan.katan.core.KatanCore
+import me.devnatan.katan.core.impl.server.DockerServerContainer
 import me.devnatan.katan.core.impl.server.DockerServerManager
+import me.devnatan.katan.core.impl.server.ServerImpl
+import me.devnatan.katan.core.util.attachResultCallback
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.math.pow
 
-@OptIn(UnstableKatanApi::class)
 class DockerImageServerCompositionImpl(
     override val factory: ServerCompositionFactory,
     override val options: DockerImageServerComposition.Options
@@ -29,16 +36,23 @@ class DockerImageServerCompositionImpl(
 
     override suspend fun read(server: Server) {}
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, InternalCoroutinesApi::class)
     override suspend fun write(server: Server) {
+        if (server !is ServerImpl)
+            throw IllegalArgumentException("Cannot use Docker Image Server Composition directly.")
+
         val katan = (factory as DockerImageServerCompositionFactory).core
-        /* katan.serverManager.pullImage(options.image).collect {
-            logger.debug(it)
-        } */
+
+        try {
+            pullImage(options.image, katan).collect {
+                logger.debug("[Pull]: $it")
+            }
+        } catch (e: Throwable) {
+            logger.warn("Failed to push ${server.name} image (${options.image}):")
+            logger.warn(e.toString())
+        }
 
         logger.debug("Creating container (${options.host}:${options.port})...")
-
-
         options.environment = options.environment.mapValues { (_, value) ->
             value.toString().replaceBetween("%") {
                 "SERVER_NAME" by server.name
@@ -51,17 +65,21 @@ class DockerImageServerCompositionImpl(
         val memory = (options.memory * 1024.toDouble().pow(2)).toLong()
         val port = ExposedPort.tcp(options.port)
         val containerId = katan.docker.createContainerCmd(options.image)
-            .withName(server.container.id)
+            .withName(server.container.name)
             .withEnv(options.environment.map { (key, value) ->
                 "$key=$value"
             }.toList())
             .withExposedPorts(port)
-            .withHostName(server.container.id)
+            .withHostName(server.container.name)
             .withTty(true)
             .withAttachStdin(true)
             .withAttachStderr(true)
             .withAttachStdout(true)
             .withStdinOpen(true)
+            .withLabels(mapOf(
+                "katan.server.id" to server.id.toString(),
+                "katan.server.name" to server.name
+            ))
             .withHostConfig(
                 HostConfig.newHostConfig()
                     .withPortBindings(Ports(PortBinding(Ports.Binding.bindIpAndPort(options.host, options.port), port)))
@@ -69,12 +87,21 @@ class DockerImageServerCompositionImpl(
                     .withMemorySwap(memory)
             ).withVolumes(Volume("/data")).exec().id
 
-        logger.debug("Attaching container to \"${DockerServerManager.NETWORK_ID}\" network...")
+        server.container = DockerServerContainer(containerId, server.container.name, katan.docker)
+        logger.debug("Attaching ${server.container.name} to \"${DockerServerManager.NETWORK_ID}\" network...")
         katan.docker.connectToNetworkCmd()
             .withContainerId(containerId)
             .withNetworkId(DockerServerManager.NETWORK_ID)
             .exec()
         logger.debug("Container " + containerId + " created for ${server.name}.")
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun pullImage(image: String, katan: KatanCore): Flow<String> = callbackFlow {
+        katan.docker.pullImageCmd(image).exec(attachResultCallback<PullResponseItem, String> {
+            it.toString()
+        })
+        awaitClose()
     }
 
 }

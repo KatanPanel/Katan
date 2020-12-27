@@ -40,8 +40,10 @@ class GameManagerImpl(core: KatanCore) : GameManager {
             }
 
             val versions = config.getConfig("versions").root().entries.map { (key, value) ->
-                val versionConfig = (value as ConfigObject).toConfig()
-                GameVersionImpl(key, versionConfig.get("image", null), versionConfig.getMap("environment"))
+                val version = (value as ConfigObject).toConfig()
+                GameVersionImpl(version.get("name", key),
+                    version.get("image", null),
+                    version.getMap("environment"))
             }.toTypedArray()
 
             // TODO: check for non-native game type

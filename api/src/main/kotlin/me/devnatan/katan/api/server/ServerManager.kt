@@ -1,6 +1,5 @@
 package me.devnatan.katan.api.server
 
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import java.time.Duration
 
@@ -16,14 +15,14 @@ interface ServerManager {
     fun getServerList(): Collection<Server>
 
     /**
-     * Returns a server with the specified id.
+     * Returns a server with the specified [id].
      * @param id the server id.
      * @throws NoSuchElementException if the server not exists.
      */
     fun getServer(id: Int): Server
 
     /**
-     * Returns a server with the specified name.
+     * Returns a server with the specified [name].
      * @param name the server name.
      * @throws NoSuchElementException if the server not exists.
      */
@@ -78,18 +77,12 @@ interface ServerManager {
 
     /**
      * Starts a server without blocking the current thread.
-     *
-     * It is possible to know if the server was started successfully via
-     * [Job.invokeOnCompletion], or using [Job.join] with try-with-resources directly.
      * @param server the server to be started.
      */
     suspend fun startServer(server: Server)
 
     /**
      * Stops a server without blocking the current thread.
-     *
-     * It is possible to know if the server was stopped successfully via
-     * [Job.invokeOnCompletion], or using [Job.join] with try-with-resources directly.
      * @param server the server to be stopped.
      * @param killAfter maximum execution time until force to kill the server (recommended & default: 10 seconds).
      */
@@ -120,6 +113,12 @@ interface ServerManager {
      */
     suspend fun runServerCommand(server: Server, command: String): Flow<String>
 
+    suspend fun getServerStats(server: Server): ServerStats
+
+    suspend fun receiveServerStats(server: Server): Flow<ServerStats>
+
+    suspend fun getServerLogs(server: Server): Flow<String>
+
     /**
      * Returns the [ServerCompositionFactory] that was registered
      * for the supplied [key] or null if no factory is found for the key.
@@ -144,4 +143,24 @@ interface ServerManager {
      */
     fun unregisterCompositionFactory(factory: ServerCompositionFactory)
 
+}
+
+/**
+ * Returns a server with the specified [id] or `null` if the server not exists.
+ * @param id the server id.
+ */
+fun ServerManager.getServerOrNull(id: Int): Server? {
+    return runCatching {
+        getServer(id)
+    }.getOrNull()
+}
+
+/**
+ * Returns a server with the specified [name] or `null` if the server not exists.
+ * @param name the server name.
+ */
+fun ServerManager.getServerOrNull(name: String): Server? {
+    return runCatching {
+        getServer(name)
+    }.getOrNull()
 }

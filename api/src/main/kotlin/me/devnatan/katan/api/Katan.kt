@@ -1,6 +1,7 @@
 package me.devnatan.katan.api
 
 import br.com.devsrsouza.eventkt.EventScope
+import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.game.Game
 import me.devnatan.katan.api.game.GameManager
@@ -17,7 +18,7 @@ import org.slf4j.event.Level
  * Interface that provides access to Katan handlers without having
  * direct access to it, useful for plugins and extensions.
  */
-interface Katan {
+interface Katan : CoroutineScope {
 
     companion object {
 

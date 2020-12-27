@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.10"
+    kotlin("jvm") version "1.4.21"
 }
 
 val projectGroup = "me.devnatan.katan"
@@ -26,7 +26,7 @@ allprojects {
     dependencies {
         implementation(kotlin("stdlib"))
         implementation(kotlin("reflect"))
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0-RC2")
     }
 
