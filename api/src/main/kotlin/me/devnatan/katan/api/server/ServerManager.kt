@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import java.time.Duration
 
 /**
- * Responsible for the generation, handling and handling of absolutely
- * everything related to servers, from creation to query.
+ * Responsible for the generation, handling of absolutely
+ * everything related to [Server]s, from creation to query.
  */
 interface ServerManager {
 
@@ -95,29 +95,42 @@ interface ServerManager {
     suspend fun inspectServer(server: Server)
 
     /**
-     * Executes a command in the specified server's container suspending the function until the process has ended.
-     * Flow will be canceled automatically when you stop receiving responses from the request.
+     * Executes a command in the specified [server] container.
+     * It is not possible to execute commands on containers that are not active ([ServerState.isActive]).
      *
-     * Example of usage:
-     * ```
-     * runServerCommand(server, command).onStart {
-     *     // attached
-     * }.onCompletion {
-     *     // detached
-     * }.collect { response ->
-     *     // output
-     * }
-     * ```
      * @param server the server.
      * @param command the command to be executed.
+     * @param options options that will go with the command.
      */
-    suspend fun runServerCommand(server: Server, command: String): Flow<String>
+    suspend fun runServerCommand(server: Server, command: String, options: ServerCommandOptions): Flow<String>
 
+    /**
+     * Returns the state of the server's CPU, RAM and network.
+     *
+     * The function will suspend until the result is obtained,
+     * this is not an instant operation but it is also not a slow operation,
+     * it will depend on the machine on which the order is being executed.
+     *
+     * if you want to observe the state in real time use [receiveServerStats].
+     */
     suspend fun getServerStats(server: Server): ServerStats
 
+    /**
+     * Returns a [Flow] receiving the CPU, RAM and network information
+     * from the [server]. This is a continuous operation, it will suspend
+     * until it is canceled or if the server  stops responding.
+     *
+     * It is possible to observe the initialization of the states
+     * using [Flow.onStart] and finalization using [Flow.onComplete]
+     *
+     * You can get a single response version via [getServerStats].
+     */
     suspend fun receiveServerStats(server: Server): Flow<ServerStats>
 
-    suspend fun getServerLogs(server: Server): Flow<String>
+    /**
+     * Returns a [Flow] receiving all logs from the [server].
+     */
+    suspend fun receiveServerLogs(server: Server): Flow<String>
 
     /**
      * Returns the [ServerCompositionFactory] that was registered
@@ -163,4 +176,17 @@ fun ServerManager.getServerOrNull(name: String): Server? {
     return runCatching {
         getServer(name)
     }.getOrNull()
+}
+
+
+/**
+ * Executes a command in the specified [server] container with the default [ServerCommandOptions].
+ * It is not possible to execute commands on containers that are not active ([ServerState.isActive]).
+ *
+ * @param server the server.
+ * @param command the command to be executed.
+ * @see DefaultServerCommandOptions
+ */
+suspend fun ServerManager.runServerCommand(server: Server, command: String): Flow<String> {
+    return runServerCommand(server, command, DefaultServerCommandOptions)
 }

@@ -32,6 +32,7 @@ class WebSocketManager {
     val objectMapper = jacksonObjectMapper().apply {
         deactivateDefaultTyping()
         disable(SerializationFeature.INDENT_OUTPUT)
+        disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
         enable(SerializationFeature.CLOSE_CLOSEABLE)
         propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
     }
@@ -67,6 +68,11 @@ class WebSocketManager {
      * clears all [WebSocketHandler] and cancels all [Job]s linked to this manager.
      */
     suspend fun close() {
+        if (eventbus.coroutineContext.isActive)
+            eventbus.cancel()
+
+        scope.cancel()
+
         mutex.withLock(sessions) {
             val iter = sessions.iterator()
             while (iter.hasNext()) {
@@ -78,11 +84,6 @@ class WebSocketManager {
         synchronized(handlers) {
             handlers.clear()
         }
-
-        if (eventbus.coroutineContext.isActive)
-            eventbus.cancel()
-
-        scope.cancel()
     }
 
     /**

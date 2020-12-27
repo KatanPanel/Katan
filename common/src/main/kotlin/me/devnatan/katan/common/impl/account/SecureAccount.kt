@@ -1,11 +1,11 @@
 package me.devnatan.katan.common.impl.account
 
-import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.account.Account
+import me.devnatan.katan.api.role.Role
 import me.devnatan.katan.api.security.permission.InheritedPermission
 import me.devnatan.katan.api.security.permission.Permission
 import me.devnatan.katan.api.security.permission.PermissionFlag
 import me.devnatan.katan.api.security.permission.PermissionKey
-import me.devnatan.katan.api.security.role.Role
 import me.devnatan.katan.common.impl.permission.PermissionImpl
 import java.time.Instant
 import java.util.*
@@ -18,6 +18,7 @@ data class SecureAccount(
 
     var password: String = ""
 
+    override var lastLogin: Instant? = null
     override var role: Role? = null
     override val permissions: MutableList<Permission> = arrayListOf()
 

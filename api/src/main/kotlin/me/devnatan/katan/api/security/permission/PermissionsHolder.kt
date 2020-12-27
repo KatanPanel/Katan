@@ -36,7 +36,3 @@ interface PermissionsHolder {
     fun setPermission(key: PermissionKey, value: PermissionFlag): Permission
 
 }
-
-fun PermissionsHolder.getPermissionValue(key: PermissionKey): PermissionFlag {
-    return getPermission(key)?.value ?: throw NoSuchElementException(key.toString())
-}

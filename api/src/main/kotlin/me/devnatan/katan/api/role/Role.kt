@@ -1,4 +1,4 @@
-package me.devnatan.katan.api.security.role
+package me.devnatan.katan.api.role
 
 import me.devnatan.katan.api.security.permission.PermissionsHolder
 import java.time.Instant

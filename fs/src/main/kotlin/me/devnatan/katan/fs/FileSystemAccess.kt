@@ -1,6 +1,6 @@
 package me.devnatan.katan.fs
 
-import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.core.impl.server.DockerServerContainerInspection
 import java.io.File

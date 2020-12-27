@@ -1,4 +1,4 @@
-package me.devnatan.katan.api.security.account
+package me.devnatan.katan.api.account
 
 import me.devnatan.katan.api.security.credentials.Credentials
 import java.util.*

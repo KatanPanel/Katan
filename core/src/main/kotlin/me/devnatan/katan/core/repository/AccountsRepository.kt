@@ -1,7 +1,7 @@
 package me.devnatan.katan.core.repository
 
 import kotlinx.coroutines.Dispatchers
-import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.common.impl.account.SecureAccount
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.database.jdbc.entity.AccountEntity
@@ -29,6 +29,7 @@ class JDBCAccountsRepository(private val connector: JDBCConnector) : AccountsRep
                     entity.username,
                     entity.registeredAt
                 ).apply {
+                    lastLogin = entity.lastLogin
                     if (entity.password != null)
                         password = entity.password!!
                 }
@@ -41,6 +42,7 @@ class JDBCAccountsRepository(private val connector: JDBCConnector) : AccountsRep
             AccountEntity.new(account.id) {
                 this.username = account.username
                 this.registeredAt = account.registeredAt
+                this.lastLogin = account.lastLogin
                 if (account is SecureAccount)
                     this.password = account.password
             }
@@ -51,6 +53,7 @@ class JDBCAccountsRepository(private val connector: JDBCConnector) : AccountsRep
         newSuspendedTransaction(Dispatchers.IO, connector.database) {
             AccountsTable.update({ AccountsTable.id eq account.id }) {
                 it[username] = account.username
+                it[lastLogin] = account.lastLogin
                 if (account is SecureAccount && account.password.isNotEmpty())
                     it[password] = account.password
             }

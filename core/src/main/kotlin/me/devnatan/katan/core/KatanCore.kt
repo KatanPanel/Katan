@@ -27,7 +27,7 @@ import me.devnatan.katan.core.crypto.BcryptHash
 import me.devnatan.katan.core.database.DatabaseManager
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.docker.DockerEventsListener
-import me.devnatan.katan.core.impl.account.AccountsManagerImpl
+import me.devnatan.katan.core.impl.account.AccountManagerImpl
 import me.devnatan.katan.core.impl.game.GameManagerImpl
 import me.devnatan.katan.core.impl.permission.PermissionManagerImpl
 import me.devnatan.katan.core.impl.plugin.DefaultPluginManager
@@ -58,7 +58,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
     val objectMapper = ObjectMapper()
     override val platform: Platform = currentPlatform()
     lateinit var docker: DockerClient
-    override lateinit var accountManager: AccountsManagerImpl
+    override lateinit var accountManager: AccountManagerImpl
     override lateinit var serverManager: DockerServerManager
     override val pluginManager = DefaultPluginManager(this)
     override val serviceManager = ServiceManagerImpl()
@@ -171,7 +171,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
         databaseManager.connect()
         pluginManager.loadPlugins()
         serverManager = DockerServerManager(this, JDBCServersRepository(databaseManager.database as JDBCConnector))
-        accountManager = AccountsManagerImpl(this, JDBCAccountsRepository(databaseManager.database as JDBCConnector))
+        accountManager = AccountManagerImpl(this, JDBCAccountsRepository(databaseManager.database as JDBCConnector))
         caching()
 
         for (defaultPermission in DefaultPermissionKeys.DEFAULTS)

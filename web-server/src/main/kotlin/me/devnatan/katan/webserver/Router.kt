@@ -57,13 +57,12 @@ fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
         }
 
         webSocketManager.attachSession(session)
-        println("$session attached")
         try {
             for (frame in incoming) {
                 when (frame) {
                     is Frame.Close -> break
                     is Frame.Text -> webSocketManager.readPacket(session, frame)
-                    else -> throw UnsupportedOperationException("Unsupported frame type")
+                    else -> {}
                 }
             }
         } catch (_: ClosedReceiveChannelException) {
@@ -71,7 +70,6 @@ fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
             e.printStackTrace()
         } finally {
             webSocketManager.detachSession(session)
-            println("$session detached")
         }
     }
 }

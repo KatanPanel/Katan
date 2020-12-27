@@ -20,44 +20,22 @@ class FlowResultCallback<T, R>(private val scope: ProducerScope<R>, inline val t
     override fun onStart(closeable: Closeable) {
         if (closed) return
         stream = closeable
-        println("[Flow] started")
     }
 
     override fun onNext(value: T) {
         if (closed || stream == null) return
         try {
-            // for some unknown reason, some frames are broken, with a line
-            // break between the frame itself, so we have to join them in one.
-            /* if (value is Frame) {
-                val payload = value.payload.toString(Charsets.UTF_8)
-                if (lastValue != null) {
-                    scope.sendBlocking(transform(Frame(value.streamType, (lastValue + payload).toByteArray()) as T))
-                    lastValue = null
-                    return
-                }
-
-                val ln = System.lineSeparator()
-                if (payload.endsWith(ln)) {
-                    lastValue = payload.substringBefore(ln)
-                    return
-                }
-            } */
-
             scope.sendBlocking(transform(value))
-            println("[Flow] next: $value")
         } catch (e: Throwable) {
-            println("[Flow] error - onNext: $e")
             close0()
         }
     }
 
     override fun onError(cause: Throwable) {
-        println("[Flow] error")
         close0(cause)
     }
 
     override fun onComplete() {
-        println("[Flow] completed")
         close0()
     }
 
@@ -72,7 +50,6 @@ class FlowResultCallback<T, R>(private val scope: ProducerScope<R>, inline val t
         stream = null
         lastValue = null
         closed = true
-        println("[Flow] closed")
     }
 
 }

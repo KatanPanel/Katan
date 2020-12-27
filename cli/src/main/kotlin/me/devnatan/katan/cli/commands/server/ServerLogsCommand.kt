@@ -31,7 +31,7 @@ class ServerLogsCommand(private val cli: KatanCLI) : CliktCommand(
             ?: return err(cli.translate(CLI_SERVER_NOT_FOUND, serverName))
 
         cli.coroutineScope.launch(Dispatchers.IO) {
-            cli.serverManager.getServerLogs(server).collect()
+            cli.serverManager.receiveServerLogs(server).collect()
         }
     }
 

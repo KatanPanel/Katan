@@ -1,7 +1,7 @@
-package me.devnatan.katan.api.security.account
+package me.devnatan.katan.api.account
 
+import me.devnatan.katan.api.role.Role
 import me.devnatan.katan.api.security.permission.PermissionsHolder
-import me.devnatan.katan.api.security.role.Role
 import java.time.Instant
 import java.util.*
 
@@ -25,6 +25,11 @@ interface Account : PermissionsHolder {
      * Returns when this account was registered.
      */
     val registeredAt: Instant
+
+    /**
+     * Returns the last time you authenticated with this account.
+     */
+    var lastLogin: Instant?
 
     /**
      * Returns the current [Role] of the account or `null` if it has no role.

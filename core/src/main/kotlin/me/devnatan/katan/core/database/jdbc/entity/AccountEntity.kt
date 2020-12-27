@@ -13,6 +13,7 @@ internal object AccountsTable : UUIDTable("katan_accounts") {
     val password = varchar("password", 255).nullable()
     val permissions = integer("permissions").default(0)
     val registeredAt = timestamp("registered_at")
+    val lastLogin = timestamp("last_login").nullable()
 
 }
 
@@ -23,5 +24,6 @@ class AccountEntity(id: EntityID<UUID>) : UUIDEntity(id) {
     var password by AccountsTable.password
     var permissions by AccountsTable.permissions
     var registeredAt by AccountsTable.registeredAt
+    var lastLogin by AccountsTable.lastLogin
 
 }

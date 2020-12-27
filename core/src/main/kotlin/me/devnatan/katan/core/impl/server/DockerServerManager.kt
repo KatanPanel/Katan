@@ -1,6 +1,5 @@
 package me.devnatan.katan.core.impl.server
 
-import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
 import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.api.model.Statistics
@@ -8,7 +7,6 @@ import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import me.devnatan.katan.api.event.*
@@ -35,7 +33,7 @@ class DockerServerManager(
 
         const val CONTAINER_NAME_PATTERN = "katan_server_%s"
         const val NETWORK_ID = "katan0"
-        val logger = LoggerFactory.getLogger(ServerManager::class.java)!!
+        private val logger = LoggerFactory.getLogger(ServerManager::class.java)!!
 
     }
 
@@ -116,7 +114,7 @@ class DockerServerManager(
                     try {
                         inspectServer(server)
                     } catch (e: NotFoundException) {
-                        logger.warn("Server \"${server.name}\" container was not found, it could not be initialized.")
+                        logger.warn("Server \"${server.name}\" container was not found.")
                         server.state = ServerState.UNLOADED
                     }
 
@@ -189,7 +187,7 @@ class DockerServerManager(
 
     override suspend fun registerServer(server: Server) {
         repository.insertServer(server)
-        logger.info("Server ${server.name} registered.")
+        logger.debug("Server ${server.name} registered.")
     }
 
     override suspend fun startServer(server: Server) {
@@ -224,23 +222,27 @@ class DockerServerManager(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun runServerCommand(server: Server, command: String): Flow<String> {
-        return callbackFlow {
-            val callback = object : ResultCallback.Adapter<Frame>() {
-                override fun onNext(frame: Frame) {
-                    sendBlocking(frame.payload.toString(Charsets.UTF_8))
-                }
+    override suspend fun runServerCommand(
+        server: Server,
+        command: String,
+        options: ServerCommandOptions
+    ): Flow<String> = callbackFlow {
+        val exec = core.docker.execCreateCmd(server.container.id)
+            .withCmd(command)
+            .withPrivileged(options.privilegied)
+            .withWorkingDir(options.wkdir)
+            .withEnv(options.env.map { (k, v) -> "$k=$v" })
+            .withAttachStderr(false)
+            .withAttachStdin(false)
+            .withAttachStdout(false)
+            .withUser(options.user)
+            .withTty(options.tty)
+            .exec().id
 
-                override fun close() {
-                    super.close()
-                    channel.close()
-                }
-            }
-
-            core.docker.execStartCmd(core.docker.execCreateCmd(server.container.id).withCmd(command).exec().id)
-                .exec(callback)
-            awaitClose()
-        }
+        core.docker.execStartCmd(exec).withDetach(true).exec(attachResultCallback<Frame, String> {
+            it.payload.decodeToString()
+        })
+        awaitClose()
     }
 
     private fun statisticsToServerStats(statistics: Statistics): ServerStats {
@@ -266,7 +268,6 @@ class DockerServerManager(
         )
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun getServerStats(server: Server): ServerStats {
         val job = deferredResultCallback<Statistics, ServerStats> {
             statisticsToServerStats(it)
@@ -276,7 +277,6 @@ class DockerServerManager(
         return job.await()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun receiveServerStats(server: Server): Flow<ServerStats> = callbackFlow {
         core.docker.statsCmd(server.container.id).withNoStream(false).exec(attachResultCallback<Statistics, ServerStats> {
             statisticsToServerStats(it)
@@ -285,8 +285,7 @@ class DockerServerManager(
         awaitClose()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun getServerLogs(server: Server): Flow<String> = callbackFlow {
+    override suspend fun receiveServerLogs(server: Server): Flow<String> = callbackFlow {
         core.docker.logContainerCmd(server.container.id)
             .withStdOut(true)
             .withStdErr(true)

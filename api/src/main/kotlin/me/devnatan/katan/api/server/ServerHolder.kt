@@ -1,6 +1,6 @@
 package me.devnatan.katan.api.server
 
-import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.api.security.permission.PermissionsHolder
 
 /**

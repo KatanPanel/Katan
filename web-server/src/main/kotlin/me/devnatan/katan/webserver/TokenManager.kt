@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.Payload
-import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.api.security.credentials.PasswordCredentials
 import java.time.Duration
 import java.time.Instant

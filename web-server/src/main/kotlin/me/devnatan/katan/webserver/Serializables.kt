@@ -3,11 +3,11 @@
 package me.devnatan.katan.webserver
 
 import io.ktor.http.*
+import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.plugin.Plugin
-import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.role.Role
 import me.devnatan.katan.api.security.permission.*
-import me.devnatan.katan.api.security.role.Role
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerHolder
 import me.devnatan.katan.api.server.get
@@ -58,6 +58,7 @@ fun Account.serialize(
     "id" to id,
     "username" to username,
     "registered_at" to registeredAt.toHttpDateString(),
+    "last_login" to lastLogin?.toHttpDateString(),
     "role" to role?.let { role ->
         mapOf(
             "id" to role.id,

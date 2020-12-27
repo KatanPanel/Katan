@@ -1,6 +1,6 @@
 package me.devnatan.katan.api.server.fs
 
-import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.account.Account
 import java.io.File
 import java.time.Instant
 
