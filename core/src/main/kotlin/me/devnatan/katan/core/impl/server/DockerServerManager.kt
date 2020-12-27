@@ -293,7 +293,7 @@ class DockerServerManager(
             .withFollowStream(false)
             .withTimestamps(true)
             .exec(attachResultCallback<Frame, String> {
-                it.toString()
+                it.payload.decodeToString()
             })
 
         awaitClose()
