@@ -1,11 +1,9 @@
 package me.devnatan.katan.core.impl.cli
 
 import kotlinx.coroutines.*
-import me.devnatan.katan.api.cli.Command
-import me.devnatan.katan.api.cli.CommandException
-import me.devnatan.katan.api.cli.CommandManager
-import me.devnatan.katan.api.cli.RegisteredCommand
+import me.devnatan.katan.api.cli.*
 import me.devnatan.katan.api.plugin.Plugin
+import org.slf4j.event.Level
 
 class CommandManagerImpl : CommandManager, CoroutineScope by CoroutineScope(CoroutineName("Katan::CommandManager")) {
 
@@ -54,6 +52,15 @@ class CommandManagerImpl : CommandManager, CoroutineScope by CoroutineScope(Coro
                 command.execute(label, args)
             } catch (e: CommandException) {
                 plugin.logger.error(e.message!!)
+            } catch (e: FriendlyCommandException) {
+                val log = e.message!!
+                when (e.level) {
+                    Level.DEBUG -> plugin.logger.debug(log)
+                    Level.INFO -> plugin.logger.info(log)
+                    Level.WARN -> plugin.logger.warn(log)
+                    Level.ERROR -> plugin.logger.error(log)
+                    Level.TRACE -> plugin.logger.trace(log)
+                }
             }
         }
     }
