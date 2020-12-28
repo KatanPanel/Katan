@@ -12,6 +12,7 @@ private class Context(
 private class KatanCommandImpl(
     name: String,
     aliases: List<String>,
+    override val dispatcher: CoroutineDispatcher?,
     private inline val executor: CommandExecutor
 ): KatanCommand(name, aliases) {
 
@@ -29,7 +30,7 @@ class CommandBuilder(val name: String) {
     var commands: MutableList<CommandBuilder> = arrayListOf()
 
     fun toCommand(): Command {
-        return KatanCommandImpl(name, aliases, executor ?: {}).apply {
+        return KatanCommandImpl(name, aliases, dispatcher, executor ?: {}).apply {
             for (subcommand in commands)
                 addCommand(subcommand.toCommand())
         }
@@ -45,12 +46,12 @@ class CommandBuilder(val name: String) {
 
 }
 
+inline fun command(name: String, vararg aliases: String, crossinline block: CommandBuilder.() -> Unit): Command {
+    return command(name, aliases.toList(), block).apply(block).toCommand()
+}
+
 inline fun command(name: String, aliases: List<String>, crossinline block: CommandBuilder.() -> Unit): CommandBuilder {
     return CommandBuilder(name).apply {
         this.aliases = aliases.toList()
     }.apply(block)
-}
-
-inline fun command(name: String, vararg aliases: String, crossinline block: CommandBuilder.() -> Unit): Command {
-    return command(name, aliases.toList(), block).toCommand()
 }
