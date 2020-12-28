@@ -38,9 +38,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
             pwd.mkdirs()
     }
 
-    override fun getPlugins() = synchronized(plugins) {
-        plugins.toList()
-    }
+    override fun getPlugins() = plugins.toList()
 
     override fun getPlugin(descriptor: PluginDescriptor): Plugin? {
         return plugins.firstOrNull { it.descriptor == descriptor }
@@ -167,17 +165,17 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         return retrievePluginInstance(classloader.loadClass(name).kotlin)
     }
 
-    private fun retrievePluginInstance(kclass: KClass<out Any>): Plugin? {
-        fun Any.castAsPlugin(): Plugin? {
-            return if (this is Plugin) this
-            else null
+    private fun retrievePluginInstance(clazz: KClass<out Any>): Plugin? {
+        try {
+            if (clazz.isSubclassOf(Plugin::class))
+                return clazz.createInstance() as? Plugin
+
+            val companion = clazz.companionObject ?: return null
+            if (companion.isSubclassOf(Plugin::class))
+                return companion.objectInstance as? Plugin
+        } catch (ignored: UnsupportedOperationException) {
+            // "Packages and file facades are not yet supported in Kotlin reflection"?
         }
-
-        if (Plugin::class.isSuperclassOf(kclass))
-            return kclass.createInstance().castAsPlugin()
-
-        if (kclass.companionObject != null && Plugin::class.isSuperclassOf(kclass.companionObject!!))
-            return kclass.companionObject!!.let { kclass.companionObjectInstance!! }.castAsPlugin()
 
         return null
     }
