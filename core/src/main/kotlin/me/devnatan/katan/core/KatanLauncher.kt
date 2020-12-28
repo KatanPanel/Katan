@@ -2,6 +2,9 @@ package me.devnatan.katan.core
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import kotlinx.coroutines.DEBUG_PROPERTY_NAME
+import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_AUTO
+import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import kotlinx.coroutines.runBlocking
 import me.devnatan.katan.api.*
 import me.devnatan.katan.cli.KatanCLI
@@ -41,6 +44,17 @@ private object KatanLauncher {
 
         return KatanEnvironment(env).also {
             System.setProperty("katan.log.level", it.defaultLogLevel().toString())
+            System.setProperty("katan.log.pattern", if (it.isProduction())
+                "[%d{yyyy-MM-dd HH:mm:ss}] [%-4level]: %msg%n"
+            else
+                "[%d{yyyy-MM-dd HH:mm:ss}] [%t/%-4level @ %logger{1}]: %msg%n"
+            )
+
+            System.setProperty(DEBUG_PROPERTY_NAME, if (it.isDevelopment())
+                DEBUG_PROPERTY_VALUE_ON
+            else
+                DEBUG_PROPERTY_VALUE_AUTO
+            )
         }
     }
 

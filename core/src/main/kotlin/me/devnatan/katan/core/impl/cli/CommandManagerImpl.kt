@@ -54,7 +54,7 @@ class CommandManagerImpl : CommandManager, CoroutineScope by CoroutineScope(Coro
             }
         }
 
-        launch(NonCancellable + (command.dispatcher ?: Dispatchers.IO) + CoroutineName("Command-${command.name}")) {
+        launch(NonCancellable + (command.dispatcher ?: Dispatchers.IO) + CoroutineName("Command-$label")) {
             try {
                 command.execute(label, args)
             } catch (e: CommandException) {
