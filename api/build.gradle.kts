@@ -4,7 +4,6 @@ plugins {
 }
 
 dependencies {
-    implementation("com.github.ajalt.clikt:clikt-jvm:3.0.1")
     api("com.typesafe:config:1.4.0")
     api("br.com.devsrsouza.eventkt:eventkt-core-jvm:0.1.0-SNAPSHOT")
     api("org.slf4j:slf4j-api:1.7.30")
@@ -24,6 +23,13 @@ publishing {
             pom {
                 scm {
                     url.set("https://github.com/KatanPanel/Katan/tree/master/api")
+                }
+
+                licenses {
+                    license {
+                        name.set("The MIT License (MIT)")
+                        url.set("https://github.com/KatanPanel/Katan/blob/master/LICENSE")
+                    }
                 }
             }
         }

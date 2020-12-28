@@ -4,6 +4,7 @@ import br.com.devsrsouza.eventkt.EventScope
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.account.AccountManager
 import me.devnatan.katan.api.cache.Cache
+import me.devnatan.katan.api.cli.CommandManager
 import me.devnatan.katan.api.game.Game
 import me.devnatan.katan.api.game.GameManager
 import me.devnatan.katan.api.plugin.Plugin
@@ -83,7 +84,13 @@ interface Katan : CoroutineScope {
      */
     val translator: Translator
 
+    /**
+     * Returns the Katan permissions manager.
+     * It is used to register custom permissions for plugins.
+     */
     val permissionManager: PermissionManager
+
+    val commandManager: CommandManager
 
 }
 

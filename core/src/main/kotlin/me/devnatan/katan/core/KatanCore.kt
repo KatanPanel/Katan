@@ -15,6 +15,7 @@ import me.devnatan.katan.api.*
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
+import me.devnatan.katan.api.cli.CommandManager
 import me.devnatan.katan.api.game.GameManager
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
@@ -28,6 +29,7 @@ import me.devnatan.katan.core.database.DatabaseManager
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.docker.DockerEventsListener
 import me.devnatan.katan.core.impl.account.AccountManagerImpl
+import me.devnatan.katan.core.impl.cli.CommandManagerImpl
 import me.devnatan.katan.core.impl.game.GameManagerImpl
 import me.devnatan.katan.core.impl.permission.PermissionManagerImpl
 import me.devnatan.katan.core.impl.plugin.DefaultPluginManager
@@ -69,6 +71,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
     lateinit var databaseManager: DatabaseManager
     override val permissionManager = PermissionManagerImpl()
     private val dockerEventsListener = DockerEventsListener(this)
+    override val commandManager: CommandManager = CommandManagerImpl()
 
     init {
         val value = config.get("timezone", DEFAULT_VALUE)

@@ -17,7 +17,7 @@ import me.devnatan.katan.common.KatanTranslationKeys.CLI_ALIAS_SERVER
 import me.devnatan.katan.common.KatanTranslationKeys.CLI_ALIAS_VERSION
 
 class KatanCommand(private val cli: KatanCLI) : NoOpCliktCommand(
-    name = "katan",
+    name = KatanCLI.KATAN_COMMAND,
     printHelpOnEmptyArgs = true,
     invokeWithoutSubcommand = true,
     allowMultipleSubcommands = true

@@ -26,7 +26,7 @@ allprojects {
     dependencies {
         implementation(kotlin("stdlib"))
         implementation(kotlin("reflect"))
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+        api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0-RC2")
     }
 

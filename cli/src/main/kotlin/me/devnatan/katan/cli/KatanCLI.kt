@@ -8,11 +8,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.account.AccountManager
+import me.devnatan.katan.api.cli.RegisteredCommand
 import me.devnatan.katan.api.server.ServerManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class KatanCLI(val katan: Katan) {
+
+    companion object {
+
+        const val KATAN_COMMAND = "katan"
+
+    }
 
     class Console(private val logger: Logger) : CliktConsole {
 
@@ -52,13 +59,19 @@ class KatanCLI(val katan: Katan) {
             line = readLine()
             try {
                 val args = line?.split(" ") ?: continue
-                if (args.isEmpty() || args.getOrNull(0)?.equals("katan", true) == false)
+                val cmd = args.getOrNull(0) ?: continue
+                if (cmd.equals(KATAN_COMMAND, true)) {
+                    if (args.size == 1)
+                        throw PrintHelpMessage(command)
+
+                    command.parse(args.subList(1, args.size))
                     continue
+                }
 
-                if (args.size == 1)
-                    throw PrintHelpMessage(command)
+                val match = katan.commandManager.getCommand(cmd) as? RegisteredCommand
+                    ?: throw PrintHelpMessage(command)
 
-                command.parse(args.subList(1, args.size))
+                katan.commandManager.executeCommand(match.plugin, match, cmd, args.subList(1, args.size).toTypedArray())
             } catch (e: PrintHelpMessage) {
                 logger.info(e.command.getFormattedHelp())
             } catch (e: UsageError) {

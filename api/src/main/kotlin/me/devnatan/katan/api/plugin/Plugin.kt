@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.Version
+import me.devnatan.katan.api.cli.Command
 import me.devnatan.katan.api.util.InitOnceProperty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -143,6 +144,17 @@ inline fun <reified T : Any> Plugin.registerService(service: T) {
  */
 fun Plugin.unregisterService(service: KClass<out Any>) {
     katan.serviceManager.unregister(service, descriptor)
+}
+
+// TODO: doc
+fun Plugin.registerCommand(command: Command) {
+    katan.commandManager.registerCommand(this, command)
+}
+
+// TODO: doc
+fun Plugin.registerCommands(vararg commands: Command) {
+    for (command in commands)
+        katan.commandManager.registerCommand(this, command)
 }
 
 /**
