@@ -65,7 +65,11 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
     override suspend fun unloadPlugin(plugin: Plugin): Plugin {
         check(plugin.state !is PluginState.Unloaded) { "Plugin is not loaded." }
         plugin.coroutineScope.cancel()
-        synchronized (plugins) { plugins.remove(plugin) }
+        plugin.state = PluginState.Unloaded(Instant.now(), plugin.state)
+        synchronized (plugins) {
+            if (plugins.remove(plugin))
+                logger.info("Plugin $plugin unloaded.")
+        }
         return plugin
     }
 
@@ -74,6 +78,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         plugin.coroutineScope.cancel()
         plugin.state = PluginState.Disabled(Instant.now(), plugin.state)
         callHandlers(PluginDisabled, plugin)
+        logger.info("Plugin $plugin disabled.")
         return plugin
     }
 

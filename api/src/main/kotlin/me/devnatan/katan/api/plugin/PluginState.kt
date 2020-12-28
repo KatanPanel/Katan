@@ -18,7 +18,10 @@ sealed class PluginState(
      * Represents the unloaded state of the plugin, represented as initial, of the first [order], but implicitly,
      * this state will only be the first if an [error] occurs during the loading of the plugin.
      */
-    class Unloaded(timestamp: Instant) : PluginState(1, timestamp, null) {
+    class Unloaded(
+        timestamp: Instant,
+        previous: PluginState? = null
+    ) : PluginState(1, timestamp, previous) {
 
         /**
          * The error that occurred while loading the plugin if there

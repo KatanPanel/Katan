@@ -37,7 +37,7 @@ class ServiceManagerImpl : ServiceManager {
             services.computeIfAbsent(service) {
                 arrayListOf(Service(owner, value))
             }
-            logger.info("Registered ${service.simpleName} to $owner.")
+            logger.debug("Registered ${service.simpleName} to $owner.")
         }
     }
 

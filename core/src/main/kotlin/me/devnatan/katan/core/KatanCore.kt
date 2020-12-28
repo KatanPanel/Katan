@@ -200,6 +200,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
     suspend fun close() {
         pluginManager.disableAll()
         dockerEventsListener.close()
+        logger.info("Good Bye :)")
     }
 
 }
