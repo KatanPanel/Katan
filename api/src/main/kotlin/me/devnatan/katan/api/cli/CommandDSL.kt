@@ -2,7 +2,12 @@ package me.devnatan.katan.api.cli
 
 import kotlinx.coroutines.CoroutineDispatcher
 
-typealias CommandExecutor = suspend Command.(label: String, args: Array<out String>) -> Unit
+typealias CommandExecutor = suspend CommandExecutionContext.() -> Unit
+
+private class Context(
+    override val label: String,
+    override val args: Array<out String>
+) : CommandExecutionContext
 
 private class KatanCommandImpl(
     name: String,
@@ -11,7 +16,7 @@ private class KatanCommandImpl(
 ): KatanCommand(name, aliases) {
 
     override suspend fun execute(label: String, args: Array<out String>) {
-        executor(label, args)
+        executor(Context(label, args))
     }
 
 }
@@ -24,7 +29,7 @@ class CommandBuilder(val name: String) {
     var commands: MutableList<CommandBuilder> = arrayListOf()
 
     fun toCommand(): Command {
-        return KatanCommandImpl(name, aliases, executor ?: { _, _ -> }).apply {
+        return KatanCommandImpl(name, aliases, executor ?: {}).apply {
             for (subcommand in commands)
                 addCommand(subcommand.toCommand())
         }

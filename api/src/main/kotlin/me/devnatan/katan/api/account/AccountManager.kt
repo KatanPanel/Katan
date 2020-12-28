@@ -1,12 +1,12 @@
 package me.devnatan.katan.api.account
 
-import me.devnatan.katan.api.security.credentials.Credentials
+import me.devnatan.katan.api.security.auth.AuthenticationProvider
 import java.util.*
 
 /**
  * Responsible for [Account] management and authentication.
  */
-interface AccountManager {
+interface AccountManager : AuthenticationProvider {
 
     /**
      * Returns a copy of all registered accounts.
@@ -44,13 +44,5 @@ interface AccountManager {
      * @param username the account username.
      */
     fun existsAccount(username: String): Boolean
-
-    /**
-     * Attempts to authenticate an account with the specified password.
-     * @param account the account to be authenticated.
-     * @param credentials the credentials that will be used for authentication.
-     * @return `true` if the account has been successfully authenticated or` false` otherwise.
-     */
-    suspend fun authenticateAccount(account: Account, credentials: Credentials): Boolean
 
 }

@@ -19,7 +19,7 @@ interface ServiceManager {
      * Returns the value of a registered service or `null` if the service is not registered.
      * @param service the service to be get.
      */
-    fun <T : Any> get(service: KClass<out T>): T?
+    fun <T : Any> get(service: KClass<out T>): List<T>
 
     /**
      * Returns `true` if there is a registered value for that service or `false` otherwise.
@@ -54,12 +54,12 @@ interface ServiceManager {
  * Returns the value of a registered service.
  * @param T the service to be get.
  */
-inline fun <reified T : Any> ServiceManager.get(): T? {
+inline fun <reified T : Any> ServiceManager.get(): List<T> {
     return get(T::class)
 }
 
 /**
- * Returns the value of a registered service or [defaultValue] if not registered.
+ * Returns a single value of a registered service or [defaultValue] if not registered.
  * @param T the service to be get.
  */
 inline fun <reified T : Any> ServiceManager.get(crossinline defaultValue: () -> T): T {
@@ -67,11 +67,11 @@ inline fun <reified T : Any> ServiceManager.get(crossinline defaultValue: () -> 
 }
 
 /**
- * Returns the value of a registered service or [defaultValue] if not registered.
+ * Returns a single value of a registered service or [defaultValue] if not registered.
  * @param service the service to be get.
  */
 inline fun <T : Any> ServiceManager.get(service: KClass<out T>, crossinline defaultValue: () -> T): T {
     return runCatching {
-        get(service)
+        get(service).single()
     }.getOrNull() ?: defaultValue()
 }

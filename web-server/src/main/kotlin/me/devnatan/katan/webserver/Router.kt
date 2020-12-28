@@ -13,6 +13,8 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import me.devnatan.katan.api.Katan
+import me.devnatan.katan.api.security.auth.ExternalAuthenticationProvider
+import me.devnatan.katan.api.service.get
 import me.devnatan.katan.webserver.exceptions.KatanHTTPException
 import me.devnatan.katan.webserver.routes.*
 import me.devnatan.katan.webserver.websocket.WebSocketManager
@@ -41,7 +43,7 @@ internal fun respondWithError(
 ): Nothing = throw KatanHTTPException(response, status)
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
+private fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
     webSocket("/") {
         val session = KtorWebSocketSession(this) {
             outgoing.send(
@@ -78,14 +80,13 @@ fun Routing.installWebSocketRoute(webSocketManager: WebSocketManager) {
 fun Application.router(
     env: Environment
 ) = routing {
-    /* intercept(ApplicationCallPipeline.Fallback) {
-        call.respond(HttpStatusCode.NotFound)
-    } */
-
     installWebSocketRoute(env.webSocketManager)
 
     get<IndexRoute> {
-        respondOk("version" to Katan.VERSION.toString())
+        respondOk(
+            "version" to Katan.VERSION.toString(),
+            "oauth" to env.server.katan.serviceManager.get<ExternalAuthenticationProvider>().map { it.id }
+        )
     }
 
     post<AuthRoute.Login> {
@@ -155,5 +156,9 @@ fun Application.router(
             respondOk(env.server.accountManager.getAccounts().map { it.serialize(env.server.katan.permissionManager) })
         }
         /* end: accounts */
+    }
+
+    intercept(ApplicationCallPipeline.Fallback) {
+        call.respond(HttpStatusCode.NotFound)
     }
 }
