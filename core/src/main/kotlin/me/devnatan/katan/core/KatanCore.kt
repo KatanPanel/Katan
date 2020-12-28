@@ -187,7 +187,9 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
 
         hash = when (val algorithm = config.getString("security.crypto.hash")) {
             DEFAULT_VALUE, BcryptHash.NAME -> BcryptHash()
-            else -> serviceManager.get() ?: throw IllegalArgumentException("Unsupported hashing algorithm: $algorithm")
+            else -> serviceManager.get<Hash>().find {
+                it.name == algorithm
+            } ?: throw IllegalArgumentException("Unsupported hashing algorithm: $algorithm")
         }
         logger.info(translator.translate("katan.selected-hash", hash.name))
         accountManager.loadAccounts()

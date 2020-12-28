@@ -40,7 +40,7 @@ class TokenManager(val webserver: KatanWS) {
     }
 
     suspend fun authenticateAccount(account: Account, password: String): String {
-        if (!webserver.katan.accountManager.authenticateAccount(account, PasswordCredentials(password)))
+        if (!webserver.katan.accountManager.authenticate(account, PasswordCredentials(password)))
             throw IllegalArgumentException()
 
         return JWT.create()

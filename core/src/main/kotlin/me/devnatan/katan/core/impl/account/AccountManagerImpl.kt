@@ -78,7 +78,7 @@ class AccountManagerImpl(
         return accounts.any { it.username == username }
     }
 
-    override suspend fun authenticateAccount(account: Account, credentials: Credentials): Boolean {
+    override suspend fun authenticate(account: Account, credentials: Credentials): Boolean {
         check(account is SecureAccount)
         check(credentials is PasswordCredentials)
 
