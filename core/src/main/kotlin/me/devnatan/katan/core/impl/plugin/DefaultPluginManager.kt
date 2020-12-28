@@ -105,7 +105,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
             instance, mapOf(
                 "katan" to katan,
                 "directory" to workingDir,
-                "_config" to loadPluginConfig(instance, workingDir, classloader)
+                "_config" to { loadPluginConfig(instance, workingDir, classloader) }
             )
         )
         plugin.state = PluginState.Loaded(Instant.now(), plugin.state)

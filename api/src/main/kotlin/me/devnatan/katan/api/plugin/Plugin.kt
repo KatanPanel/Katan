@@ -16,7 +16,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.Instant
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 
@@ -172,8 +171,8 @@ open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin
 
     final override val dependencyManager: PluginDependencyManager = GenericPluginDependencyManager()
     final override val directory: File by InitOnceProperty()
-    private var _config: Config by InitOnceProperty()
-    final override val config: Config get() = _config
+    private var _config: () -> Config by InitOnceProperty()
+    final override val config: Config get() = _config()
     final override var state: PluginState = PluginState.Unloaded(Instant.now())
     final override val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName("Katan-plugin:${descriptor.name}"))
     final override val eventListener: EventScope = LocalEventScope()
@@ -181,9 +180,13 @@ open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin
     final override val handlers: MutableMap<PluginPhase, MutableCollection<PluginHandler>>
 
     init {
-        handlers = ConcurrentHashMap()
+        // handlers must be available before the plugin starts, the purpose is
+        // that they are used in the class or object's initialization block.
+        handlers = hashMapOf()
     }
 
-    override fun toString() = descriptor.toString()
+    override fun toString(): String {
+        return descriptor.toString()
+    }
 
 }
