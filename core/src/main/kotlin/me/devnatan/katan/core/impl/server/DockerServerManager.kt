@@ -1,6 +1,7 @@
 package me.devnatan.katan.core.impl.server
 
 import com.github.dockerjava.api.exception.NotFoundException
+import com.github.dockerjava.api.exception.NotModifiedException
 import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.api.model.Statistics
 import kotlinx.atomicfu.AtomicInt
@@ -191,13 +192,19 @@ class DockerServerManager(
     }
 
     override suspend fun startServer(server: Server) {
-        core.eventBus.publish(ServerStartingEvent(server))
-        server.container.start()
+        try {
+            core.eventBus.publish(ServerStartingEvent(server))
+            server.container.start()
+        } catch (ignored: NotModifiedException) {
+        }
     }
 
     override suspend fun stopServer(server: Server, killAfter: Duration) {
-        core.eventBus.publish(ServerStoppingEvent(server))
-        server.container.stop()
+        try {
+            core.eventBus.publish(ServerStoppingEvent(server))
+            server.container.stop()
+        } catch (ignored: NotModifiedException) {
+        }
     }
 
     override suspend fun inspectServer(server: Server) {

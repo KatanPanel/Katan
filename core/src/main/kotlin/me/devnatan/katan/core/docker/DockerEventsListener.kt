@@ -6,26 +6,34 @@ import com.github.dockerjava.api.model.EventType
 import kotlinx.coroutines.*
 import me.devnatan.katan.api.event.ServerStartedEvent
 import me.devnatan.katan.api.event.ServerStoppedEvent
+import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.core.KatanCore
+import org.slf4j.Logger
 import java.io.Closeable
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.Executors
 
-class DockerEventsListener(private val core: KatanCore): CoroutineScope by CoroutineScope(
-    Executors.newSingleThreadExecutor().asCoroutineDispatcher() + CoroutineName("DockerEvents")),
+@OptIn(ExperimentalCoroutinesApi::class)
+class DockerEventsListener(private val core: KatanCore): CoroutineScope by CoroutineScope(CoroutineName("DockerEvents")),
     Closeable {
 
-    private var callback: ResultCallback<Event>? = null
+    companion object {
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+        private val logger: Logger = logger<DockerEventsListener>()
+
+    }
+
+    private var callback: ResultCallback<Event>? = null
+    private val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+
     fun listen() {
         callback = object: ResultCallback.Adapter<Event>() {
             override fun onNext(event: Event) {
                 val container = event.actor!!.id!!
                 val action = event.action!!
-                KatanCore.logger.debug("[Event: container] $action: $container")
+                logger.debug("[Event] $action: $container")
 
                 when (action) {
                     "start" -> launchLocally(action) { onServerStart(container, event.time) }
@@ -36,14 +44,22 @@ class DockerEventsListener(private val core: KatanCore): CoroutineScope by Corou
                     else -> { /* ignore */ }
                 }
             }
+
+            override fun onComplete() {
+                // it shouldn't happen, probably timeout.
+                // TODO: handle cancellations
+            }
+
+            override fun onError(e: Throwable) {
+               logger.error("Uncaught error at Docker Events Listener", e)
+            }
         }
 
         core.docker.eventsCmd().withEventTypeFilter(EventType.CONTAINER).exec(callback)
     }
 
-    fun launchLocally(action: String, block: suspend CoroutineScope.() -> Unit): Job {
-        println("Launch locally $action")
-        return launch(CoroutineName("DockerEvents-$action"), block = block)
+    private fun launchLocally(action: String, block: suspend CoroutineScope.() -> Unit): Job {
+        return launch(dispatcher + CoroutineName("DockerEvents-$action"), block = block)
     }
 
     private fun getServerByContainerId(containerId: String): Server? {
@@ -59,32 +75,22 @@ class DockerEventsListener(private val core: KatanCore): CoroutineScope by Corou
     }
 
     private suspend fun onServerStart(containerId: String, timestamp: Long) {
-        println("onServerStart $containerId (${core.serverManager.getServerList().map { it.container.id }})")
-        getServerByContainerId(containerId)?.let { server ->
-            println("afterOnServerStart")
-            val duration = Duration.between(Instant.ofEpochMilli(timestamp), Instant.now())
-            core.eventBus.publish(ServerStartedEvent(server, duration = duration))
-            KatanCore.logger.info("Server ${server.name} started in ${String.format("%.2f", duration.toMillis().toFloat())}ms.")
-
-            core.serverManager.inspectServer(server)
-        }
+        val server = getServerByContainerId(containerId) ?: return
+        core.eventBus.publish(ServerStartedEvent(server, duration = Duration.ofMillis(Instant.now().toEpochMilli() - timestamp)))
+        logger.info("Server ${server.name} started.")
+        core.serverManager.inspectServer(server)
     }
 
     private suspend fun onServerStop(containerId: String, timestamp: Long) {
-        println("onServerStop $containerId (${core.serverManager.getServerList().map { it.container.id }})")
-        getServerByContainerId(containerId)?.let { server ->
-            println("afterOnServerStop")
-            val duration = Duration.between(Instant.ofEpochMilli(timestamp), Instant.now())
-            core.eventBus.publish(ServerStoppedEvent(server, duration = duration))
-            KatanCore.logger.info("Server ${server.name} stopped in ${String.format("%.2f", duration.toMillis().toFloat())}ms.")
-
-            core.serverManager.inspectServer(server)
-        }
+        val server = getServerByContainerId(containerId) ?: return
+        core.eventBus.publish(ServerStoppedEvent(server, duration = Duration.ofMillis(Instant.now().toEpochMilli() - timestamp)))
+        logger.info("Server ${server.name} stopped.")
+        core.serverManager.inspectServer(server)
     }
 
     override fun close() {
         callback?.close()
-        cancel()
+        dispatcher.close()
     }
 
 }
