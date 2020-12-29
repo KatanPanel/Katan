@@ -1,6 +1,7 @@
 package me.devnatan.katan.cli.commands.server
 
 import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.common.KatanTranslationKeys.CLI_ALIAS_SERVER
@@ -18,6 +19,12 @@ class ServerCommand(private val cli: KatanCLI) : NoOpCliktCommand(
     help = cli.translate(CLI_HELP_SERVER),
     printHelpOnEmptyArgs = true
 ) {
+
+    init {
+        context {
+            localization = cli.localization
+        }
+    }
 
     override fun aliases(): Map<String, List<String>> {
         return mapOf(

@@ -26,7 +26,7 @@ class KatanCommand(private val cli: KatanCLI) : NoOpCliktCommand(
     init {
         context {
             console = cli.console
-            localization = KatanLocalization(cli.katan.translator)
+            localization = cli.localization
         }
 
         subcommands(

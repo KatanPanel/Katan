@@ -2,9 +2,9 @@ package me.devnatan.katan.cli
 
 import com.github.ajalt.clikt.core.PrintHelpMessage
 import com.github.ajalt.clikt.core.UsageError
-import com.github.ajalt.clikt.output.CliktConsole
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.account.AccountManager
@@ -21,26 +21,6 @@ class KatanCLI(val katan: Katan) {
 
     }
 
-    class Console(private val logger: Logger) : CliktConsole {
-
-        // SLF4J logger already adds the line break
-        override val lineSeparator: String = ""
-
-        override fun print(text: String, error: Boolean) {
-            if (error) logger.error(text)
-            else logger.info(text)
-        }
-
-        override fun promptForLine(prompt: String, hideInput: Boolean) = when {
-            hideInput -> console.readPassword(prompt)?.let { String(it) }
-            else -> console.readLine(prompt)
-        }
-
-        companion object {
-            val console: java.io.Console by lazy { System.console() }
-        }
-    }
-
     val logger: Logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
 
     val serverManager: ServerManager get() = katan.serverManager
@@ -49,9 +29,26 @@ class KatanCLI(val katan: Katan) {
 
     private var running = false
     private val command = KatanCommand(this)
-    val coroutineScope = CoroutineScope(CoroutineName("KatanCLI"))
-    val console = Console(logger)
+    val console = KatanConsole(logger)
 
+    // Clikt's localization is not recursive, so we will have
+    // to declare the object here and spread it out for commands.
+    val localization by lazy {
+        KatanLocalization(katan.translator)
+    }
+
+    /*
+        Due to Clikt (command framework) does not have support for coroutines
+        we have a CoroutineScope,  it is used in all commands and the dispatcher
+        is specified by the command itself. Canceling this scope cancels all pending tasks.
+
+        SupervisorJob is required in case of failure of any child, he will ensure that
+        in case that failure occurs the rest of the jobs that are being
+        performed in the background do not fail and the scope is not canceled.
+     */
+    val coroutineScope = CoroutineScope(SupervisorJob() + CoroutineName("KatanCLI"))
+
+    // TODO: wrap native help to plugins help command
     fun init() {
         running = true
         var line: String?
@@ -68,6 +65,7 @@ class KatanCLI(val katan: Katan) {
                     continue
                 }
 
+                // search for plugins commands
                 val match = katan.commandManager.getCommand(cmd) as? RegisteredCommand
                     ?: throw PrintHelpMessage(command)
 
@@ -83,6 +81,7 @@ class KatanCLI(val katan: Katan) {
     }
 
     fun close() {
+        check(running)
         coroutineScope.cancel()
     }
 

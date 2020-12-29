@@ -1,6 +1,7 @@
 package me.devnatan.katan.cli.commands.plugin
 
 import com.github.ajalt.clikt.core.NoOpCliktCommand
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.subcommands
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.common.KatanTranslationKeys.CLI_ALIAS_PLUGIN
@@ -14,6 +15,10 @@ class PluginCommand(private val cli: KatanCLI) : NoOpCliktCommand(
 ) {
 
     init {
+        context {
+            localization = cli.localization
+        }
+
         subcommands(PluginListCommand(cli))
     }
 
