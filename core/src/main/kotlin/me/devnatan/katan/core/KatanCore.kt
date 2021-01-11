@@ -63,7 +63,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
     override lateinit var accountManager: AccountManagerImpl
     override lateinit var serverManager: DockerServerManager
     override val pluginManager = DefaultPluginManager(this)
-    override val serviceManager = ServiceManagerImpl()
+    override val serviceManager = ServiceManagerImpl(this)
     override lateinit var gameManager: GameManager
     override lateinit var cache: Cache<Any>
     override val eventBus: EventScope = EventBus()

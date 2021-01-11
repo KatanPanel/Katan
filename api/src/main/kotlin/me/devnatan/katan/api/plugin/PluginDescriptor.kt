@@ -16,6 +16,9 @@ data class PluginDescriptor(
     val author: String? = null
 ) : Descriptor {
 
+    // plugins are not trusted providers
+    override fun isTrusted(): Boolean = false
+
     override fun toString(): String {
         return buildString {
             append(name)

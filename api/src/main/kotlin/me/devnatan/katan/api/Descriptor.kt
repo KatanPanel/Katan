@@ -10,4 +10,9 @@ interface Descriptor {
      */
     val name: String
 
+    /**
+     * Returns `true` if the holder of this descriptor is trusted or` false` otherwise.
+     */
+    fun isTrusted(): Boolean
+
 }
