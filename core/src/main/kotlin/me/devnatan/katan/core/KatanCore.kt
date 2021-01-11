@@ -2,20 +2,15 @@ package me.devnatan.katan.core
 
 import br.com.devsrsouza.eventkt.EventScope
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.core.DefaultDockerClientConfig
-import com.github.dockerjava.core.DockerClientImpl
-import com.github.dockerjava.core.KeystoreSSLConfig
-import com.github.dockerjava.core.LocalDirectorySSLConfig
-import com.github.dockerjava.okhttp.OkDockerHttpClient
 import com.typesafe.config.Config
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import me.devnatan.katan.api.*
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
-import me.devnatan.katan.api.cli.CommandManager
+import me.devnatan.katan.api.command.CommandManager
 import me.devnatan.katan.api.game.GameManager
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
@@ -28,6 +23,7 @@ import me.devnatan.katan.core.crypto.BcryptHash
 import me.devnatan.katan.core.database.DatabaseManager
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.docker.DockerEventsListener
+import me.devnatan.katan.core.docker.DockerManager
 import me.devnatan.katan.core.impl.account.AccountManagerImpl
 import me.devnatan.katan.core.impl.cli.CommandManagerImpl
 import me.devnatan.katan.core.impl.game.GameManagerImpl
@@ -41,13 +37,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
-import java.security.KeyStore
 import java.util.*
 import kotlin.system.exitProcess
 
 @OptIn(UnstableKatanApi::class)
 class KatanCore(val config: Config, override val environment: KatanEnvironment, override val translator: Translator) :
-    Katan, CoroutineScope by CoroutineScope(CoroutineName("Katan")) {
+    Katan, CoroutineScope by CoroutineScope(Job() + CoroutineName("Katan")) {
 
     companion object {
 
@@ -59,7 +54,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
 
     val objectMapper = ObjectMapper()
     override val platform: Platform = currentPlatform()
-    lateinit var docker: DockerClient
+    val docker = DockerManager(this)
     override lateinit var accountManager: AccountManagerImpl
     override lateinit var serverManager: DockerServerManager
     override val pluginManager = DefaultPluginManager(this)
@@ -74,71 +69,21 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
     override val commandManager: CommandManager = CommandManagerImpl()
 
     init {
+        coroutineContext[Job]!!.invokeOnCompletion {
+            logger.error("[FATAL ERROR]")
+            logger.error("Katan main Job has been canceled and this is not expected to happen.")
+            logger.error("this will cause unexpected problems in the operation of the application.")
+            logger.error("see the log files to extract more information")
+            logger.trace(null, it)
+            exitProcess(1)
+        }
+
         val value = config.get("timezone", DEFAULT_VALUE)
         if (value != DEFAULT_VALUE) {
             val timezone = TimeZone.getTimeZone(value)
-            System.setProperty("katan.timezone", timezone.id)
+            System.setProperty(Katan.TIMEZONE_PROPERTY, timezone.id)
             logger.info(translator.translate("katan.timezone", timezone.displayName))
         }
-    }
-
-    private fun docker() {
-        logger.info(translator.translate("katan.docker.config"))
-        val dockerLogger = LoggerFactory.getLogger("Docker")
-        val dockerConfig = config.getConfig("docker")
-        val host = System.getenv("KATAN_DOCKER_URI") ?: dockerConfig.getString("host")
-        if (host.startsWith("unix") && platform.isWindows()) {
-            logger.error(translator.translate("katan.docker.unix-domain-sockets", host))
-            exitProcess(0)
-        }
-
-        val tls = dockerConfig.get("tls.verify", false)
-        val clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
-            .withDockerHost(host)
-            .withDockerTlsVerify(tls)
-
-        if (tls) {
-            dockerLogger.info(translator.translate("katan.docker.tls-enabled"))
-            clientConfig.withDockerCertPath(dockerConfig.getString("tls.certPath"))
-        } else
-            dockerLogger.warn(
-                translator.translate("katan.docker.tls-disabled", "https://docs.docker.com/engine/security/https/")
-            )
-
-        if (dockerConfig.get("ssl.enabled", false)) {
-            clientConfig.withCustomSslConfig(
-                when (dockerConfig.getString("ssl.provider")) {
-                    "CERT" -> {
-                        val path = dockerConfig.getString("ssl.certPath")
-                        dockerLogger.info(translator.translate("katan.docker.cert-loaded", path))
-                        LocalDirectorySSLConfig(path)
-                    }
-                    "KEY_STORE" -> {
-                        val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
-                        val keystore = KeyStore.getInstance(type)
-                        dockerLogger.info(translator.translate("katan.docker.ks-loaded", type))
-
-                        KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
-                    }
-                    else -> throw IllegalArgumentException("Unrecognized Docker SSL provider. Must be: CERT or KEY_STORE")
-                }
-            )
-        }
-
-        val properties = dockerConfig.getConfig("properties")
-        val httpConfig = clientConfig.build()
-        docker = DockerClientImpl.getInstance(
-            httpConfig, OkDockerHttpClient.Builder()
-                .dockerHost(httpConfig.dockerHost)
-                .sslConfig(httpConfig.sslConfig)
-                .connectTimeout(properties.get("connectTimeout", 5000))
-                .readTimeout(properties.get("readTimeout", 5000))
-                .build()
-        )
-
-        // sends a ping to see if the connection will be established.
-        docker.pingCmd().exec()
-        dockerLogger.info(translator.translate("katan.docker.ready"))
     }
 
     private fun caching() {
@@ -169,7 +114,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
             )
         )
         logger.info(translator.translate("katan.platform", "$platform"))
-        docker()
+        docker.initialize()
         databaseManager = DatabaseManager(this)
         databaseManager.connect()
         pluginManager.loadPlugins()
@@ -183,7 +128,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
         gameManager = GameManagerImpl(this)
         pluginManager.callHandlers(KatanInit)
         serverManager.loadServers()
-        dockerEventsListener.listen()
+
 
         hash = when (val algorithm = config.getString("security.crypto.hash")) {
             DEFAULT_VALUE, BcryptHash.NAME -> BcryptHash()
@@ -191,8 +136,10 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
                 it.name == algorithm
             } ?: throw IllegalArgumentException("Unsupported hashing algorithm: $algorithm")
         }
+
         logger.info(translator.translate("katan.selected-hash", hash.name))
         accountManager.loadAccounts()
+        dockerEventsListener.listen()
 
         pluginManager.callHandlers(KatanStarted)
     }

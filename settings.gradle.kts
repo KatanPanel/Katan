@@ -5,7 +5,7 @@ include("common")
 include("web-server")
 include("cli")
 include("docker-compose")
-include("fs")
+include("file-system")
 
 pluginManagement {
     repositories {

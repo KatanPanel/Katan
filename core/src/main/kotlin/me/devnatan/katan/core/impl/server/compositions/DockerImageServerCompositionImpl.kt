@@ -64,7 +64,7 @@ class DockerImageServerCompositionImpl(
 
         val memory = (options.memory * 1024.toDouble().pow(2)).toLong()
         val port = ExposedPort.tcp(options.port)
-        val containerId = katan.docker.createContainerCmd(options.image)
+        val containerId = katan.docker.client.createContainerCmd(options.image)
             .withName(server.container.name)
             .withEnv(options.environment.map { (key, value) ->
                 "$key=$value"
@@ -87,9 +87,9 @@ class DockerImageServerCompositionImpl(
                     .withMemorySwap(memory)
             ).withVolumes(Volume("/data")).exec().id
 
-        server.container = DockerServerContainer(containerId, server.container.name, katan.docker)
+        server.container = DockerServerContainer(containerId, server.container.name, katan.docker.client)
         logger.debug("Attaching ${server.container.name} to \"${DockerServerManager.NETWORK_ID}\" network...")
-        katan.docker.connectToNetworkCmd()
+        katan.docker.client.connectToNetworkCmd()
             .withContainerId(containerId)
             .withNetworkId(DockerServerManager.NETWORK_ID)
             .exec()
@@ -98,7 +98,7 @@ class DockerImageServerCompositionImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun pullImage(image: String, katan: KatanCore): Flow<String> = callbackFlow {
-        katan.docker.pullImageCmd(image).exec(attachResultCallback<PullResponseItem, String> {
+        katan.docker.client.pullImageCmd(image).exec(attachResultCallback<PullResponseItem, String> {
             it.toString()
         })
         awaitClose()

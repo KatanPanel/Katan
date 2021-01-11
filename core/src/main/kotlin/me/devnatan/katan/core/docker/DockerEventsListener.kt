@@ -55,7 +55,7 @@ class DockerEventsListener(private val core: KatanCore): CoroutineScope by Corou
             }
         }
 
-        core.docker.eventsCmd().withEventTypeFilter(EventType.CONTAINER).exec(callback)
+        core.docker.client.eventsCmd().withEventTypeFilter(EventType.CONTAINER).exec(callback)
     }
 
     private fun launchLocally(action: String, block: suspend CoroutineScope.() -> Unit): Job {

@@ -7,8 +7,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import me.devnatan.katan.api.Katan
-import me.devnatan.katan.api.account.AccountManager
-import me.devnatan.katan.api.cli.RegisteredCommand
+import me.devnatan.katan.api.command.RegisteredCommand
+import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.api.server.ServerManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

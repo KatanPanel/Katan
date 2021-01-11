@@ -1,13 +1,13 @@
 package me.devnatan.katan.core.impl.account
 
-import me.devnatan.katan.api.account.Account
-import me.devnatan.katan.api.account.AccountManager
 import me.devnatan.katan.api.event.AccountCreateEvent
 import me.devnatan.katan.api.event.AccountLoginEvent
 import me.devnatan.katan.api.event.AccountRegisterEvent
 import me.devnatan.katan.api.event.AccountUpdateEvent
-import me.devnatan.katan.api.security.credentials.Credentials
-import me.devnatan.katan.api.security.credentials.PasswordCredentials
+import me.devnatan.katan.api.security.Credential
+import me.devnatan.katan.api.security.PasswordCredential
+import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.common.impl.account.SecureAccount
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.repository.AccountsRepository
@@ -78,9 +78,9 @@ class AccountManagerImpl(
         return accounts.any { it.username == username }
     }
 
-    override suspend fun authenticate(account: Account, credentials: Credentials): Boolean {
+    override suspend fun authenticate(account: Account, credentials: Credential): Boolean {
         check(account is SecureAccount)
-        check(credentials is PasswordCredentials)
+        check(credentials is PasswordCredential)
 
         val authenticated = if (account.password.isEmpty())
             credentials.password.isEmpty()

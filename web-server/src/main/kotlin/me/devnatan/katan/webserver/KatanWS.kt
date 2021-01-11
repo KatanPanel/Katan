@@ -28,7 +28,6 @@ class KatanWS(val katan: Katan) {
 
     @OptIn(KtorExperimentalAPI::class)
     fun init() {
-        logger.info("Starting Web Server...")
         internalAccountManager = TokenManager(this)
         environment = Environment(this)
         environment.start()
@@ -37,10 +36,11 @@ class KatanWS(val katan: Katan) {
     }
 
     suspend fun close() {
-        if (!::environment.isInitialized) return
+        if (!::environment.isInitialized)
+            return
+
         environment.close()
 
-        logger.info("Shutting down...")
         val shutdown = config.getConfig("deployment.shutdown")
         server.stop(
             shutdown.get("gracePeriod", 1000),

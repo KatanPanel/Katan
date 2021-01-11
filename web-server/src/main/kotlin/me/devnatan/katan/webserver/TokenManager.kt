@@ -4,8 +4,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.Payload
-import me.devnatan.katan.api.account.Account
-import me.devnatan.katan.api.security.credentials.PasswordCredentials
+import me.devnatan.katan.api.security.PasswordCredential
+import me.devnatan.katan.api.security.account.Account
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -40,7 +40,7 @@ class TokenManager(val webserver: KatanWS) {
     }
 
     suspend fun authenticateAccount(account: Account, password: String): String {
-        if (!webserver.katan.accountManager.authenticate(account, PasswordCredentials(password)))
+        if (!webserver.katan.accountManager.authenticate(account, PasswordCredential(password)))
             throw IllegalArgumentException()
 
         return JWT.create()

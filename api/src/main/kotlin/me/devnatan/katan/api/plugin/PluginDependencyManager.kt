@@ -2,6 +2,7 @@ package me.devnatan.katan.api.plugin
 
 import me.devnatan.katan.api.Descriptor
 import me.devnatan.katan.api.Version
+import me.devnatan.katan.api.annotations.InternalKatanApi
 import me.devnatan.katan.api.service.ServiceDescriptor
 import me.devnatan.katan.api.service.ServiceManager
 import kotlin.reflect.KClass
@@ -95,6 +96,7 @@ inline fun PluginDependencyManager.plugin(
  * it to the plugin's classpath and setting it as the plugin's pre-boot priority.
  * @param classifier the dependency classifier
  */
+@OptIn(InternalKatanApi::class)
 fun PluginDependencyManager.service(
     classifier: KClass<out Any>,
     optional: Boolean = false
@@ -129,6 +131,7 @@ class GenericPluginDependencyManager : PluginDependencyManager {
         dependencies.remove(dependency)
     }
 
+    @OptIn(InternalKatanApi::class)
     override fun resolveDependency(classifier: KClass<*>): Any? {
         for (dependency in dependencies) {
             if (when (dependency.descriptor) {

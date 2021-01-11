@@ -6,7 +6,11 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import me.devnatan.katan.api.Katan
+import me.devnatan.katan.api.server.DefaultServerCommandOptions
 import me.devnatan.katan.api.server.getServerOrNull
+import me.devnatan.katan.api.server.isActive
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_ATTACH
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_EXEC
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_INFO
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_LOGS
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_LOGS_FINISHED
@@ -15,6 +19,7 @@ import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_STATS
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
 
 private const val SERVER_ID_KEY = "server-id"
+private const val SERVER_EXEC_INPUT_KEY = "input"
 
 class WebSocketServerHandler(katan: Katan) : WebSocketHandler() {
 
@@ -57,6 +62,23 @@ class WebSocketServerHandler(katan: Katan) : WebSocketHandler() {
                     ))
                 }
             }
+        }
+
+        handle(SERVER_ATTACH) {
+            val server = katan.serverManager.getServerOrNull(serverId) ?: return@handle
+            if (!server.state.isActive())
+                return@handle
+
+            // TODO: ...
+        }
+
+        handle(SERVER_EXEC) {
+            val server = katan.serverManager.getServerOrNull(serverId) ?: return@handle
+            if (!server.state.isActive())
+                return@handle
+
+            val command = content.getValue(SERVER_EXEC_INPUT_KEY) as String
+            katan.serverManager.runServerCommand(server, command, DefaultServerCommandOptions)
         }
     }
 

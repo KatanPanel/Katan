@@ -1,6 +1,6 @@
 package me.devnatan.katan.core.impl.server
 
-import me.devnatan.katan.api.account.Account
+import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.security.permission.Permission
 import me.devnatan.katan.api.security.permission.PermissionFlag
 import me.devnatan.katan.api.security.permission.PermissionKey

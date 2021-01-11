@@ -1,7 +1,7 @@
 package me.devnatan.katan.core.impl.cli
 
 import kotlinx.coroutines.*
-import me.devnatan.katan.api.cli.*
+import me.devnatan.katan.api.command.*
 import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.plugin.Plugin
 import org.slf4j.event.Level

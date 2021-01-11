@@ -1,11 +1,10 @@
 package me.devnatan.katan.common.impl.account
 
-import me.devnatan.katan.api.account.Account
-import me.devnatan.katan.api.role.Role
-import me.devnatan.katan.api.security.permission.InheritedPermission
+import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.security.permission.Permission
 import me.devnatan.katan.api.security.permission.PermissionFlag
 import me.devnatan.katan.api.security.permission.PermissionKey
+import me.devnatan.katan.api.security.role.Role
 import me.devnatan.katan.common.impl.permission.PermissionImpl
 import java.time.Instant
 import java.util.*
@@ -23,9 +22,7 @@ data class SecureAccount(
     override val permissions: MutableList<Permission> = arrayListOf()
 
     override fun getPermission(key: PermissionKey): Permission? {
-        return super.getPermission(key) ?: role?.getPermission(key)?.let { inherited ->
-            InheritedPermission(inherited, role!!)
-        }
+        return super.getPermission(key) ?: role?.getPermission(key)
     }
 
     override fun setPermission(key: PermissionKey, value: PermissionFlag): Permission {

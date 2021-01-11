@@ -15,6 +15,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.kotlinx:atomicfu:0.14.4")
+    api("com.github.docker-java:docker-java-api:$dockerJavaVersion")
     implementation("com.github.docker-java:docker-java-core:$dockerJavaVersion")
     implementation("com.github.docker-java:docker-java-transport-okhttp:$dockerJavaVersion")
     implementation("com.h2database:h2:1.4.200")
@@ -48,7 +49,7 @@ tasks {
         archiveBaseName.set("Katan")
         archiveClassifier.set(null as String?)
 
-        // fix for "Could not initialize class org.eclipse.jetty.server.HttpConnection"
+        // fix "Could not initialize class org.eclipse.jetty.server.HttpConnection"
         mergeServiceFiles()
     }
 

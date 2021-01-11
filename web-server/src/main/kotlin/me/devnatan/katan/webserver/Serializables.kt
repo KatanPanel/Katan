@@ -3,11 +3,11 @@
 package me.devnatan.katan.webserver
 
 import io.ktor.http.*
-import me.devnatan.katan.api.account.Account
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.plugin.Plugin
-import me.devnatan.katan.api.role.Role
+import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.security.permission.*
+import me.devnatan.katan.api.security.role.Role
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerHolder
 import me.devnatan.katan.api.server.get
@@ -26,8 +26,7 @@ private fun mapPermissions(entity: PermissionsHolder, permissionManager: Permiss
                 "key" to key,
                 "value" to permission.value.code,
                 "given_at" to permission.givenAt.toHttpDateString(),
-                "last_modified" to permission.lastModified.toHttpDateString(),
-                "inherited_from" to if (permission is InheritedPermission) permission.inheritedFrom else null
+                "last_modified" to permission.lastModified.toHttpDateString()
             )
         } ?: mapOf("key" to key, "value" to PermissionFlag.NOT_ALLOWED.code)
     }

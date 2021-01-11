@@ -49,9 +49,9 @@ class DockerServerManager(
 
     internal suspend fun loadServers() {
         try {
-            core.docker.inspectNetworkCmd().withNetworkId(NETWORK_ID).exec()
+            core.docker.client.inspectNetworkCmd().withNetworkId(NETWORK_ID).exec()
         } catch (e: NotFoundException) {
-            core.docker.createNetworkCmd().withName(NETWORK_ID)
+            core.docker.client.createNetworkCmd().withName(NETWORK_ID)
                 .withAttachable(false)
                 .exec()
             logger.info("Network $NETWORK_ID created.")
@@ -71,7 +71,7 @@ class DockerServerManager(
                         entity.host,
                         entity.port.toShort()
                     ).apply {
-                        container = DockerServerContainer(entity.containerId, CONTAINER_NAME_PATTERN.format(this.id), core.docker)
+                        container = DockerServerContainer(entity.containerId, CONTAINER_NAME_PATTERN.format(this.id), core.docker.client)
                     }
 
                     server.holders.addAll(entity.holders.mapNotNull {
@@ -208,7 +208,7 @@ class DockerServerManager(
     }
 
     override suspend fun inspectServer(server: Server) {
-        val response = core.docker.inspectContainerCmd(server.container.id).exec()
+        val response = core.docker.client.inspectContainerCmd(server.container.id).exec()
         val inspection = DockerServerContainerInspection(response)
         core.eventBus.publish(ServerInspectedEvent(server, result = inspection))
         server.container.inspection = inspection
@@ -234,7 +234,7 @@ class DockerServerManager(
         command: String,
         options: ServerCommandOptions
     ): Flow<String> = callbackFlow {
-        val exec = core.docker.execCreateCmd(server.container.id)
+        val exec = core.docker.client.execCreateCmd(server.container.id)
             .withCmd(command)
             .withPrivileged(options.privilegied)
             .withWorkingDir(options.wkdir)
@@ -246,7 +246,7 @@ class DockerServerManager(
             .withTty(options.tty)
             .exec().id
 
-        core.docker.execStartCmd(exec).withDetach(true).exec(attachResultCallback<Frame, String> {
+        core.docker.client.execStartCmd(exec).withDetach(true).exec(attachResultCallback<Frame, String> {
             it.payload.decodeToString()
         })
         awaitClose()
@@ -280,12 +280,12 @@ class DockerServerManager(
             statisticsToServerStats(it)
         }
 
-        core.docker.statsCmd(server.container.id).withNoStream(true).exec(job)
+        core.docker.client.statsCmd(server.container.id).withNoStream(true).exec(job)
         return job.await()
     }
 
     override suspend fun receiveServerStats(server: Server): Flow<ServerStats> = callbackFlow {
-        core.docker.statsCmd(server.container.id).withNoStream(false).exec(attachResultCallback<Statistics, ServerStats> {
+        core.docker.client.statsCmd(server.container.id).withNoStream(false).exec(attachResultCallback<Statistics, ServerStats> {
             statisticsToServerStats(it)
         })
 
@@ -293,11 +293,12 @@ class DockerServerManager(
     }
 
     override suspend fun receiveServerLogs(server: Server): Flow<String> = callbackFlow {
-        core.docker.logContainerCmd(server.container.id)
+        core.docker.client.logContainerCmd(server.container.id)
             .withStdOut(true)
             .withStdErr(true)
             .withFollowStream(false)
             .withTimestamps(true)
+            .withTail(100)
             .exec(attachResultCallback<Frame, String> {
                 it.payload.decodeToString()
             })

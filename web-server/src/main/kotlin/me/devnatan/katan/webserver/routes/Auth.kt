@@ -5,7 +5,7 @@ package me.devnatan.katan.webserver.routes
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.locations.*
-import me.devnatan.katan.api.account.Account
+import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.webserver.jwt.AccountPrincipal
 
 @Location("/auth")

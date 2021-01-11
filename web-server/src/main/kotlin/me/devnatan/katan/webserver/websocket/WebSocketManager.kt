@@ -44,7 +44,7 @@ class WebSocketManager {
     private val mutex = Mutex()
 
     init {
-        scope.launch {
+        scope.launch(CoroutineName("Event Bus")) {
             eventbus.listen<WebSocketMessage>().collect { message ->
                 for (handler in handlers) {
                     val mappings = handler.mappings
@@ -68,11 +68,6 @@ class WebSocketManager {
      * clears all [WebSocketHandler] and cancels all [Job]s linked to this manager.
      */
     suspend fun close() {
-        if (eventbus.coroutineContext.isActive)
-            eventbus.cancel()
-
-        scope.cancel()
-
         mutex.withLock(sessions) {
             val iter = sessions.iterator()
             while (iter.hasNext()) {
@@ -80,6 +75,10 @@ class WebSocketManager {
                 iter.remove()
             }
         }
+
+        eventbus.coroutineContext.cancel()
+        if (scope.coroutineContext.isActive)
+            scope.cancel()
 
         synchronized(handlers) {
             handlers.clear()

@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.Version
-import me.devnatan.katan.api.cli.Command
+import me.devnatan.katan.api.command.Command
+import me.devnatan.katan.api.security.UntrustedProvider
 import me.devnatan.katan.api.util.InitOnceProperty
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -26,7 +27,7 @@ import kotlin.reflect.KClass
  *
  * Plugins are handled through a [PluginManager], it has its own state, dependencies, scope and phases.
  */
-interface Plugin {
+interface Plugin : UntrustedProvider {
 
     /**
      * Current instance of the Katan injected into the plugin.

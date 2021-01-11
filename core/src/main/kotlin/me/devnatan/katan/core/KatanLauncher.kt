@@ -43,8 +43,8 @@ private object KatanLauncher {
         }
 
         return KatanEnvironment(env).also {
-            System.setProperty("katan.log.level", it.defaultLogLevel().toString())
-            System.setProperty("katan.log.pattern", if (it.isProduction())
+            System.setProperty(Katan.LOG_LEVEL_PROPERTY, it.defaultLogLevel().toString())
+            System.setProperty(Katan.LOG_PATTERN_PROPERTY, if (it.isProduction())
                 "[%d{yyyy-MM-dd HH:mm:ss}] [%-4level]: %msg%n"
             else
                 "[%d{yyyy-MM-dd HH:mm:ss}] [%t/%-4level @ %logger{1}]: %msg%n"

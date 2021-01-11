@@ -10,5 +10,7 @@ object WebSocketOpCode {
     const val SERVER_LOGS_STARTED = 3
     const val SERVER_LOGS = 4
     const val SERVER_LOGS_FINISHED = 5
+    const val SERVER_EXEC = 6
+    const val SERVER_ATTACH = 7
 
 }
