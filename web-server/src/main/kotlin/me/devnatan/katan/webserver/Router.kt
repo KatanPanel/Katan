@@ -157,8 +157,4 @@ fun Application.router(
         }
         /* end: accounts */
     }
-
-    intercept(ApplicationCallPipeline.Fallback) {
-        call.respond(HttpStatusCode.NotFound)
-    }
 }
