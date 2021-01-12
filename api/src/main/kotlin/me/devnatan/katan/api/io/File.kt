@@ -20,11 +20,6 @@ interface File {
     val path: String
 
     /**
-     * Returns the last modification that was made to this file or `null` if it has never been modified.
-     */
-    val lastModification: FileModification?
-
-    /**
      * Returns when the file was created or `null` if the information is not available.
      */
     val createdAt: Instant?
