@@ -1,6 +1,7 @@
-package me.devnatan.katan.fs.disk
+package me.devnatan.katan.core.fs
 
 import me.devnatan.katan.api.io.File
+import me.devnatan.katan.fs.disk.AbstractFileDisk
 import java.time.Instant
 
 class DockerFileDisk(

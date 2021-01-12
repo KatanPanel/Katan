@@ -10,6 +10,7 @@ dependencies {
     api(project(":common"))
     implementation(project(":web-server"))
     implementation(project(":cli"))
+    implementation(project(":file-system"))
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")

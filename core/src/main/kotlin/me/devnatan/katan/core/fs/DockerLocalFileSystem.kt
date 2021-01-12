@@ -1,4 +1,4 @@
-package me.devnatan.katan.fs
+package me.devnatan.katan.core.fs
 
 import com.github.dockerjava.api.command.InspectContainerResponse
 import me.devnatan.katan.api.io.FileDisk
@@ -6,11 +6,11 @@ import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.impl.server.DockerServerContainer
 import me.devnatan.katan.core.impl.server.DockerServerContainerInspection
-import me.devnatan.katan.fs.disk.DockerFileDisk
+import me.devnatan.katan.fs.FileSystem
 import java.io.FileNotFoundException
 import kotlin.contracts.ExperimentalContracts
 
-class PlatformAwareHostFileSystem(
+class DockerLocalFileSystem(
     private val core: KatanCore
 ) : FileSystem {
 
