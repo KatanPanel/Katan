@@ -12,6 +12,8 @@ import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
 import me.devnatan.katan.api.command.CommandManager
 import me.devnatan.katan.api.game.GameManager
+import me.devnatan.katan.api.io.FileSystem
+import me.devnatan.katan.api.io.FileSystemAccessor
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
@@ -41,7 +43,11 @@ import java.util.*
 import kotlin.system.exitProcess
 
 @OptIn(UnstableKatanApi::class)
-class KatanCore(val config: Config, override val environment: KatanEnvironment, override val translator: Translator) :
+class KatanCore(
+    val config: Config,
+    override val environment: KatanEnvironment,
+    override val translator: Translator
+) :
     Katan, CoroutineScope by CoroutineScope(Job() + CoroutineName("Katan")) {
 
     companion object {
@@ -67,6 +73,8 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
     override val permissionManager = PermissionManagerImpl()
     private val dockerEventsListener = DockerEventsListener(this)
     override val commandManager: CommandManager = CommandManagerImpl()
+    lateinit var internalFs: FileSystem
+    override lateinit var fileSystem: FileSystemAccessor
 
     init {
         coroutineContext[Job]!!.invokeOnCompletion {
@@ -147,7 +155,7 @@ class KatanCore(val config: Config, override val environment: KatanEnvironment, 
     suspend fun close() {
         pluginManager.disableAll()
         dockerEventsListener.close()
-        logger.info("Good Bye :)")
+        internalFs.close()
     }
 
 }

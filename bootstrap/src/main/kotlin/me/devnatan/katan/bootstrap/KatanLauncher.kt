@@ -1,17 +1,18 @@
-package me.devnatan.katan.core
+package me.devnatan.katan.bootstrap
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-import kotlinx.coroutines.DEBUG_PROPERTY_NAME
-import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_AUTO
-import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import me.devnatan.katan.api.*
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.common.util.loadResource
+import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.KatanCore.Companion.DEFAULT_VALUE
+import me.devnatan.katan.io.DefaultFileSystemAccessor
+import me.devnatan.katan.io.DockerHostFileSystem
+import me.devnatan.katan.io.PersistentFileSystem
 import me.devnatan.katan.webserver.KatanWS
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,10 +23,51 @@ import java.util.*
 import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
-private object KatanLauncher {
+class KatanLauncher {
 
-    private const val TRANSLATION_FILE_PATTERN = "translations/%s.properties"
-    private const val FALLBACK_LANGUAGE = "en"
+    companion object {
+
+        private const val TRANSLATION_FILE_PATTERN = "translations/%s.properties"
+        private const val FALLBACK_LANGUAGE = "en"
+
+        @JvmStatic
+        fun main(args: Array<out String>) {
+            val boot = KatanLauncher()
+            val environment = boot.checkEnvironment()
+            val config = boot.loadConfig(environment)
+            val translator = boot.loadTranslations(config)
+
+            val core = KatanCore(config, environment, translator)
+            val fs = boot.selectFileSystem(core)
+            core.internalFs = fs
+            core.fileSystem = DefaultFileSystemAccessor(config, fs)
+
+            val cli = KatanCLI(core)
+            val webServer = KatanWS(core)
+
+            Runtime.getRuntime().addShutdownHook(Thread {
+                runBlocking(CoroutineName("Katan Shutdown")) {
+                    cli.close()
+                    webServer.close()
+                    core.close()
+                }
+            })
+
+            runBlocking(CoroutineName("Katan Init")) {
+                val time = measureTimeMillis {
+                    core.start()
+                }
+
+                boot.logger.info(core.translator.translate("katan.started", String.format("%.2f", time / 1000.0f)))
+                if (webServer.enabled)
+                    webServer.init()
+
+
+                cli.init()
+            }
+        }
+
+    }
 
     private val logger: Logger by lazy {
         LoggerFactory.getLogger(KatanLauncher::class.java)
@@ -105,34 +147,9 @@ private object KatanLauncher {
         }.mapKeys { (key, _) -> key.toString() })
     }
 
-    @JvmStatic
-    fun main(args: Array<out String>) {
-        val environment = checkEnvironment()
-        val config = loadConfig(environment)
-        val translator = loadTranslations(config)
-        val core = KatanCore(config, environment, translator)
-        val cli = KatanCLI(core)
-        val webServer = KatanWS(core)
-
-        Runtime.getRuntime().addShutdownHook(Thread {
-            runBlocking {
-                cli.close()
-                webServer.close()
-                core.close()
-            }
-        })
-
-        runBlocking {
-            val time = measureTimeMillis {
-                core.start()
-            }
-
-            if (webServer.enabled)
-                webServer.init()
-
-            logger.info(core.translator.translate("katan.started", String.format("%.2f", time / 1000.0f)))
-            cli.init()
-        }
+    private fun selectFileSystem(core: KatanCore): PersistentFileSystem {
+        // only Docker Host is currently available
+        return DockerHostFileSystem(core)
     }
 
 }

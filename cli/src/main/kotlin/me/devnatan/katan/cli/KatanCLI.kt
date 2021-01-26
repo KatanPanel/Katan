@@ -8,20 +8,19 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.command.RegisteredCommand
+import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.api.server.ServerManager
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 class KatanCLI(val katan: Katan) {
 
     companion object {
 
         const val KATAN_COMMAND = "katan"
+        val logger: Logger = logger<KatanCLI>()
 
     }
-
-    val logger: Logger = LoggerFactory.getLogger(KatanCLI::class.java)!!
 
     val serverManager: ServerManager get() = katan.serverManager
     val accountManager: AccountManager get() = katan.accountManager
@@ -38,7 +37,7 @@ class KatanCLI(val katan: Katan) {
     }
 
     /*
-        Due to Clikt (command framework) does not have support for coroutines
+        Due to Clikt (CLI module command framework) does not have support for coroutines
         we have a CoroutineScope,  it is used in all commands and the dispatcher
         is specified by the command itself. Canceling this scope cancels all pending tasks.
 
@@ -81,7 +80,7 @@ class KatanCLI(val katan: Katan) {
     }
 
     fun close() {
-        check(running)
+        check(running) { "CLI is not running." }
         coroutineScope.cancel()
     }
 
