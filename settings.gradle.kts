@@ -4,7 +4,6 @@ include("core")
 include("common")
 include("web-server")
 include("cli")
-include("docker-compose")
 include("file-system")
 
 pluginManagement {
