@@ -15,8 +15,11 @@ import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_INFO
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_LOGS
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_LOGS_FINISHED
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_LOGS_STARTED
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_START
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_STATS
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_STOP
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
+import java.time.Duration
 
 private const val SERVER_ID_KEY = "server-id"
 private const val SERVER_EXEC_INPUT_KEY = "input"
@@ -34,6 +37,16 @@ class WebSocketServerHandler(katan: Katan) : WebSocketHandler() {
                     "data" to server
                 )
             )
+        }
+
+        handle(SERVER_START) {
+            val server = katan.serverManager.getServerOrNull(serverId) ?: return@handle
+            katan.serverManager.startServer(server)
+        }
+
+        handle(SERVER_STOP) {
+            val server = katan.serverManager.getServerOrNull(serverId) ?: return@handle
+            katan.serverManager.stopServer(server, Duration.ofSeconds(10))
         }
 
         handle(SERVER_STATS) {
@@ -77,7 +90,7 @@ class WebSocketServerHandler(katan: Katan) : WebSocketHandler() {
             if (!server.state.isActive())
                 return@handle
 
-            val command = content.getValue(SERVER_EXEC_INPUT_KEY) as String
+            val command = (content ?: return@handle).getValue(SERVER_EXEC_INPUT_KEY) as String
             katan.serverManager.runServerCommand(server, command, DefaultServerCommandOptions)
         }
     }
@@ -85,4 +98,4 @@ class WebSocketServerHandler(katan: Katan) : WebSocketHandler() {
 }
 
 val WebSocketMessage.serverId: Int
-    get() = content.getValue(SERVER_ID_KEY) as Int
+    get() = content!!.getValue(SERVER_ID_KEY) as Int

@@ -4,9 +4,9 @@ import io.ktor.http.cio.websocket.*
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
 import io.ktor.http.cio.websocket.WebSocketSession as KtorSession
 
-class KtorWebSocketSession(
+open class KtorWebSocketSession(
     delegate: KtorSession,
-    private inline val writer: suspend (WebSocketMessage) -> Unit
+    @JvmField private inline val writer: suspend (WebSocketMessage) -> Unit
 ) : KtorSession by delegate, WebSocketSession {
 
     override suspend fun send(message: WebSocketMessage) {

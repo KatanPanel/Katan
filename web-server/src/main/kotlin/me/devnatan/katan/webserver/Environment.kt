@@ -188,7 +188,7 @@ class Environment(val server: KatanWS) {
 
         if (config.get("hsts", true)) {
             install(HSTS)
-            logger.info("Enabled Strict Transport Security (HSTS)")
+            logger.info("Enabled Strict Transport Security (HSTS).")
         }
 
         if (config.get("under-reverse-proxy", false)) {

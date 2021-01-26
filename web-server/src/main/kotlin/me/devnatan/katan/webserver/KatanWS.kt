@@ -5,13 +5,13 @@ import com.typesafe.config.ConfigFactory
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import io.ktor.util.*
-import me.devnatan.katan.api.Katan
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
+import me.devnatan.katan.core.KatanCore
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
-class KatanWS(val katan: Katan) {
+class KatanWS(val katan: KatanCore) {
 
     companion object {
         val logger = LoggerFactory.getLogger(KatanWS::class.java)!!

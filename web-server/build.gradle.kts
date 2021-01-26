@@ -5,7 +5,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly(project(":common"))
+    compileOnly(project(":core"))
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-jetty:$ktorVersion")

@@ -4,6 +4,7 @@ package me.devnatan.katan.webserver
 
 import io.ktor.http.*
 import me.devnatan.katan.api.annotations.UnstableKatanApi
+import me.devnatan.katan.api.io.File
 import me.devnatan.katan.api.plugin.Plugin
 import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.security.permission.*
@@ -32,7 +33,6 @@ private fun mapPermissions(entity: PermissionsHolder, permissionManager: Permiss
     }
 }
 
-@OptIn(UnstableKatanApi::class)
 fun Server.serialize(): Map<String, Any?> = mapOf(
     "id" to id,
     "name" to name,
@@ -74,4 +74,9 @@ fun Plugin.serialize(): Map<String, Any?> = mapOf(
     "version" to descriptor.version,
     "author" to descriptor.author,
     "state" to state.order
+)
+
+fun File.serialize(): Map<String, Any?> = mapOf(
+    "name" to name,
+
 )
