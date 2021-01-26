@@ -7,10 +7,10 @@ pluginManagement {
     }
 }
 
-include("api")
-include("core")
-include("common")
-include("web-server")
-include("cli")
-include("file-system")
-include("bootstrap")
+include("katan-api")
+include("katan-core")
+include("katan-common")
+include("katan-web-server")
+include("katan-cli")
+include("katan-io")
+include("katan-bootstrap")
