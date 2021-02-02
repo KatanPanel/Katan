@@ -5,6 +5,7 @@ package me.devnatan.katan.webserver
 import io.ktor.http.*
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.io.File
+import me.devnatan.katan.api.io.FileDisk
 import me.devnatan.katan.api.plugin.Plugin
 import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.security.permission.*
@@ -76,7 +77,18 @@ fun Plugin.serialize(): Map<String, Any?> = mapOf(
     "state" to state.order
 )
 
+fun FileDisk.serialize(): Map<String, Any?> = (this as File).serialize() + mapOf(
+    "id" to id,
+    "alias" to alias,
+)
+
 fun File.serialize(): Map<String, Any?> = mapOf(
     "name" to name,
-
+    "path" to path,
+    "created_at" to createdAt?.toHttpDateString(),
+    "last_modified_at" to lastModifiedAt?.toHttpDateString(),
+    "size" to size,
+    "is_hidden" to isHidden,
+    "is_directory" to isDirectory,
+    "origin" to origin.value
 )
