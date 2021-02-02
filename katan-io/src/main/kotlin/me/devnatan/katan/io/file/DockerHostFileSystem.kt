@@ -38,6 +38,15 @@ class DockerHostFileSystem(
         TODO("Not yet implemented.")
     }
 
+    override suspend fun getDisk(server: Server, id: String): FileDisk? {
+        checkAvailability()
+        ensureInspected(server)
+
+        val container = server.container as DockerServerContainer
+        return (container.inspection as DockerServerContainerInspection)
+            .response.mounts!!.firstOrNull { it.name == id }?.let { mountToDisk(it) }
+    }
+
     @OptIn(ExperimentalContracts::class)
     override suspend fun listDisks(server: Server): List<FileDisk> {
         checkAvailability()
@@ -58,9 +67,6 @@ class DockerHostFileSystem(
 
         val name = mount.name!!
         val volume = mount.destination!!
-
-        logger.info("Src: ${mount.source}")
-        logger.info("Destination: $volume")
 
         val file = java.io.File(mount.source!!)
         if (!file.exists())

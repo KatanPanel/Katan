@@ -10,6 +10,8 @@ interface FileSystem {
      */
     suspend fun isProtected(file: File): Boolean
 
+    suspend fun getDisk(server: Server, id: String): FileDisk?
+
     suspend fun listDisks(server: Server): List<FileDisk>
 
     suspend fun close()

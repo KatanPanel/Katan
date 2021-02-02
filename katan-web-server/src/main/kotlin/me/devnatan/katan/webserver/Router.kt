@@ -125,8 +125,24 @@ fun Application.router(env: Environment) {
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            get<ServersRoute.Server.FS> { data ->
-                respondOk("disks" to katan.internalFs.listDisks(data.parent.server))
+            get<ServersRoute.Server.FileSystem> {
+                respondOk("disks" to katan.internalFs.listDisks(it.parent.server).map { disk -> disk.serialize() })
+            }
+            
+            get<ServersRoute.Server.FileSystemDisk> {
+                val disk = katan.internalFs.getDisk(it.parent.server, it.disk)
+                    ?: respondWithError(SERVER_FS_DISK_NOT_FOUND)
+
+                respondOk("disk" to disk.serialize())
+            }
+
+            get<ServersRoute.Server.FileSystemDiskFiles> {
+                val disk = katan.internalFs.getDisk(it.parent.server, it.disk)
+                    ?: respondWithError(SERVER_FS_DISK_NOT_FOUND)
+
+                respondOk(
+                    "files" to disk.listFiles().map { file -> file.serialize() }
+                )
             }
             /* end: servers */
 

@@ -19,6 +19,11 @@ class FileSystemSessionImpl(
         return fs.isProtected(file)
     }
 
+    override suspend fun getDisk(server: Server, id: String): FileDisk? {
+        updateLastAccess()
+        return fs.getDisk(server, id)
+    }
+
     override suspend fun listDisks(server: Server): List<FileDisk> {
         updateLastAccess()
         return fs.listDisks(server)

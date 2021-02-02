@@ -17,7 +17,13 @@ class ServersRoute {
         data class Stop(val parent: Server)
 
         @Location("fs")
-        data class FS(val parent: Server)
+        data class FileSystem(val parent: Server)
+
+        @Location("fs/disks/{disk}")
+        data class FileSystemDisk(val disk: String, val parent: Server)
+
+        @Location("fs/disks/{disk}/files")
+        data class FileSystemDiskFiles(val disk: String, val parent: Server)
 
     }
 
