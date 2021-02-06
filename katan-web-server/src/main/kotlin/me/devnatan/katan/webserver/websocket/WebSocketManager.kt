@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.DATA_KEY
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.INVALID
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.OP_KEY
 import me.devnatan.katan.webserver.websocket.handler.WebSocketHandler
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
@@ -69,7 +70,7 @@ class WebSocketManager {
                 // invalid operation code
                 if (!mapped) {
                     message.session.send(WebSocketMessageImpl(
-                        -1,
+                        INVALID,
                         mapOf("code" to message.op),
                         message.session
                     ))

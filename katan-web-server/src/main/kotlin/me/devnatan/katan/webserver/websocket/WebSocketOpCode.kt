@@ -5,6 +5,7 @@ object WebSocketOpCode {
     const val OP_KEY = "op"
     const val DATA_KEY = "d"
 
+    const val INVALID = -1
     const val SERVER_INFO = 1000
     const val SERVER_STATS = 1001
     const val SERVER_LOGS_STARTED = 1002
