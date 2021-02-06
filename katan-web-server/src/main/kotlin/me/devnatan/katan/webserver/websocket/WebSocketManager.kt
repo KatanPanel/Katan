@@ -48,27 +48,40 @@ class WebSocketManager {
     init {
         scope.launch(CoroutineName("Katan WS Message Listener")) {
             eventbus.listen<WebSocketMessage>().collect { message ->
+                var mapped = false
+
                 for (handler in handlers) {
                     val mappings = handler.mappings
                     if (!mappings.containsKey(message.op))
                         continue
 
+                    mapped = true
                     // prevents the exception from being thrown so as not to propagate
                     // to collector it and cancel all subsequent events.
                     runCatching {
                         mappings.getValue(message.op).invoke(message)
-                    }.onFailure {
-                        logger.warn("Failed to invoke ${message.op}: $it")
+                    }.onFailure { error ->
+                        logger.warn("Failed to invoke ${message.op}.")
+                        logger.trace(null, error)
                     }
+                }
+
+                // invalid operation code
+                if (!mapped) {
+                    message.session.send(WebSocketMessageImpl(
+                        -1,
+                        mapOf("code" to message.op),
+                        message.session
+                    ))
                 }
             }
         }
     }
 
     suspend fun handle(session: DefaultWebSocketSession) {
-        val impl = KtorWebSocketSession(session) {
+        val impl = KtorWebSocketSession(session) { packet ->
             session.outgoing.send(Frame.Text(
-                objectMapper.writeValueAsString(mapOf(OP_KEY to it.op, DATA_KEY to it.content))
+                objectMapper.writeValueAsString(mapOf(OP_KEY to packet.op, DATA_KEY to packet.content))
             ))
         }
 
@@ -90,6 +103,7 @@ class WebSocketManager {
                     else -> {
                         // terminating the connection is the best thing to do
                         // here, we cannot handle unknown (non-text) data for now.
+                        logger.debug("Unable to handle $frame frame, closing connection")
                         break
                     }
                 }
