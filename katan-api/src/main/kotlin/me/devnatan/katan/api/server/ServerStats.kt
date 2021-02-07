@@ -14,10 +14,10 @@ interface ServerStats {
     val systemCpuUsage: Long
     val onlineCpus: Long
 
-    val lastCpuUsage: Long
-    val lastPerCpuUsage: LongArray
-    val lastSystemCpuUsage: Long
-    val lastOnlineCpus: Long
+    val lastCpuUsage: Long?
+    val lastPerCpuUsage: LongArray?
+    val lastSystemCpuUsage: Long?
+    val lastOnlineCpus: Long?
 
 }
 
@@ -30,7 +30,10 @@ fun ServerStats.getMemoryUsagePercentage(): Float {
 }
 
 fun ServerStats.getCpuUsagePercentage(): Float {
-    return ((cpuUsage - lastCpuUsage).toFloat() / (systemCpuUsage - lastSystemCpuUsage).toFloat()) * onlineCpus * 100.0F
+    if (lastCpuUsage == null || lastSystemCpuUsage == null)
+        return 0.0F
+
+    return ((cpuUsage - lastCpuUsage!!).toFloat() / (systemCpuUsage - lastSystemCpuUsage!!).toFloat()) * onlineCpus * 100.0F
 }
 
 fun ServerStats.getCpuUsagePercentage(usage: Long): Float {

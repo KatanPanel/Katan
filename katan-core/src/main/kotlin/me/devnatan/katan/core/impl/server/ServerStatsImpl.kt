@@ -12,8 +12,8 @@ class ServerStatsImpl(
     override val perCpuUsage: LongArray,
     override val systemCpuUsage: Long,
     override val onlineCpus: Long,
-    override val lastCpuUsage: Long,
-    override val lastPerCpuUsage: LongArray,
-    override val lastSystemCpuUsage: Long,
-    override val lastOnlineCpus: Long
+    override val lastCpuUsage: Long?,
+    override val lastPerCpuUsage: LongArray?,
+    override val lastSystemCpuUsage: Long?,
+    override val lastOnlineCpus: Long?
 ) : ServerStats

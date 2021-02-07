@@ -254,7 +254,7 @@ class DockerServerManager(
         val pid = statistics.pidsStats.current ?: error("Null pid")
         val mem = statistics.memoryStats!!
         val cpu = statistics.cpuStats!!
-        val last = statistics.preCpuStats!!
+        val last = statistics.preCpuStats
 
         return ServerStatsImpl(
             pid,
@@ -266,10 +266,10 @@ class DockerServerManager(
             cpu.cpuUsage!!.percpuUsage!!.toLongArray(),
             cpu.systemCpuUsage!!,
             cpu.onlineCpus!!,
-            last.cpuUsage!!.totalUsage!!,
-            last.cpuUsage!!.percpuUsage!!.toLongArray(),
-            last.systemCpuUsage!!,
-            last.onlineCpus!!
+            last.cpuUsage?.totalUsage,
+            last.cpuUsage?.percpuUsage?.toLongArray(),
+            last.systemCpuUsage,
+            last.onlineCpus
         )
     }
 
