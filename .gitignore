@@ -30,7 +30,7 @@ hs_err_pid*
 
 # Katan
 logs/
-katan.conf
+katan.local.conf
 
 # Ktor
 application.conf
