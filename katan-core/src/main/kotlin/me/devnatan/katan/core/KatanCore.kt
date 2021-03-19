@@ -79,9 +79,9 @@ class KatanCore(
     init {
         coroutineContext[Job]!!.invokeOnCompletion {
             logger.error("[FATAL ERROR]")
-            logger.error("Katan main Job has been canceled and this is not expected to happen.")
-            logger.error("this will cause unexpected problems in the operation of the application.")
-            logger.error("see the log files to extract more information")
+            logger.error("Katan main worker has been canceled and this is not expected to happen.")
+            logger.error("This will cause unexpected problems in the application.")
+            logger.error("See the logs files to extract more information. Exiting process.")
             logger.trace(null, it)
             exitProcess(1)
         }
@@ -156,6 +156,7 @@ class KatanCore(
         pluginManager.disableAll()
         dockerEventsListener.close()
         internalFs.close()
+        cache.close()
     }
 
 }

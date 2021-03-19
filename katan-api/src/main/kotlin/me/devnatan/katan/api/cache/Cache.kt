@@ -1,9 +1,16 @@
 package me.devnatan.katan.api.cache
 
 /**
- * Base interface for implementing caching services such as local cache, Redis, in memory, and others.
+ * Base interface for implementing caching services such
+ * as local cache, Redis, in memory, and others.
  */
 interface Cache<V> {
+
+    companion object {
+
+        const val KEY_PREFIX = "katan_"
+
+    }
 
     /**
      * Get the cached value of the specified [key].
@@ -31,11 +38,6 @@ interface Cache<V> {
     fun isAvailable(): Boolean
 
     /**
-     * Returns the class for extensive or non-secure methods.
-     */
-    fun <T> unsafe(): T
-
-    /**
      * Terminates the execution of the caching service if available.
      * @throws IllegalStateException if it is not running.
      */
@@ -50,18 +52,19 @@ class UnavailableCacheProvider<V> : Cache<V> {
 
     override fun isAvailable() = false
 
-    private fun unavailable(): Nothing = throw UnsupportedOperationException()
-
-    override fun get(key: String): V = unavailable()
-
-    override fun set(key: String, value: V) = unavailable()
-
-    override fun has(key: String): Boolean {
-        return isAvailable()
+    override fun get(key: String): V {
+        throw UnsupportedOperationException()
     }
 
-    override fun <T> unsafe(): T = unavailable()
+    override fun set(key: String, value: V) {
+        throw UnsupportedOperationException()
+    }
 
-    override suspend fun close() = unavailable()
+    override fun has(key: String): Boolean {
+        throw UnsupportedOperationException()
+    }
+
+    override suspend fun close() {
+    }
 
 }

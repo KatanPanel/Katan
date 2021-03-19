@@ -1,18 +1,14 @@
 package me.devnatan.katan.core.cache
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.withContext
 import me.devnatan.katan.api.cache.Cache
-import redis.clients.jedis.Jedis
+import me.devnatan.katan.api.cache.Cache.Companion.KEY_PREFIX
 import redis.clients.jedis.JedisPool
-import redis.clients.jedis.Pipeline
 
 class RedisCacheProvider(private val pool: JedisPool) : Cache<Any> {
 
     init {
-        // check if the redis has been successfully connected
-        // tries to get a resource from the pool, will throw an exception if not connected
+        // check if the redis has been successfully connected tries to get
+        // a resource from the pool, will throw an exception if not connected
         pool.resource
     }
 
@@ -20,13 +16,9 @@ class RedisCacheProvider(private val pool: JedisPool) : Cache<Any> {
         return !pool.isClosed
     }
 
-    override fun <T> unsafe(): T {
-        return pool.resource as T
-    }
-
     override fun get(key: String): String {
         return pool.resource.use {
-            it.get(key)
+            it.get(KEY_PREFIX + key)
         } ?: throw NoSuchElementException(key)
     }
 
@@ -35,13 +27,13 @@ class RedisCacheProvider(private val pool: JedisPool) : Cache<Any> {
             if (value !is String)
                 throw IllegalArgumentException("Value must be String")
 
-            it.set(key, value)
+            it.set(KEY_PREFIX + key, value)
         }
     }
 
     override fun has(key: String): Boolean {
         return pool.resource.use {
-            it.exists(key)
+            it.exists(KEY_PREFIX + key)
         }
     }
 
@@ -49,17 +41,4 @@ class RedisCacheProvider(private val pool: JedisPool) : Cache<Any> {
         pool.close()
     }
 
-}
-
-/**
- * Asynchronously executes a list of commands at once.
- * @param pipe the execution pipe
- */
-@ExperimentalCoroutinesApi
-suspend fun <V> Cache<V>.asyncPipeline(pipe: Pipeline.() -> Unit) = (unsafe() as Jedis).use { redis ->
-    val pipeline = redis.pipelined().apply(pipe)
-
-    withContext(Dispatchers.IO) {
-        pipeline.sync()
-    }
 }
