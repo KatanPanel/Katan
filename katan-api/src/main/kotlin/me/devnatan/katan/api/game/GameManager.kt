@@ -24,21 +24,15 @@ interface GameManager {
     fun isSupported(name: String): Boolean
 
     /**
-     * Returns whether the specified game type is supported natively by Katan.
-     * @param name the game name.
-     */
-    fun isNative(name: String): Boolean
-
-    /**
      * Register a new game.
      * @param game the game to be registered.
      */
-    fun registerGame(game: Game)
+    suspend fun registerGame(game: Game)
 
     /**
      * Unregisters a game.
      * @param game the game to be unregistered.
      */
-    fun unregisterGame(game: Game)
+    suspend fun unregisterGame(game: Game)
 
 }
