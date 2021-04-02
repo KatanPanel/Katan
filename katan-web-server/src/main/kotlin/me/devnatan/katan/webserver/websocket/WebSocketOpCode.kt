@@ -6,7 +6,6 @@ object WebSocketOpCode {
     const val DATA_KEY = "d"
 
     const val INVALID = -1
-    const val SERVER_INFO = 1000
     const val SERVER_STATS = 1001
     const val SERVER_LOGS_STARTED = 1002
     const val SERVER_LOGS = 1003
@@ -15,5 +14,7 @@ object WebSocketOpCode {
     const val SERVER_ATTACH = 1006
     const val SERVER_START = 1007
     const val SERVER_STOP = 1008
+    const val SERVER_STATS_START_STREAMING = 1009
+    const val SERVER_STATS_CANCEL_STREAMING = 1010
 
 }

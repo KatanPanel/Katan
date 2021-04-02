@@ -11,12 +11,12 @@ abstract class WebSocketHandler {
 
 }
 
-suspend fun WebSocketMessage.respond(op: Int, content: Map<String, Any>) {
-    session.send(WebSocketMessageImpl(op, content, session))
+suspend fun WebSocketMessage.respond(op: Int, vararg content: Pair<String, Any>) {
+    session.send(WebSocketMessageImpl(op, mapOf(*content), session))
 }
 
-suspend fun WebSocketMessage.respond(content: Map<String, Any>) {
-    respond(this.op, content)
+suspend fun WebSocketMessage.respond(vararg content: Pair<String, Any>) {
+    respond(this.op, *content)
 }
 
 fun WebSocketHandler.handle(target: Int, block: WebSocketMessageHandlerBlock) {
