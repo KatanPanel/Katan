@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.Payload
-import me.devnatan.katan.api.security.PasswordCredential
+import me.devnatan.katan.api.security.PasswordCredentials
 import me.devnatan.katan.api.security.account.Account
 import java.time.Duration
 import java.time.Instant
@@ -17,31 +17,45 @@ class TokenManager(val webserver: KatanWS) {
         const val AUTH_SECRET_MIN_LENGTH = 8
         const val AUTH_SECRET_MAX_LENGTH = 32
         private const val JWT_ACCOUNT_CLAIM = "account"
-        private val JWT_TOKEN_LIFETIME = Duration.ofHours(1)!!
+        private val JWT_TOKEN_LIFETIME: Duration = Duration.ofHours(1)
 
     }
 
     private val algorithm: Algorithm
-    val verifier: JWTVerifier
     private val audience: String
+    val verifier: JWTVerifier
 
     init {
         val secret = webserver.config.getString("jwt.secret")
         val len = secret.length
         if (len < AUTH_SECRET_MIN_LENGTH)
-            throw IllegalArgumentException("JWT secret must have at least %d characters (given: %d). Change this in the web server settings at \"jwt.secret\".".format(AUTH_SECRET_MIN_LENGTH, len))
+            throw IllegalArgumentException(
+                "JWT secret must have at least " +
+                        "$AUTH_SECRET_MIN_LENGTH characters (given: $len). Change this in the web server settings at \"jwt.secret\".)"
+            )
 
         if (len > AUTH_SECRET_MAX_LENGTH)
-            throw IllegalArgumentException("JWT secret cannot exceed %d characters (given: %d). Change this in the web server settings at \"jwt.secret\".".format(AUTH_SECRET_MAX_LENGTH, len))
+            throw IllegalArgumentException(
+                "JWT secret cannot exceed $AUTH_SECRET_MAX_LENGTH characters " +
+                        "(given: $len). Change this in the web server " +
+                        "settings at \"jwt.secret\"."
+            )
 
         audience = webserver.config.getString("jwt.audience")
         algorithm = Algorithm.HMAC256(secret)
         verifier = JWT.require(algorithm).withAudience(audience).build()!!
     }
 
-    suspend fun authenticateAccount(account: Account, password: String): String {
-        if (!webserver.katan.accountManager.authenticate(account, PasswordCredential(password)))
-            throw IllegalArgumentException()
+    suspend fun authenticateAccount(
+        account: Account,
+        password: String
+    ): String {
+        if (!webserver.katan.accountManager.authenticate(
+                account,
+                PasswordCredentials(password)
+            )
+        )
+            throw IllegalArgumentException("Wrong password")
 
         return JWT.create()
             .withAudience(audience)

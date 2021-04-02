@@ -15,7 +15,7 @@ data class SecureAccount(
     override val registeredAt: Instant
 ) : Account {
 
-    var password: String = ""
+    var password: String? = null
 
     override var lastLogin: Instant? = null
     override var role: Role? = null

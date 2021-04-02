@@ -6,7 +6,8 @@ import me.devnatan.katan.api.service.ServiceManager
 /**
  * External authentication provider, visible to the [ServiceManager].
  */
-interface ExternalAuthenticationProvider : AuthenticationProvider, UntrustedProvider {
+interface ExternalAuthenticationProvider : AuthenticationProvider,
+    UntrustedProvider {
 
     /**
      * Returns the authentication provider id.

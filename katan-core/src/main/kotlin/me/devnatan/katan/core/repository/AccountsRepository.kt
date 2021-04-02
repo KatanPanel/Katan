@@ -19,7 +19,8 @@ interface AccountsRepository {
 
 }
 
-class JDBCAccountsRepository(private val connector: JDBCConnector) : AccountsRepository {
+class JDBCAccountsRepository(private val connector: JDBCConnector) :
+    AccountsRepository {
 
     override suspend fun listAccounts(): List<Account> {
         return newSuspendedTransaction(Dispatchers.IO, connector.database) {
@@ -54,7 +55,9 @@ class JDBCAccountsRepository(private val connector: JDBCConnector) : AccountsRep
             AccountsTable.update({ AccountsTable.id eq account.id }) {
                 it[username] = account.username
                 it[lastLogin] = account.lastLogin
-                if (account is SecureAccount && account.password.isNotEmpty())
+                if (account is SecureAccount && account.password.orEmpty()
+                        .isNotEmpty()
+                )
                     it[password] = account.password
             }
         }

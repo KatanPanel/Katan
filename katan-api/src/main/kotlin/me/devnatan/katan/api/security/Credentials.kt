@@ -1,5 +1,6 @@
 package me.devnatan.katan.api.security
 
+import me.devnatan.katan.api.security.crypto.Hash
 import java.io.Serializable
 
 /**
@@ -12,7 +13,7 @@ import java.io.Serializable
  * the credential.
  *
  * @implNote
- * Security credentials must not contain mutable or public properties.
+ * Security credentials must not contain mutable properties.
  *
  * @author Natan Vieira
  * @see    BasicCredentials
@@ -28,7 +29,32 @@ interface Credentials : Serializable {
      * @throws InvalidCredentialsException if validation was not possible for
      * some reason.
      */
-    fun validate(value: CharSequence): Boolean
+    fun validate(value: CharArray): Boolean
+
+}
+
+/**
+ * @author Natan Vieira
+ * @see    PasswordCredentials
+ * @since  1.0
+ */
+interface HashedCredentials : Credentials {
+
+    override fun validate(value: CharArray): Boolean {
+        throw UnsupportedOperationException(
+            "Use validate(value, hash) instead."
+        )
+    }
+
+    /**
+     * Performs the verification of the credentials validation from the [value].
+     * Returns `true` if validation was performed successfully or `false`
+     * otherwise.
+     *
+     * @throws InvalidCredentialsException if validation was not possible for
+     * some reason.
+     */
+    fun validate(value: CharArray, hash: Hash): Boolean
 
 }
 
@@ -41,11 +67,25 @@ interface Credentials : Serializable {
  * @see    Credentials
  * @since  1.0
  */
-inline class BasicCredentials(private val value: CharSequence) :
+inline class BasicCredentials(val value: CharArray) :
     Credentials {
 
-    override fun validate(value: CharSequence): Boolean {
-        return this.value == value
+    override fun validate(value: CharArray): Boolean {
+        return this.value.contentEquals(value)
+    }
+
+}
+
+inline class PasswordCredentials(private val nonHashedValue: String) :
+    HashedCredentials {
+
+    override fun validate(value: CharArray, hash: Hash): Boolean {
+        // check this because hashing algorithms
+        // are strict with data length.
+        if (nonHashedValue.isEmpty() && value.isEmpty())
+            return true
+
+        return hash.compare(value, nonHashedValue)
     }
 
 }

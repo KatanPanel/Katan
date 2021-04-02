@@ -1,6 +1,6 @@
 package me.devnatan.katan.api.security.auth
 
-import me.devnatan.katan.api.security.Credential
+import me.devnatan.katan.api.security.Credentials
 import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.service.ServiceManager
 
@@ -19,6 +19,9 @@ interface AuthenticationProvider {
      * @param credentials the credentials that will be used for authentication.
      * @return `true` if the account has been successfully authenticated or` false` otherwise.
      */
-    suspend fun authenticate(account: Account, credentials: Credential): Boolean
+    suspend fun authenticate(
+        account: Account,
+        credentials: Credentials
+    ): Boolean
 
 }
