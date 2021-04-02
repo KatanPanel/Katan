@@ -53,7 +53,7 @@ class KatanLauncher {
                 }
             })
 
-            runBlocking(CoroutineName("Katan Init")) {
+            runBlocking {
                 val time = measureTimeMillis {
                     core.start()
                 }
@@ -77,9 +77,9 @@ class KatanLauncher {
         val env = System.getProperty(Katan.ENVIRONMENT_PROPERTY, KatanEnvironment.PRODUCTION).toLowerCase()
         if (env !in KatanEnvironment.ALL) {
             System.err.println(
-                "Environment \"$env\" is not valid for Katan. You can only choose these: ${
+                "Environment mode \"$env\" is not valid. You can only choose these: ${
                     KatanEnvironment.ALL.joinToString(", ")
-                }"
+                }."
             )
             exitProcess(0)
         }
