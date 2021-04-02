@@ -12,7 +12,8 @@ abstract class ServerContainer(
     /**
      * Returns the result of the server inspection.
      */
-    var inspection: ServerContainerInspection = ServerContainerInspection.NotInspected
+    var inspection: ServerContainerInspection =
+        ServerContainerInspection.NotInspected
 
     /**
      * Returns if the container has already been inspected.

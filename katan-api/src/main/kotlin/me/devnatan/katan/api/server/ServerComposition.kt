@@ -5,11 +5,9 @@ package me.devnatan.katan.api.server
  *
  * A server can have ~~multiple compositions~~, compositions are called when a server
  * is read and when it is written, that is, when it is created and when it is loaded.
- * Compositions are called at random, that is, it is not possible for one composition to depend on the other,
- * except in the case of [CombinedServerComposition], which you can determine its order.
  *
- * As identification, compositions have keys, determining
- * which key is which composition is a [ServerCompositionFactory] task.
+ * Compositions are called randomly, that is, it is not possible for one composition to depend on the other,
+ * except in the case of [CombinedServerComposition], which you can determine its order.
  */
 interface ServerComposition<T : ServerCompositionOptions> {
 

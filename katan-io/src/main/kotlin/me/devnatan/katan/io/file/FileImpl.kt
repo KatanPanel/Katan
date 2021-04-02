@@ -16,10 +16,7 @@ data class FileImpl(
 ) : File {
 
     override suspend fun listFiles(): List<File> {
-        if (!isDirectory)
-            throw IllegalArgumentException("Not a directory")
-
-        TODO()
+        throw UnsupportedOperationException("Not supported")
     }
 
 }

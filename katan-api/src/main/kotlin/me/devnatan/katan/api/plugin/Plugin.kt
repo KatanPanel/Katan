@@ -25,7 +25,8 @@ import kotlin.reflect.KClass
  * that allow you to extract more potential from Katan and create new features
  * without the need for Katan himself to provide this natively.
  *
- * Plugins are handled through a [PluginManager], it has its own state, dependencies, scope and phases.
+ * Plugins are handled through a [PluginManager], it has its own state,
+ * dependencies, scope and phases.
  */
 interface Plugin : UntrustedProvider {
 
@@ -35,14 +36,15 @@ interface Plugin : UntrustedProvider {
     val katan: Katan
 
     /**
-     * This plugin's private local scope, used to create tasks, receive and send events,
-     * wait for requests and others. Canceling this scope will
+     * This plugin's private local scope, used to create tasks, receive and
+     * send events, wait for requests and others. Canceling this scope will
      * cancel absolutely everything related to tasks in this plugin.
      */
     val coroutineScope: CoroutineScope
 
     /**
-     * The current state of the plugin before, during and after the loading process
+     * The current state of the plugin before,
+     * during and after the loading process
      */
     var state: PluginState
 
@@ -55,12 +57,13 @@ interface Plugin : UntrustedProvider {
      * Descriptor containing the main information
      * of the plugin such as name, version and others.
      */
-    val descriptor: PluginDescriptor
+    override val descriptor: PluginDescriptor
 
     /**
      * Plugin's dependency manager. A dependency is a PluginDescriptor,
-     * which is later converted to a Plugin. Defining a dependency means that you
-     * want it to be available during the initialization of your plugin, it will start before it.
+     * which is later converted to a Plugin. Defining a dependency means
+     * that you want it to be available during the initialization of your
+     * plugin, it will start before it.
      */
     val dependencyManager: PluginDependencyManager
 
@@ -85,30 +88,37 @@ interface Plugin : UntrustedProvider {
     val directory: File
 
     /**
-     * The plugin configuration file, which is located in the working [directory].
+     * The plugin configuration file,
+     * which is located in the working [directory].
      */
     val config: Config
 
 }
 
 /**
- * Access the plugin's event listener, through which you can call and listen to events.
+ * Access the plugin's event listener,
+ * through which you can call and listen to events.
  */
 inline fun Plugin.listener(crossinline block: EventScope.() -> Unit): EventScope {
     return eventListener.apply(block)
 }
 
 /**
- * Listens to a specific event, calling [block] every time the event is published within the scope.
+ * Listens to a specific event, calling [block] every
+ * time the event is published within the scope.
  */
 inline fun <reified T : Any> Plugin.event(noinline block: suspend T.() -> Unit) {
     eventListener.listen<T>().onEach(block).launchIn(coroutineScope)
 }
 
 /**
- * Adds a handler that when called, executes the [block] function for phase [phase].
+ * Adds a handler that when called, executes the
+ * [block] function for phase [phase].
  */
-fun Plugin.handle(phase: PluginPhase, block: suspend () -> Unit): PluginHandler {
+fun Plugin.handle(
+    phase: PluginPhase,
+    block: suspend () -> Unit
+): PluginHandler {
     val handler = PluginHandlerImpl(block)
     handlers.computeIfAbsent(phase) { arrayListOf() }.add(handler)
     return handler
@@ -116,8 +126,9 @@ fun Plugin.handle(phase: PluginPhase, block: suspend () -> Unit): PluginHandler 
 
 
 /**
- * Access the plugin's dependency manager, it should be used only in case you need a better organization
- * of the dependencies or have direct access to the handler, for just adding dependency use [plugin].
+ * Access the plugin's dependency manager, it should be used only in case you
+ * need a better organization of the dependencies or have direct access to
+ * the handler, for just adding dependency use [plugin].
  */
 inline fun Plugin.dependencyManagement(crossinline block: PluginDependencyManager.() -> Unit): PluginDependencyManager {
     return dependencyManager.apply(block)
@@ -127,7 +138,11 @@ inline fun Plugin.dependencyManagement(crossinline block: PluginDependencyManage
  * Delegates a dependency whether it is a plugin or a service.
  */
 inline fun <reified T> Plugin.dependency(): ReadOnlyProperty<Plugin, T?> {
-    return ReadOnlyProperty { _, _ -> (dependencyManager as GenericPluginDependencyManager).resolveDependency(T::class) as? T }
+    return ReadOnlyProperty { _, _ ->
+        (dependencyManager as GenericPluginDependencyManager).resolveDependency(
+            T::class
+        ) as? T
+    }
 }
 
 /**
@@ -160,7 +175,8 @@ fun Plugin.registerCommands(vararg commands: Command) {
 /**
  * Plugin implementation
  */
-open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin {
+open class KatanPlugin(final override val descriptor: PluginDescriptor) :
+    Plugin {
 
     constructor(
         name: String,
@@ -170,14 +186,16 @@ open class KatanPlugin(final override val descriptor: PluginDescriptor) : Plugin
 
     final override val katan: Katan by InitOnceProperty()
 
-    final override val dependencyManager: PluginDependencyManager = GenericPluginDependencyManager()
+    final override val dependencyManager: PluginDependencyManager =
+        GenericPluginDependencyManager()
     final override val directory: File by InitOnceProperty()
     private var _config: () -> Config by InitOnceProperty()
     final override val config: Config get() = _config()
     final override var state: PluginState = PluginState.Unloaded(Instant.now())
-    final override val coroutineScope: CoroutineScope = CoroutineScope(CoroutineName("Katan-plugin:${descriptor.name}"))
+    final override val coroutineScope: CoroutineScope =
+        CoroutineScope(CoroutineName("Katan-plugin:${descriptor.id}"))
     final override val eventListener: EventScope = LocalEventScope()
-    final override val logger: Logger = LoggerFactory.getLogger(descriptor.name)
+    final override val logger: Logger = LoggerFactory.getLogger(descriptor.id)
     final override val handlers: MutableMap<PluginPhase, MutableCollection<PluginHandler>>
 
     init {

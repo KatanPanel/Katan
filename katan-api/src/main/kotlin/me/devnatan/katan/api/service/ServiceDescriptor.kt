@@ -13,13 +13,13 @@ data class ServiceDescriptor(
     val classifier: KClass<out Any>
 ) : Descriptor {
 
-    override val name: String = classifier.simpleName!!
+    override val id: String = classifier.simpleName!!
 
     // is used for dependency injection differentiation, internal
     override fun isTrusted(): Boolean = true
 
     override fun toString(): String {
-        return name
+        return id
     }
 
 }

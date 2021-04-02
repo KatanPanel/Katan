@@ -43,7 +43,7 @@ inline fun PluginDependencyManager.plugin(
     crossinline block: PluginDependency.() -> Unit = {}
 ): PluginDependency {
     return addDependency(descriptor).apply {
-        this.optional = optional
+        this.isOptional = optional
     }.apply(block)
 }
 
@@ -101,7 +101,7 @@ fun PluginDependencyManager.service(
     optional: Boolean = false
 ): PluginDependency {
     return addDependency(ServiceDescriptor(classifier)).apply {
-        this.optional = optional
+        this.isOptional = optional
     }
 }
 
@@ -131,20 +131,26 @@ class GenericPluginDependencyManager : PluginDependencyManager {
     @OptIn(InternalKatanApi::class)
     override fun resolveDependency(classifier: KClass<*>): Any? {
         for (dependency in dependencies) {
-            if (when (dependency.descriptor) {
-                    is PluginDescriptor -> {
-                        runCatching {
-                            dependency.value?.invoke()!!::class == classifier
-                        }.getOrNull() == true
-                    }
-                    is ServiceDescriptor -> {
-                        classifier == dependency.descriptor.classifier
-                    }
-                    else -> throw IllegalArgumentException("Unsupported descriptor: ${dependency.descriptor}.")
+            val condition = when (dependency.descriptor) {
+                is PluginDescriptor -> {
+                    runCatching {
+                        val computed = dependency.value
+                        if (computed == null)
+                            false
+                        else
+                            computed.invoke()!!::class == classifier
+                    }.getOrDefault(false)
                 }
-            ) {
-                return dependency.value?.invoke()
+                is ServiceDescriptor -> {
+                    classifier == dependency.descriptor.classifier
+                }
+                else -> throw IllegalArgumentException(
+                    "Unsupported descriptor: ${dependency.descriptor}."
+                )
             }
+
+            if (condition)
+                return dependency.value?.invoke()
         }
 
         throw IllegalArgumentException("Unable to resolve classifier: $classifier")

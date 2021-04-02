@@ -29,11 +29,6 @@ interface Server {
     val container: ServerContainer
 
     /**
-     * Returns the server's temporarily metadata values.
-     */
-    val metadata: MutableMap<String, Any>
-
-    /**
      * Returns the current server state.
      */
     var state: ServerState

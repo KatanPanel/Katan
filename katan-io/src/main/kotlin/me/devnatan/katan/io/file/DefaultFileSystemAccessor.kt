@@ -20,7 +20,7 @@ class DefaultFileSystemAccessor(@JvmField val config: Config, private val fs: Pe
 
     override suspend fun newSession(holder: Descriptor): FileSystemSession {
         if (!config.get("security.file-system.allow-untrusted-access", false))
-            throw UnauthorizedFileSystemAccessException(holder.name)
+            throw UnauthorizedFileSystemAccessException(holder.id)
 
         val session = FileSystemSessionImpl(holder, fs)
         logger.info("Session $session opened.")

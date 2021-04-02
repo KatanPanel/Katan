@@ -36,6 +36,10 @@ abstract class ServerCompositionFactory(
      */
     abstract suspend fun generate(key: ServerComposition.Key<*>, data: Map<String, Any>): ServerCompositionOptions
 
+    open suspend fun identify(key: ServerComposition.Key<*>): String {
+        return key.toString()
+    }
+
 }
 
 /**

@@ -1,6 +1,6 @@
 package me.devnatan.katan.api.server
 
-import me.devnatan.katan.api.game.GameType
+import me.devnatan.katan.api.game.Game
 import me.devnatan.katan.api.game.GameVersion
 
 /**
@@ -9,9 +9,9 @@ import me.devnatan.katan.api.game.GameVersion
 interface ServerGame {
 
     /**
-     * Returns the type of the game.
+     * Returns the [Game].
      */
-    val type: GameType
+    val game: Game
 
     /**
      * Returns the [GameVersion] being used or null if using the [Game]'s default.
