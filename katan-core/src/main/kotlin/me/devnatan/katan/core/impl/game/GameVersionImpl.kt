@@ -4,6 +4,7 @@ import me.devnatan.katan.api.game.GameVersion
 
 data class GameVersionImpl(
     override val name: String,
+    override val displayName: String?,
     override val image: String?,
     override val environment: Map<String, Any>
 ) : GameVersion

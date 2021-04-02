@@ -7,11 +7,8 @@ package me.devnatan.katan.api.game
 interface GameManager {
 
     /**
-     * Returns all supported [GameType]s including those added dynamically.
-     * To return only native games, filter them using [isNative].
+     * Returns all supported games.
      */
-    fun getSupportedGames(): List<GameType>
-
     fun getRegisteredGames(): Collection<Game>
 
     /**

@@ -1,7 +1,8 @@
 package me.devnatan.katan.api.game
 
 /**
- * Represents a version, derivation of a [Game].
+ * @author Natan Vieira
+ * @since  1.0
  */
 interface GameVersion {
 
@@ -11,12 +12,17 @@ interface GameVersion {
     val name: String
 
     /**
+     * Returns the version exhibition name.
+     */
+    val displayName: String?
+
+    /**
      * Returns the default Docker image for building a server or `null` if not defined.
      */
     val image: String?
 
     /**
-     * The default environment values for the image.
+     * Default environment variables values for the [image].
      */
     val environment: Map<String, Any>
 
