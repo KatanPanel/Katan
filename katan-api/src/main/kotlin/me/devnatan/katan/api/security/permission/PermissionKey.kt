@@ -1,47 +1,59 @@
 package me.devnatan.katan.api.security.permission
 
-import me.devnatan.katan.api.security.permission.PermissionKeyType.ACCOUNT
-import me.devnatan.katan.api.security.permission.PermissionKeyType.ROLE
-import me.devnatan.katan.api.security.permission.PermissionKeyType.SERVER_HOLDER
+import me.devnatan.katan.api.Descriptor
+import me.devnatan.katan.api.security.permission.PermissionTarget.ACCOUNT
+import me.devnatan.katan.api.security.permission.PermissionTarget.ROLE
+import me.devnatan.katan.api.security.permission.PermissionTarget.SERVER_HOLDER
 
+/**
+ * Permission keys are used to identify permissions on [PermissionsHolder]
+ * entities. These keys can be defined by [Untrus] who have a
+ * [Descriptor].
+ *
+ * @author Natan Vieira
+ * @since  1.0
+ */
 interface PermissionKey {
 
-    val code: Byte
+    val id: String
 
-    val name: String
+    val overwrite: Array<out PermissionKey>
 
-    val type: Int
+    val targets: Int
 
-}
+    val owner: Descriptor?
 
-fun PermissionKey.isTypeOf(keyType: Int): Boolean {
-    return type and keyType > 0
-}
+    companion object {
 
-object PermissionKeyType {
+        val defaultPermissionKeys: Array<out PermissionKey> by lazy {
+            arrayOf(
+                ViewServerConsole,
+                UseServerConsole,
+                ViewServerFS,
+                AccessServerFS,
+                ViewServerFSDisk,
+                AccessServerFSDisk,
+                ViewServerFSDisksFiles,
+                EditServerFSDisksFiles
+            )
+        }
 
-    const val ACCOUNT = 1
-    const val ROLE = 2
-    const val SERVER_HOLDER = 4
-
-}
-
-private class PermissionKeyImpl(
-    override val code: Byte,
-    override val name: String,
-    override val type: Int = ACCOUNT or ROLE or SERVER_HOLDER
-) : PermissionKey
-
-object DefaultPermissionKeys {
-
-    private val ADD_SERVERS: PermissionKey = PermissionKeyImpl(1, "add_servers", ACCOUNT or ROLE)
-    private val DELETE_SERVERS: PermissionKey = PermissionKeyImpl(2, "delete_servers", ACCOUNT or ROLE)
-    private val ACCESS_SERVER_CONSOLE: PermissionKey = PermissionKeyImpl(3, "access_server_console", SERVER_HOLDER)
-    private val ACCESS_SERVER_FILES: PermissionKey = PermissionKeyImpl(4, "access_server_fs", SERVER_HOLDER)
-    private val VIEW_BACKEND_INFO: PermissionKey = PermissionKeyImpl(5, "view_backend_info", ACCOUNT or ROLE)
-
-    val DEFAULTS: Array<PermissionKey> by lazy {
-        arrayOf(ADD_SERVERS, DELETE_SERVERS, ACCESS_SERVER_CONSOLE, ACCESS_SERVER_FILES, VIEW_BACKEND_INFO)
     }
 
+}
+
+internal class PermissionKeyImpl(
+    override val id: String,
+    override val targets: Int = ACCOUNT or ROLE or SERVER_HOLDER,
+    override val overwrite: Array<out PermissionKey> = emptyArray(),
+    override val owner: Descriptor? = null
+) : PermissionKey
+
+fun PermissionKey(
+    id: String,
+    overwrite: Array<out PermissionKey>,
+    target: Int,
+    owner: Descriptor
+): PermissionKey {
+    return PermissionKeyImpl(id, target, overwrite, owner)
 }

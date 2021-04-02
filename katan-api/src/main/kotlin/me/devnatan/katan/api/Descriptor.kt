@@ -17,7 +17,7 @@ import java.io.Serializable
  * [me.devnatan.katan.api.util.InitOnceProperty] and serializable.
  *
  * @author Natan Vieira
- * @since 1.0
+ * @since  1.0
  */
 interface Descriptor : Serializable {
 

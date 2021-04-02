@@ -45,7 +45,8 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
     }
 
     override suspend fun startPlugin(plugin: Plugin) {
-        (plugin as KatanPlugin).state = PluginState.Started(Instant.now(), plugin.state)
+        (plugin as KatanPlugin).state =
+            PluginState.Started(Instant.now(), plugin.state)
         callHandlers(PluginEnabled, plugin)
         logger.info("Plugin \"$plugin\" started.")
     }
@@ -56,7 +57,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
                 loadPlugin0(plugin, classloader)
             }
         }.onSuccess {
-            synchronized (plugins) {
+            synchronized(plugins) {
                 plugins.add(it!!)
             }
         }.getOrThrow()!!
@@ -66,7 +67,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         check(plugin.state !is PluginState.Unloaded) { "Plugin is not loaded." }
         plugin.coroutineScope.cancel()
         plugin.state = PluginState.Unloaded(Instant.now(), plugin.state)
-        synchronized (plugins) {
+        synchronized(plugins) {
             if (plugins.remove(plugin))
                 logger.info("Plugin $plugin unloaded.")
         }
@@ -91,7 +92,8 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
                 val entries = jar.entries()
                 while (entries.hasMoreElements()) {
                     val entry = entries.nextElement()
-                    val plugin = initializePlugin(entry, classloader) ?: continue
+                    val plugin =
+                        initializePlugin(entry, classloader) ?: continue
                     if (plugin.descriptor == descriptor)
                         return plugin to classloader
                 }
@@ -101,14 +103,23 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         return null
     }
 
-    private suspend fun loadPlugin0(plugin: Plugin, classloader: URLClassLoader): Plugin {
-        val workingDir = File(pwd, plugin.descriptor.name)
+    private suspend fun loadPlugin0(
+        plugin: Plugin,
+        classloader: URLClassLoader
+    ): Plugin {
+        val workingDir = File(pwd, plugin.descriptor.id)
         val instance = plugin as KatanPlugin
         setDelegateValue(
             instance, mapOf(
                 "katan" to katan,
                 "directory" to workingDir,
-                "_config" to { loadPluginConfig(instance, workingDir, classloader) }
+                "_config" to {
+                    loadPluginConfig(
+                        instance,
+                        workingDir,
+                        classloader
+                    )
+                }
             )
         )
         plugin.state = PluginState.Loaded(Instant.now(), plugin.state)
@@ -117,9 +128,13 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         return plugin
     }
 
-    private fun loadPluginConfig(plugin: KatanPlugin, directory: File, classloader: URLClassLoader): Config {
+    private fun loadPluginConfig(
+        plugin: KatanPlugin,
+        directory: File,
+        classloader: URLClassLoader
+    ): Config {
         val resource = classloader.getResourceAsStream(PLUGIN_CONFIG_FILE_NAME)
-            ?: throw FileNotFoundException("Tried to access plugin \"${plugin.descriptor.name}\" configuration but the configuration file ($PLUGIN_CONFIG_FILE_NAME) was not found.")
+            ?: throw FileNotFoundException("Tried to access plugin \"${plugin.descriptor.id}\" configuration but the configuration file ($PLUGIN_CONFIG_FILE_NAME) was not found.")
 
         if (!directory.exists())
             directory.mkdirs()
@@ -142,7 +157,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
                     val plugin = initializePlugin(entry, classloader)
                     if (plugin != null) {
                         loadPlugin0(plugin, classloader)
-                        synchronized (plugins) {
+                        synchronized(plugins) {
                             plugins.add(plugin)
                         }
 
@@ -153,7 +168,10 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         }
     }
 
-    private fun initializePlugin(entry: JarEntry, classloader: URLClassLoader): Plugin? {
+    private fun initializePlugin(
+        entry: JarEntry,
+        classloader: URLClassLoader
+    ): Plugin? {
         if (entry.isDirectory)
             return null
 
@@ -201,10 +219,11 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         val clazz = instance!!
         val members = clazz::class.memberProperties
         for ((property, value) in values) {
-            val field = (members.firstOrNull { it.name == property } as? KProperty1<T, V>)
-                ?: clazz::class.superclasses
-                    .first { it == KatanPlugin::class }
-                    .memberProperties.first { it.name == property } as KProperty1<T, V>
+            val field =
+                (members.firstOrNull { it.name == property } as? KProperty1<T, V>)
+                    ?: clazz::class.superclasses
+                        .first { it == KatanPlugin::class }
+                        .memberProperties.first { it.name == property } as KProperty1<T, V>
 
             val accessible = field.isAccessible
             if (!accessible)

@@ -25,7 +25,7 @@ package me.devnatan.katan.api.security.permission
  * @author Natan Vieira
  * @since  1.0
  */
-interface PermissionsHolder {
+interface PermissionsHolder : Iterable<Permission> {
 
     val permissions: List<Permission>
 
@@ -64,5 +64,12 @@ interface PermissionsHolder {
      * @return      The newly defined or modified permission.
      */
     fun setPermission(key: PermissionKey, value: PermissionFlag): Permission
+
+    /**
+     * Returns a [Iterator] of all [Permission]s of this holder.
+     */
+    override fun iterator(): Iterator<Permission> {
+        return permissions.iterator()
+    }
 
 }

@@ -17,7 +17,7 @@ import me.devnatan.katan.api.io.FileSystemAccessor
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
-import me.devnatan.katan.api.security.permission.DefaultPermissionKeys
+import me.devnatan.katan.api.security.permission.PermissionKey
 import me.devnatan.katan.api.service.get
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.cache.RedisCacheProvider
@@ -90,7 +90,12 @@ class KatanCore(
         if (value != DEFAULT_VALUE) {
             val timezone = TimeZone.getTimeZone(value)
             System.setProperty(Katan.TIMEZONE_PROPERTY, timezone.id)
-            logger.info(translator.translate("katan.timezone", timezone.displayName))
+            logger.info(
+                translator.translate(
+                    "katan.timezone",
+                    timezone.displayName
+                )
+            )
         }
     }
 
@@ -98,14 +103,24 @@ class KatanCore(
         val redis = config.getConfig("redis")
         if (!redis.get("use", false)) {
             logger.warn(translator.translate("katan.redis.disabled"))
-            logger.warn(translator.translate("katan.redis.alert", "https://redis.io/"))
+            logger.warn(
+                translator.translate(
+                    "katan.redis.alert",
+                    "https://redis.io/"
+                )
+            )
             return
         }
 
         try {
             // we have to use the pool instead of the direct client due to Katan nature,
             // the default instance of Jedis (without pool) is not thread-safe
-            cache = RedisCacheProvider(JedisPool(JedisPoolConfig(), redis.get("host", "localhost")))
+            cache = RedisCacheProvider(
+                JedisPool(
+                    JedisPoolConfig(),
+                    redis.get("host", "localhost")
+                )
+            )
             logger.info(translator.translate("katan.redis.ready"))
         } catch (e: Throwable) {
             cache = UnavailableCacheProvider()
@@ -118,31 +133,38 @@ class KatanCore(
             translator.translate(
                 "katan.starting",
                 Katan.VERSION,
-                translator.translate("katan.env.$environment").toLowerCase(translator.locale)
+                translator.translate("katan.env.$environment")
+                    .toLowerCase(translator.locale)
             )
         )
         logger.info(translator.translate("katan.platform", "$platform"))
         docker.initialize()
         databaseManager = DatabaseManager(this)
         databaseManager.connect()
-        pluginManager.loadPlugins()
-        serverManager = DockerServerManager(this, JDBCServersRepository(databaseManager.database as JDBCConnector))
-        accountManager = AccountManagerImpl(this, JDBCAccountsRepository(databaseManager.database as JDBCConnector))
+        for (defaultKey in PermissionKey.defaultPermissionKeys)
+            permissionManager.registerPermissionKey(defaultKey)
+
+        gameManager = GameManagerImpl(this).also { it.register() }
+        serverManager = DockerServerManager(
+            this,
+            JDBCServersRepository(databaseManager.database as JDBCConnector)
+        )
+        accountManager = AccountManagerImpl(
+            this,
+            JDBCAccountsRepository(databaseManager.database as JDBCConnector)
+        )
         caching()
+        pluginManager.loadPlugins()
 
-        for (defaultPermission in DefaultPermissionKeys.DEFAULTS)
-            permissionManager.registerPermissionKey(defaultPermission)
-
-        gameManager = GameManagerImpl(this)
         pluginManager.callHandlers(KatanInit)
         serverManager.loadServers()
-
 
         hash = when (val algorithm = config.getString("security.crypto.hash")) {
             DEFAULT_VALUE, BcryptHash.NAME -> BcryptHash()
             else -> serviceManager.get<Hash>().find {
                 it.name == algorithm
-            } ?: throw IllegalArgumentException("Unsupported hashing algorithm: $algorithm")
+            }
+                ?: throw IllegalArgumentException("Unsupported hashing algorithm: $algorithm")
         }
 
         logger.info(translator.translate("katan.selected-hash", hash.name))

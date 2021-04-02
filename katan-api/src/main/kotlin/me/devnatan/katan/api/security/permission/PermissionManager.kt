@@ -4,8 +4,8 @@ interface PermissionManager {
 
     fun getRegisteredPermissionKeys(): Collection<PermissionKey>
 
-    fun registerPermissionKey(key: PermissionKey)
+    suspend fun registerPermissionKey(key: PermissionKey)
 
-    fun unregisterPermissionKey(key: PermissionKey)
+    suspend fun unregisterPermissionKey(key: PermissionKey)
 
 }
