@@ -3,6 +3,7 @@ val dockerJavaVersion = "3.2.5"
 
 dependencies {
     api(project(":katan-common"))
+    implementation(project(":katan-api"))
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")

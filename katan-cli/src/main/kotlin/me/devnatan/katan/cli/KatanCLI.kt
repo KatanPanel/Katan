@@ -73,6 +73,9 @@ class KatanCLI(val katan: Katan) {
                 logger.info(e.command.getFormattedHelp())
             } catch (e: UsageError) {
                 logger.error(e.message)
+            } catch (e: KatanCLIException) {
+                logger.error(translate(e.message!!, e.translationArgs))
+                e.cause?.printStackTrace()
             } catch (e: Throwable) {
                 e.printStackTrace()
             }

@@ -48,6 +48,10 @@ class KatanCommand(private val cli: KatanCLI) : NoOpCliktCommand(
 
 }
 
+fun CliktCommand.fail(errorKey: String, vararg args: Any, cause: Throwable? = null): Nothing {
+    throw KatanCLIException(errorKey, cause, args)
+}
+
 fun CliktCommand.err(vararg messages: Any?) {
     for (message in messages) {
         if (message is Iterable<*>) {

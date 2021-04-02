@@ -64,7 +64,7 @@ class DockerServerManager(
                     val server = ServerImpl(
                         entity.id.value,
                         entity.name,
-                        ServerGameImpl(game.type, entity.gameVersion?.let {
+                        ServerGameImpl(game, entity.gameVersion?.let {
                             game.versions.find { it.name == entity.gameVersion }
                         }),
                         ServerCompositionsImpl(),

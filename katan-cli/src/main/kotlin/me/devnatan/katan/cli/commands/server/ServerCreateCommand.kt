@@ -74,7 +74,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
         val completion = Job()
         runBlocking(CoroutineName("KatanCLI::server-create-main")) {
             val server =
-                cli.katan.serverManager.prepareServer(name, ServerGameImpl(target.type, version), host, port.toShort())
+                cli.katan.serverManager.prepareServer(name, ServerGameImpl(target, version), host, port.toShort())
 
             completion.invokeOnCompletion { error ->
                 if (error == null) {

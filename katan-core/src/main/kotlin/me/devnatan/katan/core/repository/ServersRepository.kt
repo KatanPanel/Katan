@@ -1,7 +1,6 @@
 package me.devnatan.katan.core.repository
 
 import kotlinx.coroutines.Dispatchers
-import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.get
 import me.devnatan.katan.core.database.jdbc.JDBCConnector
@@ -25,13 +24,12 @@ class JDBCServersRepository(private val connector: JDBCConnector) : ServersRepos
         }
     }
 
-    @OptIn(UnstableKatanApi::class)
     override suspend fun insertServer(server: Server) {
         newSuspendedTransaction(Dispatchers.IO, connector.database) {
             val serverId = ServerEntity.new(server.id) {
                 this.name = server.name
                 this.containerId = server.container.id
-                this.gameType = server.game.type.name
+                this.gameType = server.game.game.name
                 this.gameVersion = server.game.version?.name
                 this.host = server.host
                 this.port = server.port.toInt()
