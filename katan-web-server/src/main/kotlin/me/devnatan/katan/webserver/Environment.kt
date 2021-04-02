@@ -1,10 +1,9 @@
 package me.devnatan.katan.webserver
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.core.util.DefaultIndenter
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.typesafe.config.Config
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -18,15 +17,19 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.websocket.*
 import me.devnatan.katan.api.defaultLogLevel
+import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.api.server.ServerHolder
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.webserver.exceptions.KatanHTTPException
 import me.devnatan.katan.webserver.jwt.AccountPrincipal
+import me.devnatan.katan.webserver.serializers.*
 import me.devnatan.katan.webserver.websocket.WebSocketManager
 import me.devnatan.katan.webserver.websocket.handler.WebSocketServerHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.security.KeyStore
+import java.time.Instant
 import kotlin.text.toCharArray
 
 class Environment(val server: KatanWS) {
@@ -38,10 +41,12 @@ class Environment(val server: KatanWS) {
     lateinit var webSocketManager: WebSocketManager
     lateinit var environment: ApplicationEngineEnvironment
 
-    val config: Config get() = server.config
+    private val config: Config get() = server.config
 
     fun start() {
-        webSocketManager = WebSocketManager().registerEventHandler(WebSocketServerHandler(server.katan))
+        webSocketManager = WebSocketManager().registerEventHandler(
+            WebSocketServerHandler(server.katan)
+        )
         environment = applicationEngineEnvironment {
             module {
                 installFeatures()
@@ -78,7 +83,6 @@ class Environment(val server: KatanWS) {
         webSocketManager.close()
     }
 
-    @OptIn(KtorExperimentalAPI::class)
     private fun Application.installFeatures() {
         install(Locations)
         install(DefaultHeaders)
@@ -87,15 +91,24 @@ class Environment(val server: KatanWS) {
 
         install(ContentNegotiation) {
             jackson {
+                propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
                 deactivateDefaultTyping()
-                enable(SerializationFeature.INDENT_OUTPUT, SerializationFeature.CLOSE_CLOSEABLE)
+                enable(SerializationFeature.CLOSE_CLOSEABLE)
                 disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
                 setSerializationInclusion(JsonInclude.Include.NON_NULL)
-                setDefaultPrettyPrinter(DefaultPrettyPrinter().apply {
-                    indentArraysWith(DefaultPrettyPrinter.FixedSpaceIndenter.instance)
-                    indentObjectsWith(DefaultIndenter("  ", "\n"))
+
+                registerModule(SimpleModule("Katan").apply {
+                    addSerializer(Account::class.java, AccountSerializer())
+                    addSerializer(Instant::class.java, InstantSerializer())
+                    addSerializer(
+                        Server::class.java,
+                        ServerSerializer()
+                    )
+                    addSerializer(
+                        ServerHolder::class.java,
+                        ServerHolderSerializer()
+                    )
                 })
-                propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
             }
         }
 
@@ -137,19 +150,32 @@ class Environment(val server: KatanWS) {
                             )
                         }.onEach { (hostname, schemes, subdomains) ->
                             host(hostname, schemes, subdomains)
-                        }.joinToString(", ") { (hostname, schemes, subDomains) ->
-                            buildString {
-                                append(schemes.joinToString(", ", prefix = "(", postfix = ")"))
-                                append("://")
-
-                                if (subDomains.isNotEmpty()) {
-                                    append(subDomains.joinToString(", ", prefix = "[", postfix = "]"))
-                                    append(".")
-                                }
-
-                                append(hostname)
-                            }
                         }
+                            .joinToString(", ") { (hostname, schemes, subDomains) ->
+                                buildString {
+                                    append(
+                                        schemes.joinToString(
+                                            ", ",
+                                            prefix = "(",
+                                            postfix = ")"
+                                        )
+                                    )
+                                    append("://")
+
+                                    if (subDomains.isNotEmpty()) {
+                                        append(
+                                            subDomains.joinToString(
+                                                ", ",
+                                                prefix = "[",
+                                                postfix = "]"
+                                            )
+                                        )
+                                        append(".")
+                                    }
+
+                                    append(hostname)
+                                }
+                            }
                     } have been allowed through in CORS. "
                 )
             }
@@ -161,8 +187,12 @@ class Environment(val server: KatanWS) {
                 verifier(server.internalAccountManager.verifier)
 
                 validate { credential ->
-                    val account = server.internalAccountManager.verifyPayload(credential.payload)
-                        ?: respondWithError(INVALID_ACCESS_TOKEN_ERROR, HttpStatusCode.Unauthorized)
+                    val account =
+                        server.internalAccountManager.verifyPayload(credential.payload)
+                            ?: respondWithError(
+                                INVALID_ACCESS_TOKEN_ERROR,
+                                HttpStatusCode.Unauthorized
+                            )
 
                     AccountPrincipal(account)
                 }
@@ -175,11 +205,19 @@ class Environment(val server: KatanWS) {
                     if (it == null) emptyList()
                     else listOf((it as Server).id.toString())
                 }
-                decode { values, _ -> server.katan.serverManager.getServer(values.single().toInt()) }
+                decode { values, _ ->
+                    server.katan.serverManager.getServer(
+                        values.single().toInt()
+                    )
+                }
             }
         }
 
-        if (config.get("deployment.secure", false) && config.hasPath("deployment.sslPort")) {
+        if (config.get(
+                "deployment.secure",
+                false
+            ) && config.hasPath("deployment.sslPort")
+        ) {
             install(HttpsRedirect) {
                 sslPort = config.getInt("deployment.sslPort")
                 permanentRedirect = config.get("https-redirect", true)
@@ -193,7 +231,10 @@ class Environment(val server: KatanWS) {
 
         if (config.get("under-reverse-proxy", false)) {
             install(ForwardedHeaderSupport)
-            logger.info("Enabled Forwarded Header support (for reverse proxy).")
+            logger.info(
+                "Enabled Forwarded Header support (for reverse " +
+                        "proxing)."
+            )
         }
     }
 
