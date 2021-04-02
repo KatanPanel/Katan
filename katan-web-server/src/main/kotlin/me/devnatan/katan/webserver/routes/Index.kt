@@ -8,4 +8,18 @@ import io.ktor.locations.*
 class IndexRoute
 
 @Location("/info")
-class InfoRoute
+class InfoRoute {
+
+    @Location("accounts")
+    data class Accounts(val info: InfoRoute)
+
+    @Location("games")
+    data class Games(val info: InfoRoute)
+
+    @Location("plugins")
+    data class Plugins(val info: InfoRoute)
+
+    @Location("permissions")
+    data class Permissions(val info: InfoRoute)
+
+}

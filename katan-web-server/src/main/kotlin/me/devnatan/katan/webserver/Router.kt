@@ -39,8 +39,8 @@ internal fun respondWithError(
 
 @OptIn(KtorExperimentalLocationsAPI::class, ExperimentalCoroutinesApi::class)
 fun Application.router(env: Environment) {
-    val server = env.server
-    val katan = server.katan
+    val ws = env.server
+    val katan = ws.katan
 
     routing {
         webSocket("/") {
@@ -49,8 +49,8 @@ fun Application.router(env: Environment) {
 
         get<IndexRoute> {
             respondOk(
-                "version" to Katan.VERSION.toString(),
-                "oauth" to env.server.katan.serviceManager.get<ExternalAuthenticationProvider>().map { it.id }
+                "version" to Katan.VERSION,
+                "version_plain" to Katan.VERSION.toString()
             )
         }
 
@@ -60,11 +60,11 @@ fun Application.router(env: Environment) {
             if (username == null || username.isBlank())
                 respondWithError(ACCOUNT_MISSING_CREDENTIALS_ERROR)
 
-            val account = server.katan.accountManager.getAccount(username)
+            val account = ws.katan.accountManager.getAccount(username)
                 ?: respondWithError(ACCOUNT_NOT_FOUND_ERROR)
 
             val token = try {
-                server.internalAccountManager.authenticateAccount(
+                ws.internalAccountManager.authenticateAccount(
                     account,
                     data.getValue("password")
                 )
@@ -84,8 +84,11 @@ fun Application.router(env: Environment) {
             if (env.server.accountManager.existsAccount(username))
                 respondWithError(ACCOUNT_ALREADY_EXISTS_ERROR)
 
-            val entity = server.accountManager.createAccount(username, account.getValue("password"))
-            server.accountManager.registerAccount(entity)
+            val entity = ws.accountManager.createAccount(
+                username,
+                account.getValue("password")
+            )
+            ws.accountManager.registerAccount(entity)
             respondOk("account" to entity)
         }
 
@@ -93,64 +96,82 @@ fun Application.router(env: Environment) {
             get<InfoRoute> {
                 respondOk(
                     "version" to Katan.VERSION,
+                    "version_plain" to Katan.VERSION.toString(),
                     "platform" to katan.platform,
-                    "environment" to katan.environment,
-                    "plugins" to katan.pluginManager.getPlugins().map {
-                        it.serialize()
-                    },
-                    "games" to katan.gameManager.getRegisteredGames(),
+                    "environment" to katan.environment.toString(),
+                    "locale" to katan.translator.locale.toLanguageTag(),
+                    "oauth" to env.server.katan.serviceManager.get<ExternalAuthenticationProvider>()
+                        .map { it.id }
                 )
+            }
+
+            get<InfoRoute.Accounts> {
+                respondOk("accounts" to katan.accountManager.getAccounts())
+            }
+
+            get<InfoRoute.Games> {
+                respondOk("games" to katan.gameManager.getRegisteredGames())
+            }
+
+            get<InfoRoute.Plugins> {
+                respondOk("plugins" to katan.pluginManager.getPlugins())
+            }
+
+            get<InfoRoute.Permissions> {
+                respondOk("permissions" to katan.permissionManager.getRegisteredPermissionKeys())
             }
 
             get<AuthRoute.Verify> {
-                respondOk("account" to call.account.serialize(katan.permissionManager))
+                respondOk("account" to call.account)
             }
 
-            /* start: servers */
             get<ServersRoute> {
-                respondOk(server.serverManager.getServerList().map { it.serialize() })
+                respondOk("servers" to ws.serverManager.getServerList())
             }
 
-            get<ServersRoute.Server> { data ->
-                respondOk("server" to data.server.serialize())
+            get<ServersRoute.Server> { (server) ->
+                respondOk("server" to server)
             }
 
-            get<ServersRoute.Server.Start> { data ->
-                katan.serverManager.startServer(data.parent.server)
+            get<ServersRoute.Server.Start> { (parent) ->
+                katan.serverManager.startServer(parent.server)
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            get<ServersRoute.Server.Stop> { data ->
-                katan.serverManager.stopServer(data.parent.server, Duration.ofSeconds(10))
+            get<ServersRoute.Server.Stop> { (parent) ->
+                katan.serverManager.stopServer(
+                    parent.server,
+                    Duration.ofSeconds(
+                        call.parameters["timeout"]?.toLongOrNull() ?: 10
+                    )
+                )
                 call.respond(HttpStatusCode.NoContent)
             }
 
-            get<ServersRoute.Server.FileSystem> {
-                respondOk("disks" to katan.internalFs.listDisks(it.parent.server).map { disk -> disk.serialize() })
-            }
-            
-            get<ServersRoute.Server.FileSystemDisk> {
-                val disk = katan.internalFs.getDisk(it.parent.server, it.disk)
-                    ?: respondWithError(SERVER_FS_DISK_NOT_FOUND)
-
-                respondOk("disk" to disk.serialize())
+            get<ServersRoute.Server.FileSystem> { (parent) ->
+                respondOk("disks" to katan.internalFs.listDisks(parent.server))
             }
 
-            get<ServersRoute.Server.FileSystemDiskFiles> {
-                val disk = katan.internalFs.getDisk(it.parent.server, it.disk)
+            get<ServersRoute.Server.FileSystemDisk> { (disk, parent) ->
+                val impl = katan.internalFs.getDisk(
+                    parent.server,
+                    disk
+                ) ?: respondWithError(SERVER_FS_DISK_NOT_FOUND)
+
+                respondOk("disk" to impl)
+            }
+
+            get<ServersRoute.Server.FileSystemDiskFiles> { (disk, parent) ->
+                val impl = katan.internalFs.getDisk(
+                    parent.server,
+                    disk
+                )
                     ?: respondWithError(SERVER_FS_DISK_NOT_FOUND)
 
                 respondOk(
-                    "files" to disk.listFiles().map { file -> file.serialize() }
+                    "files" to impl.listFiles()
                 )
             }
-            /* end: servers */
-
-            /* start: accounts */
-            get<AccountsRoute> {
-                respondOk(server.accountManager.getAccounts().map { it.serialize(server.katan.permissionManager) })
-            }
-            /* end: accounts */
         }
     }
 }
