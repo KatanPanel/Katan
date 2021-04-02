@@ -49,7 +49,7 @@ class PluginListCommand(private val cli: KatanCLI) : CliktCommand(
             body {
                 for (plugin in plugins.sortedBy { it.state })
                     row(
-                        plugin.descriptor.name,
+                        plugin.descriptor.id,
                         plugin.descriptor.version?.toString() ?: "",
                         plugin.descriptor.author.orEmpty(),
                         cli.translate("$CLI_PLUGIN_STATE.${plugin.state.order}", "(${timeFormatter.format(plugin.state.timestamp)})")
