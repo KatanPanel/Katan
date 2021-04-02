@@ -11,6 +11,6 @@ data class PermissionImpl(
     override val givenAt: Instant
 ) : Permission {
 
-    override var lastModified: Instant = givenAt
+    override var lastModifiedAt: Instant = givenAt
 
 }
