@@ -1,5 +1,6 @@
 package me.devnatan.katan.webserver.websocket
 
+import br.com.devsrsouza.eventkt.EventScope
 import br.com.devsrsouza.eventkt.listen
 import br.com.devsrsouza.eventkt.scopes.LocalEventScope
 import br.com.devsrsouza.eventkt.scopes.asSimple
@@ -13,9 +14,11 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import me.devnatan.katan.api.event.server.ServerStateChangeEvent
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.DATA_KEY
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.INVALID
 import me.devnatan.katan.webserver.websocket.WebSocketOpCode.OP_KEY
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.SERVER_UPDATED
 import me.devnatan.katan.webserver.websocket.handler.WebSocketHandler
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessageImpl
@@ -26,10 +29,11 @@ import org.slf4j.LoggerFactory
 import java.nio.channels.ClosedChannelException
 import java.util.concurrent.ConcurrentLinkedQueue
 
-class WebSocketManager {
+class WebSocketManager(private val mainEventScope: EventScope) {
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(WebSocketManager::class.java)
+        private val logger: Logger =
+            LoggerFactory.getLogger(WebSocketManager::class.java)
     }
 
     private val objectMapper = jacksonObjectMapper().apply {
@@ -43,10 +47,29 @@ class WebSocketManager {
     private val sessions = ConcurrentLinkedQueue<WebSocketSession>()
     private val handlers = mutableListOf<WebSocketHandler>()
     private val eventbus = LocalEventScope().asSimple()
-    private val scope = CoroutineScope(Dispatchers.IO + CoroutineName("Katan::WSManager"))
+    private val scope =
+        CoroutineScope(Dispatchers.IO + CoroutineName("Katan::WSManager"))
     private val mutex = Mutex()
 
-    init {
+    fun listen() {
+        scope.launch(CoroutineName("Katan WS Message Propagator")) {
+            mainEventScope.listen<ServerStateChangeEvent>().collect { event ->
+                for (session in sessions) {
+                    session.send(
+                        WebSocketMessageImpl(
+                            SERVER_UPDATED,
+                            mapOf(
+                                "o" to event.oldState,
+                                "n" to event.newState,
+                                "server" to event.server
+                            ),
+                            session
+                        )
+                    )
+                }
+            }
+        }
+
         scope.launch(CoroutineName("Katan WS Message Listener")) {
             eventbus.listen<WebSocketMessage>().collect { message ->
                 var mapped = false
@@ -69,11 +92,13 @@ class WebSocketManager {
 
                 // invalid operation code
                 if (!mapped) {
-                    message.session.send(WebSocketMessageImpl(
-                        INVALID,
-                        mapOf("code" to message.op),
-                        message.session
-                    ))
+                    message.session.send(
+                        WebSocketMessageImpl(
+                            INVALID,
+                            mapOf("code" to message.op),
+                            message.session
+                        )
+                    )
                 }
             }
         }
@@ -81,9 +106,16 @@ class WebSocketManager {
 
     suspend fun handle(session: DefaultWebSocketSession) {
         val impl = KtorWebSocketSession(session) { packet ->
-            session.outgoing.send(Frame.Text(
-                objectMapper.writeValueAsString(mapOf(OP_KEY to packet.op, DATA_KEY to packet.content))
-            ))
+            session.outgoing.send(
+                Frame.Text(
+                    objectMapper.writeValueAsString(
+                        mapOf(
+                            OP_KEY to packet.op,
+                            DATA_KEY to packet.content
+                        )
+                    )
+                )
+            )
         }
 
         attachSession(impl)
@@ -92,14 +124,21 @@ class WebSocketManager {
             for (frame in session.incoming) {
                 when (frame) {
                     is Frame.Text -> {
-                        val data = objectMapper.readValue<Map<String, Any>>(frame.readText())
+                        val data =
+                            objectMapper.readValue<Map<String, Any>>(frame.readText())
                         val op = (data[OP_KEY] ?: break) as Int
 
                         @Suppress("UNCHECKED_CAST")
                         val content = data[DATA_KEY] as? Map<String, Any>
 
                         // publish the message to all registered handlers
-                        eventbus.publish(WebSocketMessageImpl(op, content, impl))
+                        eventbus.publish(
+                            WebSocketMessageImpl(
+                                op,
+                                content,
+                                impl
+                            )
+                        )
                     }
                     else -> {
                         // terminating the connection is the best thing to do
@@ -123,10 +162,10 @@ class WebSocketManager {
      */
     suspend fun close() {
         mutex.withLock(sessions) {
-            val iter = sessions.iterator()
-            while (iter.hasNext()) {
-                detachSession(iter.next(), false)
-                iter.remove()
+            val iterator = sessions.iterator()
+            while (iterator.hasNext()) {
+                detachSession(iterator.next(), remove = false)
+                iterator.remove()
             }
         }
 
@@ -166,7 +205,10 @@ class WebSocketManager {
     /**
      * Closes a [WebSocketSession] and detaches it from the list of connected clients.
      */
-    private suspend fun detachSession(session: WebSocketSession, remove: Boolean = true): Boolean {
+    private suspend fun detachSession(
+        session: WebSocketSession,
+        remove: Boolean = true
+    ): Boolean {
         try {
             session.close()
             if (!remove)

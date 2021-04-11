@@ -38,13 +38,10 @@ internal fun respondWithError(
 ): Nothing = throw KatanHTTPException(response, status)
 
 @OptIn(KtorExperimentalLocationsAPI::class, ExperimentalCoroutinesApi::class)
-fun Application.router(env: Environment) {
-    val ws = env.server
-    val katan = ws.katan
-
+fun Application.router(ws: KatanWS) {
     routing {
         webSocket("/") {
-            env.webSocketManager.handle(this)
+            ws.webSocketManager.handle(this)
         }
 
         get<IndexRoute> {
@@ -64,7 +61,7 @@ fun Application.router(env: Environment) {
                 ?: respondWithError(ACCOUNT_NOT_FOUND_ERROR)
 
             val token = try {
-                ws.internalAccountManager.authenticateAccount(
+                ws.tokenManager.authenticateAccount(
                     account,
                     data.getValue("password")
                 )
@@ -81,14 +78,14 @@ fun Application.router(env: Environment) {
             if (username == null || username.isBlank())
                 respondWithError(ACCOUNT_INVALID_CREDENTIALS_ERROR)
 
-            if (env.server.accountManager.existsAccount(username))
+            if (ws.katan.accountManager.existsAccount(username))
                 respondWithError(ACCOUNT_ALREADY_EXISTS_ERROR)
 
-            val entity = ws.accountManager.createAccount(
+            val entity = ws.katan.accountManager.createAccount(
                 username,
                 account.getValue("password")
             )
-            ws.accountManager.registerAccount(entity)
+            ws.katan.accountManager.registerAccount(entity)
             respondOk("account" to entity)
         }
 
@@ -97,28 +94,30 @@ fun Application.router(env: Environment) {
                 respondOk(
                     "version" to Katan.VERSION,
                     "version_plain" to Katan.VERSION.toString(),
-                    "platform" to katan.platform,
-                    "environment" to katan.environment.toString(),
-                    "locale" to katan.translator.locale.toLanguageTag(),
-                    "oauth" to env.server.katan.serviceManager.get<ExternalAuthenticationProvider>()
+                    "platform" to ws.katan.platform,
+                    "environment" to ws.katan.environment.toString(),
+                    "locale" to ws.katan.translator.locale.toLanguageTag(),
+                    "oauth" to ws.katan.serviceManager
+                        .get<ExternalAuthenticationProvider>()
                         .map { it.id }
                 )
             }
 
             get<InfoRoute.Accounts> {
-                respondOk("accounts" to katan.accountManager.getAccounts())
+                respondOk("accounts" to ws.katan.accountManager.getAccounts())
             }
 
             get<InfoRoute.Games> {
-                respondOk("games" to katan.gameManager.getRegisteredGames())
+                respondOk("games" to ws.katan.gameManager.getRegisteredGames())
             }
 
             get<InfoRoute.Plugins> {
-                respondOk("plugins" to katan.pluginManager.getPlugins())
+                respondOk("plugins" to ws.katan.pluginManager.getPlugins())
             }
 
             get<InfoRoute.Permissions> {
-                respondOk("permissions" to katan.permissionManager.getRegisteredPermissionKeys())
+                respondOk("permissions" to ws.katan.permissionManager
+                    .getRegisteredPermissionKeys())
             }
 
             get<AuthRoute.Verify> {
@@ -126,7 +125,7 @@ fun Application.router(env: Environment) {
             }
 
             get<ServersRoute> {
-                respondOk("servers" to ws.serverManager.getServerList())
+                respondOk("servers" to ws.katan.serverManager.getServerList())
             }
 
             get<ServersRoute.Server> { (server) ->
@@ -134,12 +133,12 @@ fun Application.router(env: Environment) {
             }
 
             get<ServersRoute.Server.Start> { (parent) ->
-                katan.serverManager.startServer(parent.server)
+                ws.katan.serverManager.startServer(parent.server)
                 call.respond(HttpStatusCode.NoContent)
             }
 
             get<ServersRoute.Server.Stop> { (parent) ->
-                katan.serverManager.stopServer(
+                ws.katan.serverManager.stopServer(
                     parent.server,
                     Duration.ofSeconds(
                         call.parameters["timeout"]?.toLongOrNull() ?: 10
@@ -149,11 +148,12 @@ fun Application.router(env: Environment) {
             }
 
             get<ServersRoute.Server.FileSystem> { (parent) ->
-                respondOk("disks" to katan.internalFs.listDisks(parent.server))
+                respondOk("disks" to ws.katan.internalFs.listDisks(parent
+                    .server))
             }
 
             get<ServersRoute.Server.FileSystemDisk> { (disk, parent) ->
-                val impl = katan.internalFs.getDisk(
+                val impl = ws.katan.internalFs.getDisk(
                     parent.server,
                     disk
                 ) ?: respondWithError(SERVER_FS_DISK_NOT_FOUND)
@@ -162,7 +162,7 @@ fun Application.router(env: Environment) {
             }
 
             get<ServersRoute.Server.FileSystemDiskFiles> { (disk, parent) ->
-                val impl = katan.internalFs.getDisk(
+                val impl = ws.katan.internalFs.getDisk(
                     parent.server,
                     disk
                 )
