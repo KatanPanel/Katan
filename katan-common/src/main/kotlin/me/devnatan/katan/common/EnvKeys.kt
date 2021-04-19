@@ -2,8 +2,11 @@ package me.devnatan.katan.common
 
 object EnvKeys {
 
+    const val LOCALE = "KATAN_LOCALE"
     const val ROOT_DIR = "KATAN_ROOT"
     const val DOCKER_URI = "KATAN_DOCKER_URI"
+    const val DOCKER_TLS_VERIFY = "KATAN_DOCKER_TLS_VERIFY"
+    const val DOCKER_TLS_CERTPATH = "KATAN_DOCKER_TLS_CERTPATH"
     const val WS_ENABLED = "KATAN_WS_ENABLED"
     const val WS_DEPLOY_USE_SSL = "KATAN_WS_SSL_ENABLED"
     const val WS_DEPLOY_SSL_KEYALIAS = "KATAN_WS_SSL_KEY_ALIAS"

@@ -6,11 +6,13 @@ import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.core.KeystoreSSLConfig
 import com.github.dockerjava.core.LocalDirectorySSLConfig
 import com.github.dockerjava.okhttp.OkDockerHttpClient
+import kotlinx.coroutines.delay
 import me.devnatan.katan.api.isWindows
 import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.common.EnvKeys
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.common.util.getEnv
+import me.devnatan.katan.common.util.getEnvBoolean
 import me.devnatan.katan.core.KatanCore
 import org.slf4j.Logger
 import java.security.KeyStore
@@ -18,31 +20,33 @@ import kotlin.system.exitProcess
 
 class DockerManager(private val core: KatanCore) {
 
-    private companion object {
-        val logger: Logger = logger<DockerManager>()
+    companion object {
+        val log: Logger = logger<DockerManager>()
     }
 
     lateinit var client: DockerClient
+        private set
 
     fun initialize() {
-        logger.info(core.translator.translate("katan.docker.config"))
         val dockerConfig = core.config.getConfig("docker")
         val host = dockerConfig.getEnv("host", EnvKeys.DOCKER_URI)!!
         if (host.startsWith("unix") && core.platform.isWindows()) {
-            logger.error(core.translator.translate("katan.docker.unix-domain-sockets", host))
+            log.error(core.translator.translate("katan.docker.unix-domain-sockets", host))
             exitProcess(0)
         }
 
-        val tls = dockerConfig.get("tls.verify", false)
+        log.info(core.translator.translate("katan.docker.config", host))
+        val tls = dockerConfig.getEnvBoolean("tls.verify", EnvKeys.DOCKER_TLS_VERIFY, false)
         val clientConfigBuilder = DefaultDockerClientConfig.createDefaultConfigBuilder()
             .withDockerHost(host)
             .withDockerTlsVerify(tls)
 
         if (tls) {
-            logger.info(core.translator.translate("katan.docker.tls-enabled"))
-            clientConfigBuilder.withDockerCertPath(dockerConfig.getString("tls.certPath"))
+            log.info(core.translator.translate("katan.docker.tls-enabled"))
+            clientConfigBuilder.withDockerCertPath(dockerConfig.getEnv("tls.certPath", EnvKeys.DOCKER_TLS_CERTPATH))
+
         } else
-            logger.warn(
+            log.warn(
                 core.translator.translate("katan.docker.tls-disabled")
             )
 
@@ -51,13 +55,13 @@ class DockerManager(private val core: KatanCore) {
                 when (dockerConfig.getString("ssl.provider")) {
                     "CERT" -> {
                         val path = dockerConfig.getString("ssl.certPath")
-                        logger.info(core.translator.translate("katan.docker.cert-loaded", path))
+                        log.info(core.translator.translate("katan.docker.cert-loaded", path))
                         LocalDirectorySSLConfig(path)
                     }
                     "KEY_STORE" -> {
                         val type = dockerConfig.get("keyStore.provider") ?: KeyStore.getDefaultType()
                         val keystore = KeyStore.getInstance(type)
-                        logger.info(core.translator.translate("katan.docker.ks-loaded", type))
+                        log.info(core.translator.translate("katan.docker.ks-loaded", type))
 
                         KeystoreSSLConfig(keystore, dockerConfig.getString("keyStore.password"))
                     }
@@ -78,9 +82,16 @@ class DockerManager(private val core: KatanCore) {
                 .build()
         )
 
-        // sends a ping to see if the connection will be established.
-        client.pingCmd().exec()
-        logger.info(core.translator.translate("katan.docker.ready"))
+        runCatching {
+            // sends a ping to see if the connection will be established.
+            client.pingCmd().exec()
+            log.info(core.translator.translate("katan.docker.ready"))
+        }.onFailure { err ->
+            log.error(core.translator.translate("katan.docker.connect-failed"))
+            log.error(err.toString())
+            log.trace(null, err)
+            exitProcess(0)
+        }
     }
 
 }

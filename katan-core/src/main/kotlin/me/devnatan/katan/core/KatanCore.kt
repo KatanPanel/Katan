@@ -11,16 +11,13 @@ import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
 import me.devnatan.katan.api.command.CommandManager
-import me.devnatan.katan.api.game.GameManager
-import me.devnatan.katan.api.io.FileSystemAccessor
+import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
 import me.devnatan.katan.api.security.permission.PermissionKey
 import me.devnatan.katan.api.service.get
-import me.devnatan.katan.common.EnvKeys
 import me.devnatan.katan.common.util.get
-import me.devnatan.katan.common.util.getEnv
 import me.devnatan.katan.core.cache.RedisCacheProvider
 import me.devnatan.katan.core.crypto.BcryptHash
 import me.devnatan.katan.core.database.DatabaseManager
@@ -40,7 +37,6 @@ import me.devnatan.katan.io.file.DefaultFileSystemAccessor
 import me.devnatan.katan.io.file.DockerHostFileSystem
 import me.devnatan.katan.io.file.PersistentFileSystem
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
 import java.io.File
@@ -59,7 +55,7 @@ class KatanCore(
 
         const val DATABASE_DIALECT_FALLBACK = "H2"
         const val DEFAULT_VALUE = "default"
-        val logger: Logger = LoggerFactory.getLogger(Katan::class.java)
+        val log: Logger = logger<Katan>()
 
     }
 
@@ -86,11 +82,11 @@ class KatanCore(
 
     init {
         coroutineContext[Job]!!.invokeOnCompletion {
-            logger.error("[FATAL ERROR]")
-            logger.error("Katan main worker has been canceled and this is not expected to happen.")
-            logger.error("This will cause unexpected problems in the application.")
-            logger.error("See the logs files to extract more information. Exiting process.")
-            logger.trace(null, it)
+            log.error("[FATAL ERROR]")
+            log.error("Katan main worker has been canceled and this is not expected to happen.")
+            log.error("This will cause unexpected problems in the application.")
+            log.error("See the logs files to extract more information. Exiting process.")
+            log.trace(null, it)
             exitProcess(1)
         }
     }
@@ -98,8 +94,8 @@ class KatanCore(
     private fun caching() {
         val redis = config.getConfig("redis")
         if (!redis.get("use", false)) {
-            logger.warn(translator.translate("katan.redis.disabled"))
-            logger.warn(
+            log.warn(translator.translate("katan.redis.disabled"))
+            log.warn(
                 translator.translate(
                     "katan.redis.alert",
                     "https://redis.io/"
@@ -117,15 +113,15 @@ class KatanCore(
                     redis.get("host", "localhost")
                 )
             )
-            logger.info(translator.translate("katan.redis.ready"))
+            log.info(translator.translate("katan.redis.ready"))
         } catch (e: Throwable) {
             cache = UnavailableCacheProvider()
-            logger.error(translator.translate("katan.redis.connection-failed"))
+            log.error(translator.translate("katan.redis.connection-failed"))
         }
     }
 
     suspend fun start() {
-        logger.info(
+        log.info(
             translator.translate(
                 "katan.starting",
                 Katan.VERSION,
@@ -133,13 +129,13 @@ class KatanCore(
                     .toLowerCase(translator.locale)
             )
         )
-        logger.info(translator.translate("katan.platform", "$platform"))
+        log.info(translator.translate("katan.platform", "$platform"))
 
-        val zoneId = config.get("timezone", DEFAULT_VALUE)
+        val zoneId = config.get("timezone", "default")
         if (zoneId != "default") {
             val timezone = TimeZone.getTimeZone(zoneId)
             System.setProperty(Katan.TIMEZONE_PROPERTY, timezone.id)
-            logger.info(
+            log.info(
                 translator.translate(
                     "katan.timezone",
                     timezone.displayName
@@ -175,7 +171,7 @@ class KatanCore(
                 ?: throw IllegalArgumentException("Unsupported hashing algorithm: $algorithm")
         }
 
-        logger.info(translator.translate("katan.selected-hash", hash.name))
+        log.info(translator.translate("katan.selected-hash", hash.name))
         accountManager.loadAccounts()
         dockerEventsListener.listen()
 

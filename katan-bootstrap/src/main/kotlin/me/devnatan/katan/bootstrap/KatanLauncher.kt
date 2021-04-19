@@ -9,6 +9,7 @@ import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.common.EnvKeys
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
+import me.devnatan.katan.common.util.getEnv
 import me.devnatan.katan.common.util.loadResource
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.KatanCore.Companion.DEFAULT_VALUE
@@ -128,11 +129,11 @@ class KatanLauncher {
     }
 
     private fun loadTranslations(config: Config): Translator {
-        var userLocale: Locale =
-            if (config.get("locale", DEFAULT_VALUE) == DEFAULT_VALUE)
-                Locale.getDefault()
-            else
-                Locale.forLanguageTag(config.get("locale", FALLBACK_LANGUAGE))
+        val definedLocale = config.getEnv("locale", EnvKeys.LOCALE)
+        var userLocale = if (definedLocale == null || definedLocale == "default")
+            Locale.getDefault()
+        else
+            Locale.forLanguageTag(definedLocale)
 
         val translations = runCatching {
             loadResource(TRANSLATION_FILE_PATTERN.format(userLocale.toLanguageTag()))
