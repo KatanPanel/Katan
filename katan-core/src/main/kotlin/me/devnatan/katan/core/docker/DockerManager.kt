@@ -8,7 +8,9 @@ import com.github.dockerjava.core.LocalDirectorySSLConfig
 import com.github.dockerjava.okhttp.OkDockerHttpClient
 import me.devnatan.katan.api.isWindows
 import me.devnatan.katan.api.logging.logger
+import me.devnatan.katan.common.EnvKeys
 import me.devnatan.katan.common.util.get
+import me.devnatan.katan.common.util.getEnv
 import me.devnatan.katan.core.KatanCore
 import org.slf4j.Logger
 import java.security.KeyStore
@@ -25,7 +27,7 @@ class DockerManager(private val core: KatanCore) {
     fun initialize() {
         logger.info(core.translator.translate("katan.docker.config"))
         val dockerConfig = core.config.getConfig("docker")
-        val host = System.getenv("KATAN_DOCKER_URI") ?: dockerConfig.getString("host")
+        val host = dockerConfig.getEnv("host", EnvKeys.DOCKER_URI)!!
         if (host.startsWith("unix") && core.platform.isWindows()) {
             logger.error(core.translator.translate("katan.docker.unix-domain-sockets", host))
             exitProcess(0)
