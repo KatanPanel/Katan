@@ -84,6 +84,12 @@ interface ServerManager {
     /**
      * Stops a server without blocking the current thread.
      * @param server the server to be stopped.
+     */
+    suspend fun stopServer(server: Server)
+
+    /**
+     * Stops a server without blocking the current thread.
+     * @param server the server to be stopped.
      * @param killAfter maximum execution time until force to kill the server (recommended 10 seconds).
      */
     suspend fun stopServer(server: Server, killAfter: Duration)

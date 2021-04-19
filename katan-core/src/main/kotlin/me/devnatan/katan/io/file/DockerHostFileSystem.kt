@@ -25,12 +25,12 @@ class DockerHostFileSystem(
 
     companion object {
 
-        val FILE_SYSTEM_ORIGIN = FileOrigin.LOCAL
+        val DEFAULT_FILE_SYSTEM_ORIGIN = FileOrigin.LOCAL
         private val logger: Logger = logger<DockerHostFileSystem>()
 
     }
 
-    private val activeSessions: MutableMap<UUID, FileSystemSession> = hashMapOf()
+    private val activeSessions = mutableMapOf<UUID, FileSystemSession>()
     private val lock = Mutex()
     private var closed = false
 
@@ -44,7 +44,8 @@ class DockerHostFileSystem(
 
         val container = server.container as DockerServerContainer
         return (container.inspection as DockerServerContainerInspection)
-            .response.mounts!!.firstOrNull { it.name == id }?.let { mountToDisk(it) }
+            .response.mounts!!.firstOrNull { it.name == id }
+            ?.let { mountToDisk(it) }
     }
 
     @OptIn(ExperimentalContracts::class)
@@ -72,7 +73,15 @@ class DockerHostFileSystem(
         if (!file.exists())
             throw FileNotFoundException("$name @ ${volume.path}")
 
-        return DockerHostFileDisk(name, file.path, file.length(), FILE_SYSTEM_ORIGIN, null, Instant.ofEpochMilli(file.lastModified()), this)
+        return DockerHostFileDisk(
+            name,
+            file.path,
+            file.length(),
+            DEFAULT_FILE_SYSTEM_ORIGIN,
+            null,
+            Instant.ofEpochMilli(file.lastModified()),
+            this
+        )
     }
 
     private suspend fun ensureInspected(server: Server) {
@@ -87,7 +96,7 @@ class DockerHostFileSystem(
     }
 
     fun checkAvailability() {
-        check(!closed) { "Docker Host FileSystem is closed." }
+        check(!closed) { "FileSystem is closed." }
     }
 
     override suspend fun close() {
@@ -117,10 +126,19 @@ class DockerHostFileSystem(
         // TODO: internally notify session close
 
         lock.withLock(activeSessions) {
-            activeSessions.remove(session.id)
+            activeSessions.remove(session.uid)
         }
 
         close0(session)
+    }
+
+    override suspend fun open(session: FileSystemSession) {
+        checkAvailability()
+        check(!session.isClosed()) { "Session already open." }
+
+        lock.withLock(activeSessions) {
+            activeSessions[session.uid] = session
+        }
     }
 
 }

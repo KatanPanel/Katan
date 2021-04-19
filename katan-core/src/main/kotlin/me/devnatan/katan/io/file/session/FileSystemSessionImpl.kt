@@ -14,6 +14,10 @@ class FileSystemSessionImpl(
 
     override val startedAt: Instant = Instant.now()
 
+    override suspend fun open() {
+        fs.open(this)
+    }
+
     override suspend fun isProtected(file: File): Boolean {
         updateLastAccess()
         return fs.isProtected(file)
@@ -38,7 +42,7 @@ class FileSystemSessionImpl(
     }
 
     override fun toString(): String {
-        return "$id ($holder)"
+        return "$uid ($holder)"
     }
 
 }

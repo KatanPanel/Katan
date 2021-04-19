@@ -6,6 +6,7 @@ import kotlinx.coroutines.*
 import me.devnatan.katan.api.*
 import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.cli.KatanCLI
+import me.devnatan.katan.common.EnvKeys
 import me.devnatan.katan.common.util.exportResource
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.common.util.loadResource
@@ -37,29 +38,30 @@ class KatanLauncher {
         fun main(args: Array<out String>) {
             val boot = KatanLauncher()
             val environment = boot.checkEnvironment()
-            val config = boot.loadConfig(environment)
-            val translator = boot.loadTranslations(config)
 
-            val core = KatanCore(config, environment, translator)
-            val fs = boot.selectFileSystem(core)
-            core.internalFs = fs
-            core.fileSystem = DefaultFileSystemAccessor(config, fs)
+            val root = File(System.getenv(EnvKeys.ROOT_DIR) ?: System.getProperty("user.dir"))
+            val config = boot.loadConfig(root, environment)
 
+            val core = KatanCore(
+                config,
+                environment,
+                boot.loadTranslations(config),
+                root
+            )
+            val ws = KatanWS.Initializer.create(core)
             val cli = KatanCLI(core)
-            val webServer = KatanWS.create(core)
-
             Runtime.getRuntime().addShutdownHook(Thread {
                 runBlocking(CoroutineName("Katan Shutdown")) {
+                    ws?.close()
                     cli.close()
-                    webServer?.close()
                     core.close()
                 }
             })
 
-            val time = measureTimeMillis {
-                runBlocking {
+            val time = runBlocking {
+                measureTimeMillis {
                     core.start()
-                    webServer?.start()
+                    ws?.start()
                 }
             }
 
@@ -71,7 +73,6 @@ class KatanLauncher {
             )
             cli.init()
         }
-
     }
 
     private fun checkEnvironment(): KatanEnvironment {
@@ -109,15 +110,15 @@ class KatanLauncher {
         }
     }
 
-    private fun loadConfig(environment: KatanEnvironment): Config {
-        var config = ConfigFactory.parseFile(exportResource("katan.conf"))
+    private fun loadConfig(root: File, environment: KatanEnvironment): Config {
+        var config = ConfigFactory.parseFile(exportResource("katan.conf", root))
 
-        val environmentConfig = File("katan.$environment.conf")
+        val environmentConfig = File(root, "katan.$environment.conf")
         if (environmentConfig.exists()) {
             config =
                 ConfigFactory.parseFile(environmentConfig).withFallback(config)
         } else {
-            val localConfig = File("katan.local.conf")
+            val localConfig = File(root, "katan.local.conf")
             if (localConfig.exists())
                 config =
                     ConfigFactory.parseFile(localConfig).withFallback(config)
@@ -165,11 +166,6 @@ class KatanLauncher {
                 )
             ).use { input -> load(input) }
         }.mapKeys { (key, _) -> key.toString() })
-    }
-
-    private fun selectFileSystem(core: KatanCore): PersistentFileSystem {
-        // only Docker Host is currently available
-        return DockerHostFileSystem(core)
     }
 
 }

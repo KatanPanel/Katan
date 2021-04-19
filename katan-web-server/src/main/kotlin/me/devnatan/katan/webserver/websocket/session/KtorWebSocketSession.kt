@@ -1,29 +1,52 @@
 package me.devnatan.katan.webserver.websocket.session
 
 import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import me.devnatan.katan.webserver.KatanWS
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.DATA_KEY
+import me.devnatan.katan.webserver.websocket.WebSocketOpCode.OP_KEY
 import me.devnatan.katan.webserver.websocket.message.WebSocketMessage
-import io.ktor.http.cio.websocket.WebSocketSession as KtorSession
 
 class KtorWebSocketSession(
-    delegate: KtorSession,
-    @JvmField private inline val writer: suspend (WebSocketMessage) -> Unit
-) : KtorSession by delegate, WebSocketSession {
+    delegate: WebSocketServerSession,
+) : WebSocketServerSession by delegate, WebSocketSession {
 
-    val serverStatsStreaming: MutableMap<Int, Job> by lazy { hashMapOf() }
+    private var serverStatsStreaming: Job? = null
 
-    init {
-        coroutineContext[Job]!!.invokeOnCompletion { error ->
-            error?.printStackTrace()
-        }
+    suspend fun startServerStatsStreaming(job: Job) {
+        serverStatsStreaming?.cancelAndJoin()
+        serverStatsStreaming = job.also { it.start() }
     }
 
+    suspend fun cancelServerStatsStreaming(): Boolean {
+        if (serverStatsStreaming == null)
+            return false
+
+        if (serverStatsStreaming!!.isActive)
+            serverStatsStreaming?.cancelAndJoin()
+
+        serverStatsStreaming = null
+        return true
+    }
+
+    @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun send(message: WebSocketMessage) {
-        writer(message)
+        outgoing.send(
+            Frame.Text(
+                KatanWS.objectMapper.writeValueAsString(
+                    mapOf(
+                        OP_KEY to message.op,
+                        DATA_KEY to message.content
+                    )
+                )
+            )
+        )
     }
 
     override suspend fun close() {
-        (this as KtorSession).close()
+        (this as WebSocketServerSession).close()
     }
 
 }

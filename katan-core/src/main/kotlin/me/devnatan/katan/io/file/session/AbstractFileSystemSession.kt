@@ -9,7 +9,7 @@ abstract class AbstractFileSystemSession(
     override val holder: Descriptor
 ) : FileSystemSession {
 
-    override val id: UUID by lazy { UUID.randomUUID() }
+    override val uid: UUID = UUID.randomUUID()
     private var closed: Boolean = true
 
     override var lastAccess: Instant? = null

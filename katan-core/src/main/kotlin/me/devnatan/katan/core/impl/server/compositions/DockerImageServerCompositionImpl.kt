@@ -28,7 +28,8 @@ class DockerImageServerCompositionImpl(
 
     companion object {
 
-        private val logger: Logger = LoggerFactory.getLogger(DockerImageServerComposition::class.java)
+        private val logger: Logger =
+            LoggerFactory.getLogger(DockerImageServerComposition::class.java)
 
     }
 
@@ -36,7 +37,6 @@ class DockerImageServerCompositionImpl(
 
     override suspend fun read(server: Server) {}
 
-    @OptIn(ExperimentalCoroutinesApi::class, InternalCoroutinesApi::class)
     override suspend fun write(server: Server) {
         if (server !is ServerImpl)
             throw IllegalArgumentException("Cannot use Docker Image Server Composition directly.")
@@ -76,18 +76,33 @@ class DockerImageServerCompositionImpl(
             .withAttachStderr(true)
             .withAttachStdout(true)
             .withStdinOpen(true)
-            .withLabels(mapOf(
-                "katan.server.id" to server.id.toString(),
-                "katan.server.name" to server.name
-            ))
+            .withLabels(
+                mapOf(
+                    "katan.server.id" to server.id.toString(),
+                    "katan.server.name" to server.name
+                )
+            )
             .withHostConfig(
                 HostConfig.newHostConfig()
-                    .withPortBindings(Ports(PortBinding(Ports.Binding.bindIpAndPort(options.host, options.port), port)))
+                    .withPortBindings(
+                        Ports(
+                            PortBinding(
+                                Ports.Binding.bindIpAndPort(
+                                    options.host,
+                                    options.port
+                                ), port
+                            )
+                        )
+                    )
                     .withMemory(memory)
                     .withMemorySwap(memory)
             ).withVolumes(Volume("/data")).exec().id
 
-        server.container = DockerServerContainer(containerId, server.container.name, katan.docker.client)
+        server.container = DockerServerContainer(
+            containerId,
+            server.container.name,
+            katan.docker.client
+        )
         logger.debug("Attaching ${server.container.name} to \"${DockerServerManager.NETWORK_ID}\" network...")
         katan.docker.client.connectToNetworkCmd()
             .withContainerId(containerId)
@@ -97,11 +112,13 @@ class DockerImageServerCompositionImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun pullImage(image: String, katan: KatanCore): Flow<String> = callbackFlow {
-        katan.docker.client.pullImageCmd(image).exec(attachResultCallback<PullResponseItem, String> {
-            it.toString()
-        })
-        awaitClose()
-    }
+    private fun pullImage(image: String, katan: KatanCore): Flow<String> =
+        callbackFlow {
+            katan.docker.client.pullImageCmd(image)
+                .exec(attachResultCallback<PullResponseItem, String> {
+                    it.toString()
+                })
+            awaitClose()
+        }
 
 }

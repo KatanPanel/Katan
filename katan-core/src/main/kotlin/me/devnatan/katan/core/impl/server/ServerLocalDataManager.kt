@@ -1,12 +1,13 @@
 package me.devnatan.katan.core.impl.server
 
 import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.core.KatanCore
 import java.io.File
 import java.nio.file.Files
 
-class ServerLocalDataManager {
+class ServerLocalDataManager(core: KatanCore) {
 
-    private val dataFolder = File("data")
+    private val dataFolder = File(core.rootDirectory, "data")
 
     init {
         dataFolder.mkdir()

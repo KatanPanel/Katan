@@ -4,7 +4,7 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="${sys:katan.log.pattern}"/>
         </Console>
-        <RollingFile name="File" fileName="logs/app.log" filePattern="logs/app.%d{MM-dd-yyyy-HH-mm}.%i.log.gz"
+        <RollingFile name="AppFile" fileName="logs/app.log" filePattern="logs/app.%d{MM-dd-yyyy-HH-mm}.%i.log.gz"
                      ignoreExceptions="false">
             <PatternLayout pattern="%-4relative [%d{yyyy-MM-dd HH:mm:ss}] [%t] %-4level %logger{35} - %msg%n"/>
             <Policies>
@@ -18,11 +18,30 @@
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
+        <RollingFile name="WsFile" fileName="logs/webserver.log" filePattern="logs/webserver.%d{MM-dd-yyyy-HH-mm}.%i.log.gz"
+                     ignoreExceptions="false">
+            <PatternLayout pattern="%-4relative [%d{yyyy-MM-dd HH:mm:ss}] [%t] %-4level %logger{35} - %msg%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="3 GB"/>
+                <OnStartupTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${baseDir}" maxDepth="3">
+                    <IfFileName glob="logs/webserver.*.log.gz"/>
+                    <IfLastModified age="14d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Root level="ALL">
             <AppenderRef ref="Console" level="${sys:katan.log.level}"/>
-            <AppenderRef ref="File" level="ALL"/>
         </Root>
+        <Logger name="me.devnatan.katan" level="ALL" additivity="false">
+            <AppenderRef ref="AppFile"/>
+        </Logger>
+        <Logger name="me.devnatan.katan.webserver" level="ALL" additivity="false">
+            <AppenderRef ref="WsFile"/>
+        </Logger>
     </Loggers>
 </Configuration>

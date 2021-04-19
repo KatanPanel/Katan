@@ -3,10 +3,11 @@ package me.devnatan.katan.core.impl.plugin
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import kotlinx.coroutines.cancel
+import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.plugin.*
 import me.devnatan.katan.api.util.InitOnceProperty
 import me.devnatan.katan.core.KatanCore
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import java.io.File
 import java.io.FileFilter
 import java.io.FileNotFoundException
@@ -21,21 +22,19 @@ import kotlin.reflect.full.*
 import kotlin.reflect.jvm.isAccessible
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class DefaultPluginManager(val katan: KatanCore) : PluginManager {
+class DefaultPluginManager(val core: KatanCore) : PluginManager {
 
     companion object {
 
-        const val PLUGIN_CONFIG_FILE_NAME = "config.conf"
+        val log: Logger = logger<DefaultPluginManager>()
 
     }
 
-    private val logger = LoggerFactory.getLogger(PluginManager::class.java)!!
-    private val pwd = File("plugins")
+    private val pwd = File(core.rootDirectory, "plugins")
     private val plugins: MutableList<Plugin> = ArrayList()
 
     init {
-        if (!pwd.exists())
-            pwd.mkdirs()
+        Files.createDirectories(pwd.toPath())
     }
 
     override fun getPlugins() = plugins.toList()
@@ -48,7 +47,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         (plugin as KatanPlugin).state =
             PluginState.Started(Instant.now(), plugin.state)
         callHandlers(PluginEnabled, plugin)
-        logger.info("Plugin \"$plugin\" started.")
+        log.info("Plugin \"$plugin\" started.")
     }
 
     override suspend fun loadPlugin(descriptor: PluginDescriptor): Plugin {
@@ -69,7 +68,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         plugin.state = PluginState.Unloaded(Instant.now(), plugin.state)
         synchronized(plugins) {
             if (plugins.remove(plugin))
-                logger.info("Plugin $plugin unloaded.")
+                log.info("Plugin $plugin unloaded.")
         }
         return plugin
     }
@@ -79,7 +78,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         plugin.coroutineScope.cancel()
         plugin.state = PluginState.Disabled(Instant.now(), plugin.state)
         callHandlers(PluginDisabled, plugin)
-        logger.info("Plugin $plugin disabled.")
+        log.info("Plugin $plugin disabled.")
         return plugin
     }
 
@@ -111,7 +110,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         val instance = plugin as KatanPlugin
         setDelegateValue(
             instance, mapOf(
-                "katan" to katan,
+                "katan" to core,
                 "directory" to workingDir,
                 "_config" to {
                     loadPluginConfig(
@@ -124,7 +123,7 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         )
         plugin.state = PluginState.Loaded(Instant.now(), plugin.state)
         callHandlers(PluginLoaded, plugin)
-        logger.info("Plugin \"$plugin\" loaded")
+        log.info("Plugin \"$plugin\" loaded")
         return plugin
     }
 
@@ -133,13 +132,14 @@ class DefaultPluginManager(val katan: KatanCore) : PluginManager {
         directory: File,
         classloader: URLClassLoader
     ): Config {
-        val resource = classloader.getResourceAsStream(PLUGIN_CONFIG_FILE_NAME)
-            ?: throw FileNotFoundException("Tried to access plugin \"${plugin.descriptor.id}\" configuration but the configuration file ($PLUGIN_CONFIG_FILE_NAME) was not found.")
+        val fileName = "config.conf"
+        val resource = classloader.getResourceAsStream(fileName)
+            ?: throw FileNotFoundException("Tried to access plugin \"${plugin.descriptor.id}\" configuration but the configuration file ($fileName) was not found.")
 
         if (!directory.exists())
             directory.mkdirs()
 
-        val config = File(directory, PLUGIN_CONFIG_FILE_NAME)
+        val config = File(directory, fileName)
         if (!config.exists())
             Files.copy(resource, config.toPath())
         return ConfigFactory.parseFile(config)

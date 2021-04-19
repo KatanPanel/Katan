@@ -18,6 +18,7 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk15to18:1.66")
     implementation("org.apache.logging.log4j:log4j-core:2.13.3")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.13.3")
+    implementation("com.github.KatanPanel.docker-kotlin-multiplatform:kotlin-docker-jvm:f25b697ad6")
 }
 
 configurations {

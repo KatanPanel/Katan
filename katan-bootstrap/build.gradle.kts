@@ -17,7 +17,7 @@ tasks {
 
     shadowJar {
         archiveBaseName.set("Katan")
-        archiveClassifier.set(null as String?)
+        archiveClassifier.set(null as? String?)
 
         // fix "Could not initialize class org.eclipse.jetty.server.HttpConnection"
         mergeServiceFiles()
@@ -32,5 +32,4 @@ dependencies {
     implementation(project(":katan-core"))
     implementation(project(":katan-cli"))
     implementation(project(":katan-web-server"))
-    implementation(project(":katan-io"))
 }

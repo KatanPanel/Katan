@@ -19,6 +19,7 @@ allprojects {
     repositories {
         mavenCentral()
         jcenter()
+        maven("https://jitpack.io")
         maven("https://dl.bintray.com/kotlin/exposed")
         maven("http://nexus.devsrsouza.com.br/repository/maven-public/")
     }

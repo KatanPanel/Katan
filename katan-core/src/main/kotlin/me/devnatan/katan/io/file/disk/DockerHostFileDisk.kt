@@ -35,7 +35,7 @@ data class DockerHostFileDisk(
             file.name,
             file.path,
             file.length(),
-            DockerHostFileSystem.FILE_SYSTEM_ORIGIN,
+            DockerHostFileSystem.DEFAULT_FILE_SYSTEM_ORIGIN,
             null,
             Instant.ofEpochMilli(file.lastModified()),
             file.isDirectory,

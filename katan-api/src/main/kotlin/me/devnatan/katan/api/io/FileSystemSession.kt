@@ -6,13 +6,15 @@ import java.util.*
 
 interface FileSystemSession : FileSystem {
 
-    val id: UUID
+    val uid: UUID
 
     val holder: Descriptor
 
     val startedAt: Instant
 
     var lastAccess: Instant?
+
+    suspend fun open()
 
     fun isClosed(): Boolean
 

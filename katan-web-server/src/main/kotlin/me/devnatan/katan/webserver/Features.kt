@@ -24,6 +24,7 @@ import me.devnatan.katan.webserver.serializers.AccountSerializer
 import me.devnatan.katan.webserver.serializers.InstantSerializer
 import me.devnatan.katan.webserver.serializers.ServerHolderSerializer
 import me.devnatan.katan.webserver.serializers.ServerSerializer
+import me.devnatan.katan.webserver.util.respondError
 import java.time.Instant
 
 fun Application.installFeatures(ws: KatanWS) {
@@ -33,26 +34,12 @@ fun Application.installFeatures(ws: KatanWS) {
     install(WebSockets)
 
     install(ContentNegotiation) {
-        jackson {
-            propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
-            deactivateDefaultTyping()
-            enable(SerializationFeature.CLOSE_CLOSEABLE)
-            disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-            setSerializationInclusion(JsonInclude.Include.NON_NULL)
-
-            registerModule(SimpleModule("Katan").apply {
-                addSerializer(Account::class.java, AccountSerializer())
-                addSerializer(Instant::class.java, InstantSerializer())
-                addSerializer(
-                    Server::class.java,
-                    ServerSerializer()
-                )
-                addSerializer(
-                    ServerHolder::class.java,
-                    ServerHolderSerializer()
-                )
-            })
-        }
+        register(
+            ContentType.Application.Json, JacksonConverter(
+                KatanWS
+                    .objectMapper
+            )
+        )
     }
 
     install(CallLogging) {
@@ -81,7 +68,7 @@ fun Application.installFeatures(ws: KatanWS) {
         val cors = ws.config.getConfig("cors")
         if (cors.get("allowAnyHost", false)) {
             log.info("All hosts have been allowed through CORS.")
-            anyHost()
+            anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
         } else if (cors.hasPath("hosts")) {
             log.info(
                 "The following hosts ${
@@ -132,7 +119,7 @@ fun Application.installFeatures(ws: KatanWS) {
             validate { credential ->
                 val account =
                     ws.tokenManager.verifyPayload(credential.payload)
-                        ?: respondWithError(
+                        ?: respondError(
                             INVALID_ACCESS_TOKEN_ERROR,
                             HttpStatusCode.Unauthorized
                         )

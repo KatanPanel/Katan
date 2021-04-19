@@ -73,8 +73,8 @@ class DockerManager(private val core: KatanCore) {
             clientConfig, OkDockerHttpClient.Builder()
                 .dockerHost(clientConfig.dockerHost)
                 .sslConfig(clientConfig.sslConfig)
-                .connectTimeout(properties.get("connectTimeout", 60000))
-                .readTimeout(properties.get("readTimeout", 60000))
+                .connectTimeout(properties.get("connect-timeout", 60000))
+                .readTimeout(properties.get("read-timeout", 60000))
                 .build()
         )
 

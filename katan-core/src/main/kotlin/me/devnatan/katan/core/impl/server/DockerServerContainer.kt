@@ -13,4 +13,8 @@ class DockerServerContainer(id: String, name: String, private val client: Docker
         client.stopContainerCmd(id).exec()
     }
 
+    fun stop(timeout: Int) {
+        client.stopContainerCmd(id).withTimeout(timeout).exec()
+    }
+
 }

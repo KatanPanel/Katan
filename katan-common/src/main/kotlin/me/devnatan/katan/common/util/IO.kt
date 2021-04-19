@@ -4,8 +4,12 @@ import java.io.File
 import java.io.InputStream
 import java.nio.file.Files
 
-fun exportResource(resource: String, classLoader: ClassLoader = Thread.currentThread().contextClassLoader): File {
-    val file = File(resource)
+fun exportResource(
+    resource: String,
+    parent: File? = null,
+    classLoader: ClassLoader = Thread.currentThread().contextClassLoader
+): File {
+    val file = File(parent, resource)
     if (!file.exists()) {
         // create parent directories
         file.canonicalFile.parentFile.mkdirs()

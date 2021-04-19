@@ -12,14 +12,15 @@ import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
 import me.devnatan.katan.api.command.CommandManager
 import me.devnatan.katan.api.game.GameManager
-import me.devnatan.katan.api.io.FileSystem
 import me.devnatan.katan.api.io.FileSystemAccessor
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
 import me.devnatan.katan.api.security.permission.PermissionKey
 import me.devnatan.katan.api.service.get
+import me.devnatan.katan.common.EnvKeys
 import me.devnatan.katan.common.util.get
+import me.devnatan.katan.common.util.getEnv
 import me.devnatan.katan.core.cache.RedisCacheProvider
 import me.devnatan.katan.core.crypto.BcryptHash
 import me.devnatan.katan.core.database.DatabaseManager
@@ -35,10 +36,14 @@ import me.devnatan.katan.core.impl.server.DockerServerManager
 import me.devnatan.katan.core.impl.services.ServiceManagerImpl
 import me.devnatan.katan.core.repository.JDBCAccountsRepository
 import me.devnatan.katan.core.repository.JDBCServersRepository
+import me.devnatan.katan.io.file.DefaultFileSystemAccessor
+import me.devnatan.katan.io.file.DockerHostFileSystem
+import me.devnatan.katan.io.file.PersistentFileSystem
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
+import java.io.File
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -46,9 +51,9 @@ import kotlin.system.exitProcess
 class KatanCore(
     val config: Config,
     override val environment: KatanEnvironment,
-    override val translator: Translator
-) :
-    Katan, CoroutineScope by CoroutineScope(Job() + CoroutineName("Katan")) {
+    override val translator: Translator,
+    val rootDirectory: File
+) : Katan, CoroutineScope by CoroutineScope(Job() + CoroutineName("Katan")) {
 
     companion object {
 
@@ -58,23 +63,26 @@ class KatanCore(
 
     }
 
-    val objectMapper = ObjectMapper()
     override val platform: Platform = currentPlatform()
-    val docker = DockerManager(this)
     override lateinit var accountManager: AccountManagerImpl
     override lateinit var serverManager: DockerServerManager
     override val pluginManager = DefaultPluginManager(this)
     override val serviceManager = ServiceManagerImpl(this)
-    override lateinit var gameManager: GameManager
+    override val gameManager = GameManagerImpl(this)
     override lateinit var cache: Cache<Any>
     override val eventBus: EventScope = EventBus()
     lateinit var hash: Hash
-    lateinit var databaseManager: DatabaseManager
     override val permissionManager = PermissionManagerImpl()
     private val dockerEventsListener = DockerEventsListener(this)
     override val commandManager: CommandManager = CommandManagerImpl()
-    lateinit var internalFs: FileSystem
-    override lateinit var fileSystem: FileSystemAccessor
+
+    val docker = DockerManager(this)
+    val objectMapper = ObjectMapper()
+    val databaseManager = DatabaseManager(this)
+
+    val fs = selectFileSystem()
+
+    override val fileSystemAccessor = DefaultFileSystemAccessor(config, fs)
 
     init {
         coroutineContext[Job]!!.invokeOnCompletion {
@@ -84,18 +92,6 @@ class KatanCore(
             logger.error("See the logs files to extract more information. Exiting process.")
             logger.trace(null, it)
             exitProcess(1)
-        }
-
-        val value = config.get("timezone", DEFAULT_VALUE)
-        if (value != DEFAULT_VALUE) {
-            val timezone = TimeZone.getTimeZone(value)
-            System.setProperty(Katan.TIMEZONE_PROPERTY, timezone.id)
-            logger.info(
-                translator.translate(
-                    "katan.timezone",
-                    timezone.displayName
-                )
-            )
         }
     }
 
@@ -138,13 +134,25 @@ class KatanCore(
             )
         )
         logger.info(translator.translate("katan.platform", "$platform"))
+
+        val zoneId = config.get("timezone", DEFAULT_VALUE)
+        if (zoneId != "default") {
+            val timezone = TimeZone.getTimeZone(zoneId)
+            System.setProperty(Katan.TIMEZONE_PROPERTY, timezone.id)
+            logger.info(
+                translator.translate(
+                    "katan.timezone",
+                    timezone.displayName
+                )
+            )
+        }
+
         docker.initialize()
-        databaseManager = DatabaseManager(this)
         databaseManager.connect()
         for (defaultKey in PermissionKey.defaultPermissionKeys)
             permissionManager.registerPermissionKey(defaultKey)
 
-        gameManager = GameManagerImpl(this).also { it.register() }
+        gameManager.register()
         serverManager = DockerServerManager(
             this,
             JDBCServersRepository(databaseManager.database as JDBCConnector)
@@ -177,8 +185,15 @@ class KatanCore(
     suspend fun close() {
         pluginManager.disableAll()
         dockerEventsListener.close()
-        internalFs.close()
-        cache.close()
+        fs.close()
+
+        if (::cache.isInitialized)
+            cache.close()
+    }
+
+    private fun selectFileSystem(): PersistentFileSystem {
+        // only Docker Host is currently available
+        return DockerHostFileSystem(this)
     }
 
 }

@@ -7,41 +7,23 @@ import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.security.auth.ExternalAuthenticationProvider
 import me.devnatan.katan.api.service.get
-import me.devnatan.katan.webserver.exceptions.KatanHTTPException
-import me.devnatan.katan.webserver.routes.*
+import me.devnatan.katan.webserver.routing.*
+import me.devnatan.katan.webserver.routing.locations.AuthRoute
+import me.devnatan.katan.webserver.routing.locations.account
+import me.devnatan.katan.webserver.util.respondError
+import me.devnatan.katan.webserver.util.respondOk
 import java.time.Duration
-
-internal suspend fun PipelineContext<*, ApplicationCall>.respondOk(
-    response: Any,
-    status: HttpStatusCode = HttpStatusCode.OK,
-) = call.respond(
-    status, mapOf(
-        "response" to "success",
-        "data" to response
-    )
-)
-
-internal suspend fun PipelineContext<*, ApplicationCall>.respondOk(
-    vararg response: Pair<Any, Any>,
-    status: HttpStatusCode = HttpStatusCode.OK,
-) = respondOk(response.toMap(), status)
-
-internal fun respondWithError(
-    response: Pair<Int, String>,
-    status: HttpStatusCode = HttpStatusCode.BadRequest,
-): Nothing = throw KatanHTTPException(response, status)
 
 @OptIn(KtorExperimentalLocationsAPI::class, ExperimentalCoroutinesApi::class)
 fun Application.router(ws: KatanWS) {
     routing {
         webSocket("/") {
-            ws.webSocketManager.handle(this)
+            ws.webSocketManager.handleSession(this)
         }
 
         get<IndexRoute> {
@@ -55,10 +37,10 @@ fun Application.router(ws: KatanWS) {
             val data = call.receive<Map<String, String>>()
             val username = data["username"]
             if (username == null || username.isBlank())
-                respondWithError(ACCOUNT_MISSING_CREDENTIALS_ERROR)
+                respondError(ACCOUNT_MISSING_CREDENTIALS_ERROR)
 
             val account = ws.katan.accountManager.getAccount(username)
-                ?: respondWithError(ACCOUNT_NOT_FOUND_ERROR)
+                ?: respondError(ACCOUNT_NOT_FOUND_ERROR)
 
             val token = try {
                 ws.tokenManager.authenticateAccount(
@@ -66,7 +48,7 @@ fun Application.router(ws: KatanWS) {
                     data.getValue("password")
                 )
             } catch (e: IllegalArgumentException) {
-                respondWithError(ACCOUNT_INVALID_CREDENTIALS_ERROR)
+                respondError(ACCOUNT_INVALID_CREDENTIALS_ERROR)
             }
 
             respondOk("token" to token)
@@ -76,10 +58,10 @@ fun Application.router(ws: KatanWS) {
             val account = call.receive<Map<String, String>>()
             val username = account["username"]
             if (username == null || username.isBlank())
-                respondWithError(ACCOUNT_INVALID_CREDENTIALS_ERROR)
+                respondError(ACCOUNT_INVALID_CREDENTIALS_ERROR)
 
             if (ws.katan.accountManager.existsAccount(username))
-                respondWithError(ACCOUNT_ALREADY_EXISTS_ERROR)
+                respondError(ACCOUNT_ALREADY_EXISTS_ERROR)
 
             val entity = ws.katan.accountManager.createAccount(
                 username,
@@ -116,8 +98,10 @@ fun Application.router(ws: KatanWS) {
             }
 
             get<InfoRoute.Permissions> {
-                respondOk("permissions" to ws.katan.permissionManager
-                    .getRegisteredPermissionKeys())
+                respondOk(
+                    "permissions" to ws.katan.permissionManager
+                        .getRegisteredPermissionKeys()
+                )
             }
 
             get<AuthRoute.Verify> {
@@ -148,25 +132,29 @@ fun Application.router(ws: KatanWS) {
             }
 
             get<ServersRoute.Server.FileSystem> { (parent) ->
-                respondOk("disks" to ws.katan.internalFs.listDisks(parent
-                    .server))
+                respondOk(
+                    "disks" to ws.katan.fs.listDisks(
+                        parent
+                            .server
+                    )
+                )
             }
 
             get<ServersRoute.Server.FileSystemDisk> { (disk, parent) ->
-                val impl = ws.katan.internalFs.getDisk(
+                val impl = ws.katan.fs.getDisk(
                     parent.server,
                     disk
-                ) ?: respondWithError(SERVER_FS_DISK_NOT_FOUND)
+                ) ?: respondError(SERVER_FS_DISK_NOT_FOUND)
 
                 respondOk("disk" to impl)
             }
 
             get<ServersRoute.Server.FileSystemDiskFiles> { (disk, parent) ->
-                val impl = ws.katan.internalFs.getDisk(
+                val impl = ws.katan.fs.getDisk(
                     parent.server,
                     disk
                 )
-                    ?: respondWithError(SERVER_FS_DISK_NOT_FOUND)
+                    ?: respondError(SERVER_FS_DISK_NOT_FOUND)
 
                 respondOk(
                     "files" to impl.listFiles()

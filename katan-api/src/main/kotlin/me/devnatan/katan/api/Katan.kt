@@ -96,7 +96,7 @@ interface Katan : CoroutineScope {
 
     val commandManager: CommandManager
 
-    val fileSystem: FileSystemAccessor
+    val fileSystemAccessor: FileSystemAccessor
 
 }
 

@@ -1,7 +1,15 @@
 package me.devnatan.katan.webserver
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
+import io.ktor.network.tls.certificates.*
+import io.ktor.network.tls.extensions.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
@@ -19,19 +27,50 @@ import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_USE_SSL
 import me.devnatan.katan.common.EnvKeys.WS_ENABLED
 import me.devnatan.katan.common.util.*
 import me.devnatan.katan.core.KatanCore
+import me.devnatan.katan.webserver.serializers.AccountSerializer
+import me.devnatan.katan.webserver.serializers.InstantSerializer
+import me.devnatan.katan.webserver.serializers.ServerHolderSerializer
+import me.devnatan.katan.webserver.serializers.ServerSerializer
 import me.devnatan.katan.webserver.websocket.WebSocketManager
-import me.devnatan.katan.webserver.websocket.handler.WebSocketServerHandler
-import java.security.KeyStore
-import java.util.concurrent.TimeUnit
+import org.slf4j.Logger
+import java.time.Instant
+import kotlin.text.toCharArray
 
 class KatanWS(val katan: KatanCore, val config: Config) {
 
-    companion object Initializer {
+    companion object {
+        val log: Logger = logger<KatanWS>()
+
+        val objectMapper: ObjectMapper by lazy {
+            jacksonObjectMapper().apply {
+                propertyNamingStrategy = PropertyNamingStrategy.KEBAB_CASE
+                deactivateDefaultTyping()
+                enable(SerializationFeature.CLOSE_CLOSEABLE)
+                disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                setSerializationInclusion(JsonInclude.Include.NON_NULL)
+
+                registerModule(SimpleModule("KatanWS").apply {
+                    addSerializer(Account::class.java, AccountSerializer())
+                    addSerializer(Instant::class.java, InstantSerializer())
+                    addSerializer(
+                        Server::class.java,
+                        ServerSerializer()
+                    )
+                    addSerializer(
+                        ServerHolder::class.java,
+                        ServerHolderSerializer()
+                    )
+                })
+            }
+        }
+    }
+
+    object Initializer {
 
         @JvmStatic
         fun create(katan: KatanCore): KatanWS? {
             val config =
-                ConfigFactory.load(ConfigFactory.parseFile(exportResource("webserver.conf")))!!
+                ConfigFactory.load(ConfigFactory.parseFile(exportResource("webserver.conf", katan.rootDirectory)))!!
 
             return if (config.getEnvBoolean("enabled", WS_ENABLED, true))
                 KatanWS(katan, config)
@@ -42,14 +81,8 @@ class KatanWS(val katan: KatanCore, val config: Config) {
     }
 
     val tokenManager: TokenManager = TokenManager(this)
-    val webSocketManager = WebSocketManager(katan.eventBus)
-    private val server: ApplicationEngine = embeddedServer(Jetty, setupEngine())
-
-    init {
-        webSocketManager.registerEventHandler(
-            WebSocketServerHandler(katan)
-        )
-    }
+    val webSocketManager = WebSocketManager(katan)
+    private val server: ApplicationEngine = embeddedServer(Netty, setupEngine())
 
     private fun setupEngine() = applicationEngineEnvironment {
         module {
@@ -101,20 +134,23 @@ class KatanWS(val katan: KatanCore, val config: Config) {
         }
     }
 
+    @OptIn(KtorExperimentalAPI::class)
     fun start() {
         webSocketManager.listen()
-        server.start()
+
+        server.addShutdownHook {
+            val shutdown = config.getConfig("deployment.shutdown")
+            server.stop(
+                shutdown.get("grace-period", 1000),
+                shutdown.get("timeout", 5000),
+            )
+        }
+
+        server.start(wait = false)
     }
 
     suspend fun close() {
         webSocketManager.close()
-
-        val shutdown = config.getConfig("deployment.shutdown")
-        server.stop(
-            shutdown.get("grace-period", 1000),
-            shutdown.get("timeout", 5000),
-            TimeUnit.MILLISECONDS
-        )
     }
 
 }
