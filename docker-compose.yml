@@ -1,0 +1,16 @@
+version: "3"
+services:
+  katan-server:
+    image: katanio/server:latest
+    container_name: katan-server
+    ports:
+      - "8080:80"
+      - "8433:433"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./katan:/usr/katan
+
+networks:
+  default:
+    external:
+      name: katan-server
