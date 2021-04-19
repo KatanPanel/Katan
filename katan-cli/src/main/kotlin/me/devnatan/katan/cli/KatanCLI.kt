@@ -2,10 +2,7 @@ package me.devnatan.katan.cli
 
 import com.github.ajalt.clikt.core.PrintHelpMessage
 import com.github.ajalt.clikt.core.UsageError
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.command.RegisteredCommand
 import me.devnatan.katan.api.logging.logger
@@ -45,11 +42,19 @@ class KatanCLI(val katan: Katan) {
         in case that failure occurs the rest of the jobs that are being
         performed in the background do not fail and the scope is not canceled.
      */
-    val coroutineScope = CoroutineScope(SupervisorJob() + CoroutineName("KatanCLI"))
+    val coroutineScope =
+        CoroutineScope(SupervisorJob() + CoroutineName("KatanCLI"))
 
     // TODO: wrap native help to plugins help command
     fun init() {
         running = true
+
+        while (running) {
+            handleInput()
+        }
+    }
+
+    private fun handleInput() {
         var line: String?
         do {
             line = readLine()
@@ -65,10 +70,16 @@ class KatanCLI(val katan: Katan) {
                 }
 
                 // search for plugins commands
-                val match = katan.commandManager.getCommand(cmd) as? RegisteredCommand
-                    ?: throw PrintHelpMessage(command)
+                val match =
+                    katan.commandManager.getCommand(cmd) as? RegisteredCommand
+                        ?: throw PrintHelpMessage(command)
 
-                katan.commandManager.executeCommand(match.plugin, match, cmd, args.subList(1, args.size).toTypedArray())
+                katan.commandManager.executeCommand(
+                    match.plugin,
+                    match,
+                    cmd,
+                    args.subList(1, args.size).toTypedArray()
+                )
             } catch (e: PrintHelpMessage) {
                 logger.info(e.command.getFormattedHelp())
             } catch (e: UsageError) {
@@ -83,8 +94,8 @@ class KatanCLI(val katan: Katan) {
     }
 
     fun close() {
-        check(running) { "CLI is not running." }
-        coroutineScope.cancel()
+        if (coroutineScope.isActive)
+            coroutineScope.cancel()
     }
 
     fun translate(key: String, vararg args: Any): String {
