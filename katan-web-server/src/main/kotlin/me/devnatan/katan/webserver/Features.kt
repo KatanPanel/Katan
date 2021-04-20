@@ -58,7 +58,7 @@ fun Application.installFeatures(ws: KatanWS) {
         allowCredentials = true
 
         val cors = ws.config.getConfig("cors")
-        if (cors.get("allowAnyHost", false)) {
+        if (cors.getEnvBoolean("allowAnyHost", EnvKeys.WS_CORS_DISABLED, false)) {
             log.info("All hosts have been allowed through CORS.")
             anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
         } else if (cors.hasPath("hosts")) {
