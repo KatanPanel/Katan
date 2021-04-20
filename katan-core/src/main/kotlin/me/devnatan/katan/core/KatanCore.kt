@@ -180,7 +180,6 @@ class KatanCore(
 
     suspend fun close() {
         pluginManager.disableAll()
-        dockerEventsListener.close()
         fs.close()
 
         if (::cache.isInitialized)
