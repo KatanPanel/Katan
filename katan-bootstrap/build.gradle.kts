@@ -16,8 +16,7 @@ tasks {
     }
 
     shadowJar {
-        archiveBaseName.set("Katan")
-        archiveClassifier.set(null as? String?)
+        archiveFileName.set("Katan")
 
         // fix "Could not initialize class org.eclipse.jetty.server.HttpConnection"
         mergeServiceFiles()
