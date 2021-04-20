@@ -11,6 +11,7 @@ import me.devnatan.katan.core.KatanCore
 import org.slf4j.Logger
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.Executors
 
 class DockerEventsListener(private val core: KatanCore): CoroutineScope by CoroutineScope(CoroutineName("DockerEvents")) {
 
@@ -24,7 +25,7 @@ class DockerEventsListener(private val core: KatanCore): CoroutineScope by Corou
         ignoreUnknownKeys = true
     })
 
-    suspend fun listen() {
+    fun listen() = launch(Executors.newSingleThreadExecutor().asCoroutineDispatcher()) {
         systemApi.systemEvents(null, null, "{\"type\": [\"container\"]}").collect { event ->
             val serverId = event.actor?.attributes?.get("katan.server.id") ?: return@collect
             val action = event.action!!
@@ -35,24 +36,20 @@ class DockerEventsListener(private val core: KatanCore): CoroutineScope by Corou
                 "stop" -> serverStopped(serverId.toInt(), event.time!!.toLong())
                 "pause", "unpause", "kill", "die", "oom" -> {
                     // update server status
-                    inspectServer(serverId.toInt())
+                    core.serverManager.inspectServer(core.serverManager.getServer(serverId.toInt()))
                 }
             }
         }
     }
 
-    private suspend inline fun inspectServer(serverId: Int) {
-        core.serverManager.inspectServer(core.serverManager.getServer(serverId))
-    }
-
-    private suspend fun serverStarted(serverId: Int, timestamp: Long) = launch(Dispatchers.IO) {
+    private fun serverStarted(serverId: Int, timestamp: Long) = launch(Dispatchers.IO) {
         val server = core.serverManager.getServer(serverId)
         log.info("Server ${server.name} started.")
         core.eventBus.publish(ServerStartEvent(server, duration = Duration.ofMillis(Instant.now().toEpochMilli() - timestamp)))
         core.serverManager.inspectServer(server)
     }
 
-    private suspend fun serverStopped(serverId: Int, timestamp: Long) = launch(Dispatchers.IO) {
+    private fun serverStopped(serverId: Int, timestamp: Long) = launch(Dispatchers.IO) {
         val server = core.serverManager.getServer(serverId)
         log.info("Server ${server.name} stopped.")
         core.eventBus.publish(ServerStopEvent(server, duration = Duration.ofMillis(Instant.now().toEpochMilli() - timestamp)))
