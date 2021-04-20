@@ -55,10 +55,11 @@ class KatanCLI(val katan: Katan) {
     }
 
     private fun handleInput() {
-        var line: String?
+        var line: String? = null
         do {
-            line = readLine()
             try {
+                line = readLine()
+
                 val args = line?.split(" ") ?: continue
                 val cmd = args.getOrNull(0) ?: continue
                 if (cmd.equals(KATAN_COMMAND, true)) {
