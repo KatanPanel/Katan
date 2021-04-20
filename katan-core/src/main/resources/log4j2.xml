@@ -35,13 +35,11 @@
     </Appenders>
     <Loggers>
         <Root level="ALL">
+            <AppenderRef ref="AppFile"/>
             <AppenderRef ref="Console" level="${sys:katan.log.level}"/>
         </Root>
-        <Logger name="me.devnatan.katan" level="ALL" additivity="false">
-            <AppenderRef ref="AppFile"/>
-        </Logger>
-        <Logger name="me.devnatan.katan.webserver" level="ALL" additivity="false">
-            <AppenderRef ref="WsFile"/>
+        <Logger name="me.devnatan.katan.webserver" additivity="false">
+            <AppenderRef ref="WsFile" level="ALL"/>
         </Logger>
     </Loggers>
 </Configuration>
