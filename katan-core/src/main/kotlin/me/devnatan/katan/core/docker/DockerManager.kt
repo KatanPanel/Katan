@@ -24,8 +24,7 @@ class DockerManager(private val core: KatanCore) {
         val log: Logger = logger<DockerManager>()
     }
 
-    lateinit var client: DockerClient
-        private set
+    lateinit var client: DockerClient private set
 
     fun initialize() {
         val dockerConfig = core.config.getConfig("docker")
