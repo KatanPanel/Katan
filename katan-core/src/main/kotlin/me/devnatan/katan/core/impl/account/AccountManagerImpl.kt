@@ -76,7 +76,7 @@ class AccountManagerImpl(
         check(credentials is PasswordCredentials)
 
         if (credentials.validate(
-                account.password.orEmpty().toCharArray(),
+                account.password.orEmpty(),
                 core.hash
             )
         ) {

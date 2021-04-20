@@ -29,7 +29,7 @@ interface Credentials : Serializable {
      * @throws InvalidCredentialsException if validation was not possible for
      * some reason.
      */
-    fun validate(value: CharArray): Boolean
+    fun validate(value: String): Boolean
 
 }
 
@@ -40,7 +40,7 @@ interface Credentials : Serializable {
  */
 interface HashedCredentials : Credentials {
 
-    override fun validate(value: CharArray): Boolean {
+    override fun validate(value: String): Boolean {
         throw UnsupportedOperationException(
             "Use validate(value, hash) instead."
         )
@@ -54,7 +54,7 @@ interface HashedCredentials : Credentials {
      * @throws InvalidCredentialsException if validation was not possible for
      * some reason.
      */
-    fun validate(value: CharArray, hash: Hash): Boolean
+    fun validate(value: String, hash: Hash): Boolean
 
 }
 
@@ -67,25 +67,25 @@ interface HashedCredentials : Credentials {
  * @see    Credentials
  * @since  1.0
  */
-inline class BasicCredentials(val value: CharArray) :
+inline class BasicCredentials(val value: String) :
     Credentials {
 
-    override fun validate(value: CharArray): Boolean {
+    override fun validate(value: String): Boolean {
         return this.value.contentEquals(value)
     }
 
 }
 
-inline class PasswordCredentials(private val nonHashedValue: String) :
+inline class PasswordCredentials(private val nonHashedValue: CharArray) :
     HashedCredentials {
 
-    override fun validate(value: CharArray, hash: Hash): Boolean {
+    override fun validate(value: String, hash: Hash): Boolean {
         // check this because hashing algorithms
         // are strict with data length.
         if (nonHashedValue.isEmpty() && value.isEmpty())
             return true
 
-        return hash.compare(value, nonHashedValue)
+        return hash.compare(nonHashedValue, value)
     }
 
 }
