@@ -1,9 +1,5 @@
 package me.devnatan.katan.webserver
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.module.SimpleModule
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
@@ -14,18 +10,14 @@ import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.websocket.*
 import me.devnatan.katan.api.defaultLogLevel
-import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.server.Server
-import me.devnatan.katan.api.server.ServerHolder
+import me.devnatan.katan.common.EnvKeys
 import me.devnatan.katan.common.util.get
+import me.devnatan.katan.common.util.getEnvBoolean
+import me.devnatan.katan.common.util.getEnvInt
 import me.devnatan.katan.webserver.exceptions.KatanHTTPException
 import me.devnatan.katan.webserver.jwt.AccountPrincipal
-import me.devnatan.katan.webserver.serializers.AccountSerializer
-import me.devnatan.katan.webserver.serializers.InstantSerializer
-import me.devnatan.katan.webserver.serializers.ServerHolderSerializer
-import me.devnatan.katan.webserver.serializers.ServerSerializer
 import me.devnatan.katan.webserver.util.respondError
-import java.time.Instant
 
 fun Application.installFeatures(ws: KatanWS) {
     install(Locations)
@@ -143,14 +135,10 @@ fun Application.installFeatures(ws: KatanWS) {
         }
     }
 
-    if (ws.config.get(
-            "deployment.secure",
-            false
-        ) && ws.config.hasPath("deployment.sslPort")
-    ) {
+    if (ws.config.get("https-redirect", false)) {
         install(HttpsRedirect) {
-            sslPort = ws.config.getInt("deployment.sslPort")
-            permanentRedirect = ws.config.get("https-redirect", true)
+            sslPort = ws.config.getEnvInt("deployment.ssl.port", EnvKeys.WS_DEPLOY_SSL_PORT)!!
+            permanentRedirect = true
         }
     }
 
