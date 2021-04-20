@@ -21,7 +21,7 @@ class DockerEventsListener(private val core: KatanCore): CoroutineScope by Corou
     }
 
     private val systemApi = SystemApi(serializer = Json {
-        isLenient = true
+        ignoreUnknownKeys = true
     })
 
     suspend fun listen() {
