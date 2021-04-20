@@ -52,7 +52,7 @@ class TokenManager(val webserver: KatanWS) {
     ): String {
         if (!webserver.katan.accountManager.authenticate(
                 account,
-                PasswordCredentials(password)
+                PasswordCredentials(password.toCharArray())
             )
         )
             throw IllegalArgumentException("Wrong password")
