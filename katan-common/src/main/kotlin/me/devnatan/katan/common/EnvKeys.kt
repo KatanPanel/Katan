@@ -2,6 +2,7 @@ package me.devnatan.katan.common
 
 object EnvKeys {
 
+    const val ENVIRONMENT = "KATAN_ENV"
     const val LOCALE = "KATAN_LOCALE"
     const val ROOT_DIR = "KATAN_ROOT"
     const val DOCKER_URI = "KATAN_DOCKER_URI"

@@ -79,7 +79,7 @@ class KatanLauncher {
     private fun checkEnvironment(): KatanEnvironment {
         val env = System.getProperty(
             Katan.ENVIRONMENT_PROPERTY,
-            KatanEnvironment.PRODUCTION
+            System.getenv(EnvKeys.ENVIRONMENT) ?: KatanEnvironment.PRODUCTION
         ).toLowerCase()
         if (env !in KatanEnvironment.ALL) {
             System.err.println(
