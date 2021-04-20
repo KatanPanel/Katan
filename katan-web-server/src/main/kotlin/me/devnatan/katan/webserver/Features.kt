@@ -147,7 +147,7 @@ fun Application.installFeatures(ws: KatanWS) {
         log.info("Enabled Strict Transport Security (HSTS).")
     }
 
-    if (ws.config.get("under-reverse-proxy", false)) {
+    if (ws.config.getEnvBoolean("under-reverse-proxy", EnvKeys.WS_REVERSE_PROXIED, false)) {
         install(ForwardedHeaderSupport)
         log.info(
             "Enabled Forwarded Header support (for reverse " +

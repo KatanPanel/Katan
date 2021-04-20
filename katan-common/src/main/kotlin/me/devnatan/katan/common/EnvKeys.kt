@@ -16,5 +16,6 @@ object EnvKeys {
     const val WS_DEPLOY_HOST = "KATAN_WS_HOST"
     const val WS_DEPLOY_PORT = "KATAN_WS_PORT"
     const val WS_DEPLOY_SSL_PORT = "KATAN_WS_SSL_PORT"
+    const val WS_REVERSE_PROXIED = "KATAN_WS_REVERSE_PROXIED"
 
 }
