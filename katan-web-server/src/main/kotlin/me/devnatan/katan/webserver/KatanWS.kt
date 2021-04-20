@@ -17,9 +17,9 @@ import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerHolder
-import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_HTTPS_PORT
-import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_HTTP_HOST
-import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_HTTP_PORT
+import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_SSL_PORT
+import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_HOST
+import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_PORT
 import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_SSL_KEYALIAS
 import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_SSL_KEYSTORE_PASSWORD
 import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_SSL_PRIVATEKEY_PASSWORD
@@ -92,8 +92,8 @@ class KatanWS(val katan: KatanCore, val config: Config) {
 
         val deploy = this@KatanWS.config.getConfig("deployment")
         connector {
-            host = deploy.getEnv("host", WS_DEPLOY_HTTP_HOST)!!
-            port = deploy.getEnvInt("port", WS_DEPLOY_HTTP_PORT)!!
+            host = deploy.getEnv("host", WS_DEPLOY_HOST)!!
+            port = deploy.getEnvInt("port", WS_DEPLOY_PORT)!!
         }
 
         if (deploy.getEnvBoolean("ssl.enabled", WS_DEPLOY_USE_SSL, false)) {
@@ -129,7 +129,7 @@ class KatanWS(val katan: KatanCore, val config: Config) {
                     "Missing SSL private key password."
                 )
             }) {
-                port = ssl.getEnvInt("port", WS_DEPLOY_HTTPS_PORT)!!
+                port = ssl.getEnvInt("port", WS_DEPLOY_SSL_PORT)!!
             }
         }
     }
