@@ -19,4 +19,6 @@ interface ServerHolder : PermissionsHolder {
      */
     val server: Server
 
+    val isOwner: Boolean
+
 }

@@ -12,6 +12,12 @@ fun Config.getEnv(path: String, envKey: String, defaultValue: Any): String {
     return System.getenv(envKey) ?: get(path, defaultValue).toString()
 }
 
+inline fun Config.getEnv(path: String, envKey: String, missingSupplier: () -> Nothing): String {
+    return getEnv(path, envKey) ?: run {
+        missingSupplier()
+    }
+}
+
 fun Config.getEnvInt(path: String, envKey: String): Int? {
     return getEnv(path, envKey)?.toIntOrNull()
 }

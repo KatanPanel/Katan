@@ -48,6 +48,7 @@ class GameManagerImpl(private val core: KatanCore) : GameManager {
                     val versionConfig = (value as ConfigObject).toConfig()
                     val versionName = versionConfig.get("name", key)
                     GameVersionImpl(
+                        key,
                         versionName,
                         versionConfig.get("display-name", null),
                         versionConfig.get("image", null),

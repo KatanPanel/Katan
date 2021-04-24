@@ -11,12 +11,18 @@ import java.time.Instant
 
 data class ServerHolderImpl(override val account: Account, override val server: Server) : ServerHolder {
 
+    private var _owner = false
+    override val isOwner: Boolean = _owner
     override val permissions: MutableList<Permission> = arrayListOf()
 
     override fun setPermission(key: PermissionKey, value: PermissionFlag): Permission {
         return PermissionImpl(key, value, Instant.now()).also { permission ->
             permissions.add(permission)
         }
+    }
+
+    fun markAsOwner() {
+        _owner = true
     }
 
 }

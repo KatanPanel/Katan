@@ -6,6 +6,8 @@ package me.devnatan.katan.api.game
  */
 interface GameVersion {
 
+    val id: String
+
     /**
      * Returns the version name.
      */

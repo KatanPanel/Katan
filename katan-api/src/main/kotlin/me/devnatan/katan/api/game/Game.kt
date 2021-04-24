@@ -16,8 +16,6 @@ package me.devnatan.katan.api.game
  */
 interface Game : GameVersion {
 
-    val id: String
-
     /**
      * Returns the settings for that game. [Server]s targeting this game
      * should respect these settings overriding their own.

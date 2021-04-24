@@ -1,6 +1,7 @@
 package me.devnatan.katan.core
 
 import br.com.devsrsouza.eventkt.EventScope
+import br.com.devsrsouza.eventkt.scopes.LocalEventScope
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.typesafe.config.Config
 import kotlinx.coroutines.CoroutineName
@@ -20,8 +21,6 @@ import me.devnatan.katan.api.service.get
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.cache.RedisCacheProvider
 import me.devnatan.katan.core.crypto.BcryptHash
-import me.devnatan.katan.core.database.DatabaseManager
-import me.devnatan.katan.core.database.jdbc.JDBCConnector
 import me.devnatan.katan.core.docker.DockerEventsListener
 import me.devnatan.katan.core.docker.DockerManager
 import me.devnatan.katan.core.impl.account.AccountManagerImpl
@@ -29,10 +28,8 @@ import me.devnatan.katan.core.impl.cli.CommandManagerImpl
 import me.devnatan.katan.core.impl.game.GameManagerImpl
 import me.devnatan.katan.core.impl.permission.PermissionManagerImpl
 import me.devnatan.katan.core.impl.plugin.DefaultPluginManager
-import me.devnatan.katan.core.impl.server.DockerServerManager
+import me.devnatan.katan.core.impl.server.docker.DockerServerManager
 import me.devnatan.katan.core.impl.services.ServiceManagerImpl
-import me.devnatan.katan.core.repository.JDBCAccountsRepository
-import me.devnatan.katan.core.repository.JDBCServersRepository
 import me.devnatan.katan.io.file.DefaultFileSystemAccessor
 import me.devnatan.katan.io.file.DockerHostFileSystem
 import me.devnatan.katan.io.file.PersistentFileSystem
@@ -53,7 +50,6 @@ class KatanCore(
 
     companion object {
 
-        const val DATABASE_DIALECT_FALLBACK = "H2"
         const val DEFAULT_VALUE = "default"
         val log: Logger = logger<Katan>()
 
@@ -66,7 +62,7 @@ class KatanCore(
     override val serviceManager = ServiceManagerImpl(this)
     override val gameManager = GameManagerImpl(this)
     override lateinit var cache: Cache<Any>
-    override val eventBus: EventScope = EventBus()
+    override val eventBus: EventScope = LocalEventScope()
     lateinit var hash: Hash
     override val permissionManager = PermissionManagerImpl()
     private val dockerEventsListener = DockerEventsListener(this)
@@ -74,7 +70,7 @@ class KatanCore(
 
     val docker = DockerManager(this)
     val objectMapper = ObjectMapper()
-    val databaseManager = DatabaseManager(this)
+    private val databaseManager = DatabaseManager(this)
 
     val fs = selectFileSystem()
 
@@ -144,19 +140,13 @@ class KatanCore(
         }
 
         docker.initialize()
-        databaseManager.connect()
+        databaseManager.connect(config.getConfig("database"))
         for (defaultKey in PermissionKey.defaultPermissionKeys)
             permissionManager.registerPermissionKey(defaultKey)
 
         gameManager.register()
-        serverManager = DockerServerManager(
-            this,
-            JDBCServersRepository(databaseManager.database as JDBCConnector)
-        )
-        accountManager = AccountManagerImpl(
-            this,
-            JDBCAccountsRepository(databaseManager.database as JDBCConnector)
-        )
+        serverManager = DockerServerManager(this, databaseManager.db.repositories.servers)
+        accountManager = AccountManagerImpl(this, databaseManager.db.repositories.accounts)
         caching()
         pluginManager.loadPlugins()
 
@@ -184,6 +174,8 @@ class KatanCore(
 
         if (::cache.isInitialized)
             cache.close()
+
+        databaseManager.close()
     }
 
     private fun selectFileSystem(): PersistentFileSystem {
