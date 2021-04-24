@@ -2,9 +2,12 @@ package me.devnatan.katan.core.cache
 
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.Cache.Companion.KEY_PREFIX
+import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 
 class RedisCacheProvider(private val pool: JedisPool) : Cache<Any> {
+
+    val client = Jedis()
 
     init {
         // check if the redis has been successfully connected tries to get

@@ -13,8 +13,8 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.sendBlocking
 import me.devnatan.katan.api.annotations.InternalKatanApi
 import me.devnatan.katan.api.annotations.UnstableKatanApi
+import me.devnatan.katan.api.composition.*
 import me.devnatan.katan.api.game.GameVersion
-import me.devnatan.katan.api.server.*
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.cli.err
 import me.devnatan.katan.common.KatanTranslationKeys.CLI_ALIAS_SERVER_CREATE
@@ -86,9 +86,9 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                 }
             }
 
-            server.compositions[DockerImageServerComposition] = cli.katan.serverManager.getCompositionFactory(DockerImageServerComposition)!!.create(
-                DockerImageServerComposition,
-                DockerImageServerComposition.Options(
+            server.compositions[DockerImageComposition] = cli.katan.serverManager.createCompositionStore(
+                DockerImageComposition,
+                DockerImageComposition.Options(
                     host,
                     port,
                     memory,
@@ -107,7 +107,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                 val length = compositions.size
                 echo("Applying $length compositions...")
 
-                val applied = arrayListOf<ServerComposition.Key<*>>()
+                val applied = arrayListOf<Composition.Key>()
                 for ((index, name) in compositions.withIndex()) {
                     val phase = "[${index + 1}/$length]"
                     val factory = cli.serverManager.getCompositionFactory(name)
@@ -134,7 +134,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                     val channel = factory.channel.openSubscription()
 
                     echo("$phase Composing with \"${name}\"...")
-                    lateinit var composition: ServerComposition<*>
+                    lateinit var composition: Composition<CompositionOptions>
                     val generation =
                         cli.coroutineScope.async(Dispatchers.IO + CoroutineName("KatanCLI::server-composition-factory")) {
                             /*
@@ -144,7 +144,7 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                                 We must perform this on a separate thread on account of the [ServerCompositionPacket.Prompt]
                                 continuation, if it were on the main thread it would block and it would be impossible to continue.
                              */
-                            factory.create(key, ServerCompositionOptions.CLI)
+                            factory.create(key)
                         }
 
                     /*
@@ -157,13 +157,13 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                         CoroutineStart.LAZY
                     ) {
                         // composition.factory = factory
-                        composition.write(server)
+                        composition.write(server, cli.serverManager.createCompositionStore(key, CompositionOptions.CLI), factory)
                         applied.add(key)
                     }
 
                     // The channel has been consumed
                     generation.invokeOnCompletion {
-                        factory.channel.sendBlocking(ServerCompositionPacket.Close)
+                        factory.channel.sendBlocking(CompositionPacket.Close)
                         composition = generation.getCompleted()
                         writer.start()
                     }
@@ -178,17 +178,17 @@ class ServerCreateCommand(private val cli: KatanCLI) : CliktCommand(
                     launch(cancellationHandler) {
                         channel.consumeEach { packet ->
                             when (packet) {
-                                is ServerCompositionPacket.Prompt -> {
+                                is CompositionPacket.Prompt -> {
                                     val defer = packet.job
                                     prompt("[$keyName] ${packet.text}", packet.defaultValue)?.let {
                                         defer.complete(it)
                                     } ?: defer.completeExceptionally(NullPointerException())
                                 }
-                                is ServerCompositionPacket.Message -> echo(
+                                is CompositionPacket.Message -> echo(
                                     "[$keyName] ${packet.text}",
                                     err = packet.error
                                 )
-                                is ServerCompositionPacket.Close -> {
+                                is CompositionPacket.Close -> {
                                     cancellationHandler.cancel()
                                 }
                             }

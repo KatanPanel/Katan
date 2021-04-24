@@ -1,4 +1,4 @@
-package me.devnatan.katan.api.server
+package me.devnatan.katan.api.composition
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,72 +15,78 @@ import kotlin.reflect.jvm.jvmErasure
  *
  * A factory can store multiple compositions, and resolve them simultaneously.
  */
-abstract class ServerCompositionFactory(
-    val registrations: MutableMap<String, ServerComposition.Key<*>> = hashMapOf()
+abstract class CompositionFactory(
+    internal val registrations: MutableMap<String, Composition.Key> = hashMapOf()
 ) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val channel = BroadcastChannel<ServerCompositionPacket>(Channel.BUFFERED)
+    val channel = BroadcastChannel<CompositionPacket>(Channel.BUFFERED)
 
     /**
-     * Returns a composition created from its key and options.
+     * Returns a composition instance created from its key.
      * @param key the composition key.
-     * @param options the options of that composition.
      */
-    abstract suspend fun create(key: ServerComposition.Key<*>, options: ServerCompositionOptions): ServerComposition<*>
+    abstract suspend fun create(key: Composition.Key): Composition<CompositionOptions>
 
     /**
      * Returns the data generated for a composition.
      * @param key the composition key.
      * @param data the data that was saved from that composition.
      */
-    abstract suspend fun generate(key: ServerComposition.Key<*>, data: Map<String, Any>): ServerCompositionOptions
-
-    open suspend fun identify(key: ServerComposition.Key<*>): String {
-        return key.toString()
+    open suspend fun generate(key: Composition.Key, data: Map<String, Any>): CompositionOptions {
+        return DummyCompositionOptions
     }
 
 }
 
+object DummyCompositionOptions : CompositionOptions
+
 /**
  * Returns the registered key with the specified [name] or `null` if the key is not found.
  */
-operator fun ServerCompositionFactory.get(name: String): ServerComposition.Key<*>? {
+operator fun CompositionFactory.get(name: String): Composition.Key? {
     return registrations[name]
 }
 
 /**
  * Returns the name for the [key] or `null` if the key has not been registered.
  */
-operator fun ServerCompositionFactory.get(key: ServerComposition.Key<*>): String? {
+operator fun CompositionFactory.get(key: Composition.Key): String? {
     return registrations.entries.firstOrNull { it.value == key }?.key
 }
 
 /**
  * Register a new [key] with the specified [name].
  */
-operator fun ServerCompositionFactory.set(name: String, key: ServerComposition.Key<*>) {
+operator fun CompositionFactory.set(name: String, key: Composition.Key) {
     registrations[name] = key
 }
 
 /**
  * Register a new [key] with the specified [name].
  */
-operator fun ServerCompositionFactory.set(key: ServerComposition.Key<*>, name: String) {
+operator fun CompositionFactory.set(key: Composition.Key, name: String) {
+    registrations[name] = key
+}
+
+/**
+ * Register a new [key].
+ */
+fun CompositionFactory.registerKey(key: Composition.Key) {
+    registrations[key.name] = key
+}
+
+/**
+ * Register a new [key] with the specified [name].
+ */
+fun CompositionFactory.registerNamedKey(name: String, key: Composition.Key) {
     registrations[name] = key
 }
 
 /**
  * Register a new [key] with the specified [name].
  */
-fun ServerCompositionFactory.addSupportedKey(name: String, key: ServerComposition.Key<*>) {
-    registrations[name] = key
-}
-
-/**
- * Register a new [key] with the specified [name].
- */
-fun ServerCompositionFactory.addSupportedKey(key: ServerComposition.Key<*>, name: String) {
+fun CompositionFactory.registerNamedKey(key: Composition.Key, name: String) {
     registrations[name] = key
 }
 
@@ -90,9 +96,9 @@ fun ServerCompositionFactory.addSupportedKey(key: ServerComposition.Key<*>, name
  * @param defaultValue the default value to be returned if there is no input.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-suspend inline fun ServerCompositionFactory.prompt(text: String, defaultValue: String? = null): String {
+suspend inline fun CompositionFactory.prompt(text: String, defaultValue: String? = null): String {
     val job = CompletableDeferred<String>()
-    val packet = ServerCompositionPacket.Prompt(text, defaultValue, job)
+    val packet = CompositionPacket.Prompt(text, defaultValue, job)
     channel.send(packet)
     return job.await()
 }
@@ -103,8 +109,8 @@ suspend inline fun ServerCompositionFactory.prompt(text: String, defaultValue: S
  * @param error if it is an error message.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-suspend inline fun ServerCompositionFactory.message(text: String, error: Boolean = false) {
-    channel.send(ServerCompositionPacket.Message(text, error))
+suspend inline fun CompositionFactory.message(text: String, error: Boolean = false) {
+    channel.send(CompositionPacket.Message(text, error))
 }
 
 /**
@@ -112,8 +118,8 @@ suspend inline fun ServerCompositionFactory.message(text: String, error: Boolean
  * in the Command Line Interface (CLI).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-suspend inline fun ServerCompositionFactory.close() {
-    channel.send(ServerCompositionPacket.Close)
+suspend inline fun CompositionFactory.close() {
+    channel.send(CompositionPacket.Close)
 }
 
 /**
@@ -121,7 +127,7 @@ suspend inline fun ServerCompositionFactory.close() {
  * @param type the type of the composition options.
  * @param data the data to be set.
  */
-fun <T : ServerCompositionOptions> useAutoGeneratedOptions(type: KClass<T>, data: Map<String, Any>): T {
+fun <T : CompositionOptions> useAutoGeneratedOptions(type: KClass<T>, data: Map<String, Any>): T {
     val caller = type.primaryConstructor!!
     val values = hashMapOf<KParameter, Any?>()
     for (parameter in caller.parameters) {
@@ -143,6 +149,6 @@ fun <T : ServerCompositionOptions> useAutoGeneratedOptions(type: KClass<T>, data
  * @param T the type of the composition options.
  * @param data the data to be set.
  */
-inline fun <reified T : ServerCompositionOptions> useAutoGeneratedOptions(data: Map<String, Any>): T {
+inline fun <reified T : CompositionOptions> useAutoGeneratedOptions(data: Map<String, Any>): T {
     return useAutoGeneratedOptions(T::class, data)
 }

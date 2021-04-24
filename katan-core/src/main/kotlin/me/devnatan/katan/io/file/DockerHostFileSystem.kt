@@ -10,8 +10,8 @@ import me.devnatan.katan.api.io.FileSystemSession
 import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.core.KatanCore
-import me.devnatan.katan.core.impl.server.DockerServerContainer
-import me.devnatan.katan.core.impl.server.DockerServerContainerInspection
+import me.devnatan.katan.core.impl.server.docker.DockerServerContainer
+import me.devnatan.katan.core.impl.server.docker.DockerServerContainerInspection
 import me.devnatan.katan.io.file.disk.DockerHostFileDisk
 import org.slf4j.Logger
 import java.io.FileNotFoundException

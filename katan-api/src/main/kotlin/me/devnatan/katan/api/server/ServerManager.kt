@@ -1,6 +1,10 @@
 package me.devnatan.katan.api.server
 
 import kotlinx.coroutines.flow.Flow
+import me.devnatan.katan.api.composition.Composition
+import me.devnatan.katan.api.composition.CompositionFactory
+import me.devnatan.katan.api.composition.CompositionOptions
+import me.devnatan.katan.api.composition.CompositionStore
 import java.time.Duration
 
 /**
@@ -139,28 +143,30 @@ interface ServerManager {
     suspend fun receiveServerLogs(server: Server): Flow<String>
 
     /**
-     * Returns the [ServerCompositionFactory] that was registered
+     * Returns the [CompositionFactory] that was registered
      * for the supplied [key] or null if no factory is found for the key.
      */
-    fun getCompositionFactory(key: ServerComposition.Key<*>): ServerCompositionFactory?
+    fun getCompositionFactory(key: Composition.Key): CompositionFactory?
 
     /**
-     * Returns the [ServerCompositionFactory] that was registered
-     * for the supplied [name] or null if no factory is found for the key.
+     * Returns the [CompositionFactory] that was registered
+     * for the supplied [key] or null if no factory is found for the key.
      */
-    fun getCompositionFactory(name: String): ServerCompositionFactory?
+    fun getCompositionFactory(key: String): CompositionFactory?
 
     /**
      * Registers a new compositions factory.
      * @param factory the compositions factory.
      */
-    fun registerCompositionFactory(factory: ServerCompositionFactory)
+    fun registerCompositionFactory(factory: CompositionFactory)
 
     /**
      * Unregisters a compositions factory.
      * @param factory the factory to be unregistered.
      */
-    fun unregisterCompositionFactory(factory: ServerCompositionFactory)
+    fun unregisterCompositionFactory(factory: CompositionFactory)
+
+    fun <T : CompositionOptions> createCompositionStore(key: Composition.Key, options: T): CompositionStore<T>
 
 }
 

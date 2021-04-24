@@ -2,57 +2,49 @@ package me.devnatan.katan.core.impl.server.compositions
 
 import com.github.dockerjava.api.model.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
-import me.devnatan.katan.api.server.DockerImageServerComposition
+import me.devnatan.katan.api.composition.CompositionFactory
+import me.devnatan.katan.api.composition.CompositionStore
+import me.devnatan.katan.api.composition.DockerImageComposition
+import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.server.Server
-import me.devnatan.katan.api.server.ServerComposition
-import me.devnatan.katan.api.server.ServerCompositionFactory
 import me.devnatan.katan.common.util.replaceBetween
 import me.devnatan.katan.core.KatanCore
-import me.devnatan.katan.core.impl.server.DockerServerContainer
-import me.devnatan.katan.core.impl.server.DockerServerManager
 import me.devnatan.katan.core.impl.server.ServerImpl
+import me.devnatan.katan.core.impl.server.docker.DockerServerContainer
+import me.devnatan.katan.core.impl.server.docker.DockerServerManager
 import me.devnatan.katan.core.util.attachResultCallback
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import kotlin.math.pow
 
-class DockerImageServerCompositionImpl(
-    override val factory: ServerCompositionFactory,
-    override val options: DockerImageServerComposition.Options
-) : DockerImageServerComposition {
+object DockerImageCompositionImpl : DockerImageComposition {
 
-    companion object {
+    private val log: Logger = logger<DockerImageComposition>()
 
-        private val logger: Logger =
-            LoggerFactory.getLogger(DockerImageServerComposition::class.java)
-
-    }
-
-    override val key: ServerComposition.Key<*> get() = DockerImageServerComposition
-
-    override suspend fun read(server: Server) {}
-
-    override suspend fun write(server: Server) {
+    override suspend fun write(
+        server: Server,
+        store: CompositionStore<DockerImageComposition.Options>,
+        factory: CompositionFactory
+    ) {
         if (server !is ServerImpl)
             throw IllegalArgumentException("Cannot use Docker Image Server Composition directly.")
 
-        val katan = (factory as DockerImageServerCompositionFactory).core
+        val (options) = store
+        val katan = (factory as DockerImageCompositionFactory).core
 
         try {
             pullImage(options.image, katan).collect {
-                logger.debug("[Pull]: $it")
+                log.debug("[Pull]: $it")
             }
         } catch (e: Throwable) {
-            logger.warn("Failed to push ${server.name} image (${options.image}):")
-            logger.warn(e.toString())
+            log.warn("Failed to push ${server.name} image (${options.image}):")
+            log.warn(e.toString())
         }
 
-        logger.debug("Creating container (${options.host}:${options.port})...")
+        log.debug("Creating container (${options.host}:${options.port})...")
         options.environment = options.environment.mapValues { (_, value) ->
             value.toString().replaceBetween("%") {
                 "SERVER_NAME" by server.name
@@ -103,12 +95,12 @@ class DockerImageServerCompositionImpl(
             server.container.name,
             katan.docker.client
         )
-        logger.debug("Attaching ${server.container.name} to \"${DockerServerManager.NETWORK_ID}\" network...")
+        log.debug("Attaching ${server.container.name} to \"${DockerServerManager.NETWORK_ID}\" network...")
         katan.docker.client.connectToNetworkCmd()
             .withContainerId(containerId)
             .withNetworkId(DockerServerManager.NETWORK_ID)
             .exec()
-        logger.debug("Container " + containerId + " created for ${server.name}.")
+        log.debug("Container " + containerId + " created for ${server.name}.")
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

@@ -1,5 +1,6 @@
 package me.devnatan.katan.api.server
 
+import me.devnatan.katan.api.composition.Compositions
 import me.devnatan.katan.api.game.Game
 
 /**
@@ -36,7 +37,7 @@ interface Server {
     /**
      * Returns the server compositions container.
      */
-    val compositions: ServerCompositions
+    val compositions: Compositions
 
     /**
      * Returns the [Game] that this server is targeting.
