@@ -1,12 +1,12 @@
 @file:OptIn(KtorExperimentalLocationsAPI::class)
 
-package me.devnatan.katan.webserver.routing.locations
+package me.devnatan.katan.webserver.router.locations
 
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.locations.*
 import me.devnatan.katan.api.security.account.Account
-import me.devnatan.katan.webserver.jwt.AccountPrincipal
+import me.devnatan.katan.webserver.auth.jwt.AccountPrincipal
 
 @Location("/auth")
 class AuthRoute {

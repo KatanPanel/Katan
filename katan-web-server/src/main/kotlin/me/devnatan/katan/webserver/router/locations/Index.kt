@@ -1,6 +1,6 @@
 @file:OptIn(KtorExperimentalLocationsAPI::class)
 
-package me.devnatan.katan.webserver.routing
+package me.devnatan.katan.webserver.router
 
 import io.ktor.locations.*
 

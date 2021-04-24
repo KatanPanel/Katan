@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.pipeline.*
-import me.devnatan.katan.webserver.exceptions.KatanHTTPException
+import me.devnatan.katan.webserver.KatanHTTPException
 
 suspend fun PipelineContext<*, ApplicationCall>.respondOk(
     response: Any,
@@ -22,6 +22,6 @@ suspend fun PipelineContext<*, ApplicationCall>.respondOk(
 ) = respondOk(response.toMap(), status)
 
 fun respondError(
-    response: Pair<Int, String>,
+    errorCode: Int,
     status: HttpStatusCode = HttpStatusCode.BadRequest,
-): Nothing = throw KatanHTTPException(response, status)
+): Nothing = throw KatanHTTPException(errorCode, status)

@@ -5,7 +5,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly(project(":katan-core"))
+    implementation(project(":katan-core"))
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")

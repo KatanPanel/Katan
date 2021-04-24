@@ -1,8 +1,8 @@
-package me.devnatan.katan.webserver.exceptions
+package me.devnatan.katan.webserver
 
 import io.ktor.http.*
 
 class KatanHTTPException(
-    val response: Pair<Int, String>,
+    val errorCode: Int,
     val status: HttpStatusCode,
 ) : RuntimeException()

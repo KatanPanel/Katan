@@ -15,8 +15,7 @@ import me.devnatan.katan.common.EnvKeys
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.common.util.getEnvBoolean
 import me.devnatan.katan.common.util.getEnvInt
-import me.devnatan.katan.webserver.exceptions.KatanHTTPException
-import me.devnatan.katan.webserver.jwt.AccountPrincipal
+import me.devnatan.katan.webserver.auth.jwt.AccountPrincipal
 import me.devnatan.katan.webserver.util.respondError
 
 fun Application.installFeatures(ws: KatanWS) {
@@ -44,8 +43,7 @@ fun Application.installFeatures(ws: KatanWS) {
             call.respond(
                 cause.status, mapOf(
                     "response" to "error",
-                    "code" to cause.response.first,
-                    "message" to cause.response.second
+                    "code" to cause.errorCode,
                 )
             )
         }

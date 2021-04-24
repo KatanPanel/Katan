@@ -12,9 +12,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.security.auth.ExternalAuthenticationProvider
 import me.devnatan.katan.api.service.get
-import me.devnatan.katan.webserver.routing.*
-import me.devnatan.katan.webserver.routing.locations.AuthRoute
-import me.devnatan.katan.webserver.routing.locations.account
+import me.devnatan.katan.webserver.router.IndexRoute
+import me.devnatan.katan.webserver.router.InfoRoute
+import me.devnatan.katan.webserver.router.ServersRoute
+import me.devnatan.katan.webserver.router.locations.AuthRoute
+import me.devnatan.katan.webserver.router.locations.account
 import me.devnatan.katan.webserver.util.respondError
 import me.devnatan.katan.webserver.util.respondOk
 import java.time.Duration

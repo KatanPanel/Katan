@@ -17,16 +17,17 @@ import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.security.account.Account
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerHolder
-import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_SSL_PORT
 import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_HOST
 import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_PORT
 import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_SSL_KEYALIAS
 import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_SSL_KEYSTORE_PASSWORD
+import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_SSL_PORT
 import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_SSL_PRIVATEKEY_PASSWORD
 import me.devnatan.katan.common.EnvKeys.WS_DEPLOY_USE_SSL
 import me.devnatan.katan.common.EnvKeys.WS_ENABLED
 import me.devnatan.katan.common.util.*
 import me.devnatan.katan.core.KatanCore
+import me.devnatan.katan.webserver.auth.TokenManager
 import me.devnatan.katan.webserver.serializers.AccountSerializer
 import me.devnatan.katan.webserver.serializers.InstantSerializer
 import me.devnatan.katan.webserver.serializers.ServerHolderSerializer
@@ -110,7 +111,8 @@ class KatanWS(val katan: KatanCore, val config: Config) {
             ) ?: error(
                 "Missing SSL key store password."
             )
-            
+
+            @OptIn(KtorExperimentalAPI::class)
             val keyStore = buildKeyStore {
                 certificate(alias) {
                     hash = HashAlgorithm.SHA256

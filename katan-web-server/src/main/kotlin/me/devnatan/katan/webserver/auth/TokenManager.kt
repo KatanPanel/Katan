@@ -1,4 +1,4 @@
-package me.devnatan.katan.webserver
+package me.devnatan.katan.webserver.auth
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.Payload
 import me.devnatan.katan.api.security.PasswordCredentials
 import me.devnatan.katan.api.security.account.Account
+import me.devnatan.katan.webserver.KatanWS
 import java.time.Duration
 import java.time.Instant
 import java.util.*
