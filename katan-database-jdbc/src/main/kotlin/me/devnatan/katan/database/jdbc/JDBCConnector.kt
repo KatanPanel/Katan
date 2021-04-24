@@ -98,11 +98,9 @@ class JDBCConnector(
         val props = settings.properties
         when (dialect) {
             SQLiteDialect.dialectName, H2Dialect.dialectName -> {
-                require(props.containsKey("file")) {
-                    "Missing \"file\" database property for \"$dialect\" dialect"
-                }
+                val file = props["file"] ?: "katan"
 
-                url = url.replace("{file}", props.getValue("file"))
+                url = url.replace("{file}", file + (if (dialect == SQLiteDialect.dialectName) ".db" else ""))
             }
             SQLServerDialect.dialectName -> {}
             else -> if (props.isNotEmpty()) {
