@@ -27,7 +27,7 @@ interface Katan : CoroutineScope {
         /**
          * Returns the current version of the Katan.
          */
-        val VERSION = Version(1, 0, 0, "alpha.1")
+        val VERSION = Version(0, 0, 1)
 
         const val ENVIRONMENT_PROPERTY = "katan.environment"
         const val LOCALE_PROPERTY = "katan.locale"
