@@ -45,9 +45,8 @@ class DatabaseManager(private val core: KatanCore) {
 
     @OptIn(ExperimentalTime::class)
     internal suspend fun connect(config: Config) {
-        check(_db != null) { "Database connector settings must be validated before connect" }
-
         val settings = validateConnectorSettings(config)
+        require(_db != null) { "Database connector settings must be validated before connect" }
 
         log.info(core.translator.translate("katan.database.connecting"))
 

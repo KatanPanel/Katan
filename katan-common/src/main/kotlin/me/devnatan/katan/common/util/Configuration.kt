@@ -32,7 +32,9 @@ fun Config.getEnvBoolean(path: String, envKey: String, defaultValue: Boolean):
 }
 
 fun <T> Config.get(path: String): T? {
-    return getValue(path).unwrapped() as? T
+    return if (hasPath(path))
+        getValue(path).unwrapped() as T
+    else null
 }
 
 fun <T> Config.get(path: String, defaultValue: T): T {
