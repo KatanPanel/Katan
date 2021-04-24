@@ -68,7 +68,7 @@ class JDBCConnector(
     }
 
     override fun isDialectSupported(dialect: String): Boolean {
-        return dialectUrlMappings.containsKey(dialect)
+        return dialectUrlMappings.containsKey(dialect.toLowerCase())
     }
 
     override fun isConnected(): Boolean {

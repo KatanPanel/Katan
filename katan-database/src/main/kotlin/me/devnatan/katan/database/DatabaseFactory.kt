@@ -15,10 +15,10 @@ class DatabaseFactory {
         } ?: throw IllegalArgumentException("No connectors available for database url: $url")
     }
 
-    fun fromDialect(url: String): DatabaseConnector {
+    fun fromDialect(dialect: String): DatabaseConnector {
         return connectors.firstOrNull {
-            it.isDialectSupported(url)
-        } ?: throw IllegalArgumentException("No connectors available for database url: $url")
+            it.isDialectSupported(dialect)
+        } ?: throw IllegalArgumentException("No connectors available for database dialect: $dialect")
     }
 
 
