@@ -1,4 +1,4 @@
-package me.devnatan.katan.webserver
+package me.devnatan.katan.webserver.router
 
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -12,9 +12,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import me.devnatan.katan.api.Katan
 import me.devnatan.katan.api.security.auth.ExternalAuthenticationProvider
 import me.devnatan.katan.api.service.get
-import me.devnatan.katan.webserver.router.IndexRoute
-import me.devnatan.katan.webserver.router.InfoRoute
-import me.devnatan.katan.webserver.router.ServersRoute
+import me.devnatan.katan.webserver.*
 import me.devnatan.katan.webserver.router.locations.AuthRoute
 import me.devnatan.katan.webserver.router.locations.account
 import me.devnatan.katan.webserver.util.respondError
@@ -29,10 +27,7 @@ fun Application.router(ws: KatanWS) {
         }
 
         get<IndexRoute> {
-            respondOk(
-                "version" to Katan.VERSION,
-                "version_plain" to Katan.VERSION.toString()
-            )
+            call.respondText("Running on Katan v${Katan.VERSION} (${ws.katan.environment})")
         }
 
         post<AuthRoute.Login> {

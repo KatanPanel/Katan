@@ -28,6 +28,7 @@ import me.devnatan.katan.common.EnvKeys.WS_ENABLED
 import me.devnatan.katan.common.util.*
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.webserver.auth.TokenManager
+import me.devnatan.katan.webserver.router.router
 import me.devnatan.katan.webserver.serializers.AccountSerializer
 import me.devnatan.katan.webserver.serializers.InstantSerializer
 import me.devnatan.katan.webserver.serializers.ServerHolderSerializer
