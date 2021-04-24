@@ -58,6 +58,7 @@ class DatabaseManager(private val core: KatanCore) {
             log.info(core.translator.translate("katan.database.connected", time.inSeconds))
         }.onFailure { error ->
             log.error(core.translator.translate("katan.database.fail"))
+            log.error(error.toString())
             log.trace(null, error)
             exitProcess(0)
         }

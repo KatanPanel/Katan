@@ -98,9 +98,13 @@ class JDBCConnector(
         val props = settings.properties
         when (dialect) {
             SQLiteDialect.dialectName, H2Dialect.dialectName -> {
-                val file = props["file"] ?: "katan"
-
-                url = url.replace("{file}", file + (if (dialect == SQLiteDialect.dialectName) ".db" else ""))
+                url = url.replace("{file}", buildString {
+                    append("./") // relative path
+                    append(props["file"] ?: "katan")
+                    if (dialect == H2Dialect.dialectName)
+                        append(".h2")
+                    append(".db")
+                })
             }
             SQLServerDialect.dialectName -> {}
             else -> if (props.isNotEmpty()) {
