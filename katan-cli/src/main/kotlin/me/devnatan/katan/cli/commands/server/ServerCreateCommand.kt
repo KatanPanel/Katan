@@ -13,8 +13,8 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.channels.sendBlocking
 import me.devnatan.katan.api.annotations.InternalKatanApi
 import me.devnatan.katan.api.annotations.UnstableKatanApi
-import me.devnatan.katan.api.composition.*
 import me.devnatan.katan.api.game.GameVersion
+import me.devnatan.katan.api.server.composition.*
 import me.devnatan.katan.cli.KatanCLI
 import me.devnatan.katan.cli.err
 import me.devnatan.katan.common.KatanTranslationKeys.CLI_ALIAS_SERVER_CREATE

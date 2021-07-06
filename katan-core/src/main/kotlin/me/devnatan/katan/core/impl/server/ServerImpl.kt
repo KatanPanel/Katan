@@ -1,7 +1,7 @@
 package me.devnatan.katan.core.impl.server
 
-import me.devnatan.katan.api.composition.Compositions
 import me.devnatan.katan.api.server.*
+import me.devnatan.katan.api.server.composition.Compositions
 
 data class ServerImpl(
     override val id: Int,

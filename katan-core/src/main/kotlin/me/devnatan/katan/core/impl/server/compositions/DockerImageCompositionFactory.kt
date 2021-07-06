@@ -1,6 +1,6 @@
 package me.devnatan.katan.core.impl.server.compositions
 
-import me.devnatan.katan.api.composition.*
+import me.devnatan.katan.api.server.composition.*
 import me.devnatan.katan.core.KatanCore
 
 class DockerImageCompositionFactory(val core: KatanCore) : CompositionFactory() {

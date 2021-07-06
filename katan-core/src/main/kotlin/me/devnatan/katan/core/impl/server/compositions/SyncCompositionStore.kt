@@ -1,9 +1,9 @@
 package me.devnatan.katan.core.impl.server.compositions
 
 import kotlinx.atomicfu.locks.SynchronizedObject
-import me.devnatan.katan.api.composition.Composition
-import me.devnatan.katan.api.composition.CompositionOptions
-import me.devnatan.katan.api.composition.CompositionStore
+import me.devnatan.katan.api.server.composition.Composition
+import me.devnatan.katan.api.server.composition.CompositionOptions
+import me.devnatan.katan.api.server.composition.CompositionStore
 import java.time.Instant
 
 class SyncCompositionStore<T : CompositionOptions>(

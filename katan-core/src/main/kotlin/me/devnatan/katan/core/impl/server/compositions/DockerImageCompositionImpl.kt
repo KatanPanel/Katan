@@ -6,11 +6,11 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
-import me.devnatan.katan.api.composition.CompositionFactory
-import me.devnatan.katan.api.composition.CompositionStore
-import me.devnatan.katan.api.composition.DockerImageComposition
 import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.server.Server
+import me.devnatan.katan.api.server.composition.CompositionFactory
+import me.devnatan.katan.api.server.composition.CompositionStore
+import me.devnatan.katan.api.server.composition.DockerImageComposition
 import me.devnatan.katan.common.util.replaceBetween
 import me.devnatan.katan.core.KatanCore
 import me.devnatan.katan.core.impl.server.ServerImpl

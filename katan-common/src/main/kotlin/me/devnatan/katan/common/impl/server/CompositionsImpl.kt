@@ -1,9 +1,9 @@
 package me.devnatan.katan.common.impl.server
 
-import me.devnatan.katan.api.composition.Composition
-import me.devnatan.katan.api.composition.CompositionOptions
-import me.devnatan.katan.api.composition.CompositionStore
-import me.devnatan.katan.api.composition.Compositions
+import me.devnatan.katan.api.server.composition.Composition
+import me.devnatan.katan.api.server.composition.CompositionOptions
+import me.devnatan.katan.api.server.composition.CompositionStore
+import me.devnatan.katan.api.server.composition.Compositions
 
 class CompositionsImpl : Compositions {
 

@@ -1,28 +1,51 @@
+/*
+ * Copyright 2020-present Natan Vieira do Nascimento
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.devnatan.katan.api.io
 
 import me.devnatan.katan.api.Platform
 import java.time.Instant
 
 /**
- * Represents a single file or directory on the file system on that [Platform].
+ * A single file in a [FileDirectory].
+ *
+ * @author Natan Vieira
+ * @since  1.0
  */
 interface File {
 
     /**
-     * Returns the name (with extension) of this [File].
+     * Returns the name (including extension) of this file.
      */
     val name: String
 
     /**
-     * Returns the path to that file.
+     * Returns the absolute path to this file.
      */
     val path: String
 
     /**
-     * Returns when the file was created or `null` if the information is not available.
+     * Returns the instant the file was created or `null` if it is not available
      */
     val createdAt: Instant?
 
+    /**
+     * Returns the last time the file was modified or `null` if it's not
+     * available or the file has never been modified.
+     */
     val lastModifiedAt: Instant?
 
     /**
@@ -35,37 +58,7 @@ interface File {
      */
     val isHidden: Boolean
 
-    /**
-     * Returns `true` if this is a directory or `false` otherwise.
-     */
-    val isDirectory: Boolean
-
-    val origin: FileOrigin
-
-    suspend fun listFiles(): List<File>
-
 }
 
-inline class FileOrigin(val value: String) {
-
-    companion object {
-
-        val LOCAL = FileOrigin("local")
-        val REMOTE = FileOrigin("remote")
-        val EXTERNAL = FileOrigin("external")
-
-    }
-
-    fun isLocal(): Boolean {
-        return this == LOCAL
-    }
-
-    fun isRemote(): Boolean {
-        return this == REMOTE
-    }
-
-    fun isExternal(): Boolean {
-        return this == EXTERNAL
-    }
-
-}
+val File.extension
+    inline get() = name.substringAfterLast(".")

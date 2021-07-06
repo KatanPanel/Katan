@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020-present Natan Vieira do Nascimento
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.devnatan.katan.api
 
 import java.io.Serializable
@@ -12,9 +28,11 @@ import java.io.Serializable
  * Entities with untrusted descriptors may not have permissions to access
  * certain areas of the application resulting in a [SecurityException].
  *
- * @implNote
- * The properties of a descriptor must be delegated from an
- * [me.devnatan.katan.api.util.InitOnceProperty] and serializable.
+ * Implementation note:
+ *   - The rule for checking a descriptor's equality is transitive, that if
+ * one descriptor has the same id as the other they are equal regardless
+ * of the rest of the properties. Returns `true` if this descriptor is equal
+ * to other.
  *
  * @author Natan Vieira
  * @since  1.0
@@ -27,18 +45,9 @@ interface Descriptor : Serializable {
     val id: String
 
     /**
-     * Returns `true` if the holder of this descriptor is a trustworthy
-     * entity or `false` otherwise.
+     * Returns `true` if the entity holding this descriptor is a marked as
+     * trustworthy entity or `false` otherwise.
      */
     fun isTrusted(): Boolean
-
-    /**
-     * The rule for checking a descriptor's equality is transitive, that if
-     * one descriptor has the same id as the other they are equal regardless
-     * of the rest of the properties.
-     *
-     * Returns `true` if this descriptor is equal to [other].
-     */
-    override fun equals(other: Any?): Boolean
 
 }

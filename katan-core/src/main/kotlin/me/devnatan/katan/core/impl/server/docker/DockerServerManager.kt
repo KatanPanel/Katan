@@ -12,10 +12,10 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.serialization.json.Json
-import me.devnatan.katan.api.composition.*
 import me.devnatan.katan.api.event.server.*
 import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.server.*
+import me.devnatan.katan.api.server.composition.*
 import me.devnatan.katan.common.impl.server.CompositionsImpl
 import me.devnatan.katan.common.impl.server.ServerGameImpl
 import me.devnatan.katan.core.KatanCore
