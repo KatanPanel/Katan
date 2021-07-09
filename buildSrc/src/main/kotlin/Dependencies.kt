@@ -39,7 +39,7 @@ object Dependencies {
             const val jedis = "redis.clients:jedis:3.3.0"
             const val mysqlConnector = "mysql:mysql-connector-java:8.0.21"
             const val h2Database = "com.h2database:h2:1.4.200"
-            const val dockerKotlinMultiplatform = "com.github.KatanPanel.docker-kotlin-multiplatform:kotlin-docker-jvm:f25b697ad6"
+            const val dockerKotlinMultiplatform = "com.github.DevNatan.docker-kotlin-multiplatform:kotlin-docker-jvm:0cff21206a"
         }
 
         object WS {
