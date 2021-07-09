@@ -30,15 +30,13 @@ import me.devnatan.katan.api.event.server.ServerStopEvent
 import me.devnatan.katan.api.server.Server
 import me.devnatan.katan.api.server.ServerManager
 import me.devnatan.katan.docker.util.Attributes
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.time.Duration
 import java.time.Instant
 
-class EventsListener : KoinComponent, CoroutineScope by CoroutineScope(Dispatchers.IO + CoroutineName("Docker Events Listener"))  {
-
-    private val eventScope by inject<EventScope>()
-    private val serverManager by inject<ServerManager>()
+class EventsListener(
+    private val serverManager: ServerManager,
+    private val eventScope: EventScope
+) : CoroutineScope by CoroutineScope(Dispatchers.IO + CoroutineName("Docker Events Listener")) {
 
     private val systemApi = SystemApi(serializer = Json {
         ignoreUnknownKeys = true
