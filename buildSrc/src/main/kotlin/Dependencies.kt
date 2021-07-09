@@ -33,6 +33,16 @@ object Dependencies {
         const val jvmArtifact = "$prefix:$version"
     }
 
+    object Koin {
+        private const val prefix = "io.insert-koin:koin"
+        private const val version = "3.1.2"
+
+        const val core = "$prefix-core:$version"
+        const val test = "$prefix-test:$version"
+        const val ktor = "$prefix-ktor:$version"
+        const val slf4j = "$prefix-logger-slf4j:$version"
+    }
+
     object Modules {
         object Core {
             const val bouncyCastleCrypto = "org.bouncycastle:bcprov-jdk15to18:1.66"

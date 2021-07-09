@@ -19,7 +19,7 @@ allprojects {
     repositories {
         mavenCentral()
         jcenter()
-        maven("https://jitpack.io")
+        maven(Repositories.jitpack)
         maven(Repositories.kotlinExposed)
         maven(Repositories.eventKt)
     }
@@ -29,6 +29,9 @@ allprojects {
         implementation(kotlin("reflect"))
         implementation(Dependencies.Coroutines.coreArtifact)
         implementation(Dependencies.Serialization.jsonArtifact)
+        implementation(Dependencies.Koin.core)
+        implementation(Dependencies.Koin.slf4j)
+        testImplementation(Dependencies.Koin.test)
     }
 
     tasks {

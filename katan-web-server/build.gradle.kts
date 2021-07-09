@@ -16,4 +16,5 @@ dependencies {
     implementation(Dependencies.Modules.WS.Ktor.locations)
     implementation(Dependencies.Modules.WS.Ktor.websockets)
     implementation(Dependencies.Modules.WS.Ktor.jackson)
+    implementation(Dependencies.Koin.ktor)
 }

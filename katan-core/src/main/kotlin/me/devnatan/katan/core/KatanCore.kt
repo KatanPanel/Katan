@@ -17,6 +17,7 @@ import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
 import me.devnatan.katan.api.security.crypto.Hash
 import me.devnatan.katan.api.security.permission.PermissionKey
+import me.devnatan.katan.api.server.ServerManager
 import me.devnatan.katan.api.service.get
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.cache.RedisCacheProvider
@@ -33,6 +34,7 @@ import me.devnatan.katan.core.impl.services.ServiceManagerImpl
 import me.devnatan.katan.io.file.DefaultFileSystemAccessor
 import me.devnatan.katan.io.file.DockerHostFileSystem
 import me.devnatan.katan.io.file.PersistentFileSystem
+import org.koin.dsl.module
 import org.slf4j.Logger
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
@@ -183,4 +185,8 @@ class KatanCore(
         return DockerHostFileSystem(this)
     }
 
+}
+
+val CoreModule = module {
+    single { DockerServerManager() as ServerManager }
 }

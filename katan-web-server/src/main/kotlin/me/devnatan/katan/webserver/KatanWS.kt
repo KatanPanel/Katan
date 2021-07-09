@@ -34,6 +34,7 @@ import me.devnatan.katan.webserver.serializers.InstantSerializer
 import me.devnatan.katan.webserver.serializers.ServerHolderSerializer
 import me.devnatan.katan.webserver.serializers.ServerSerializer
 import me.devnatan.katan.webserver.websocket.WebSocketManager
+import org.koin.dsl.module
 import org.slf4j.Logger
 import java.time.Instant
 import kotlin.text.toCharArray
@@ -155,5 +156,9 @@ class KatanWS(val katan: KatanCore, val config: Config) {
     suspend fun close() {
         webSocketManager.close()
     }
+
+}
+
+val WsModule = module {
 
 }
