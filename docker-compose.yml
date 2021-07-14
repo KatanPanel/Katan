@@ -1,11 +1,36 @@
 version: "3"
 services:
   katan:
-    image: katanio/server:dev
-    container_name: katan-server
+    image: katanio/server:latest
+    container_name: katan-server jdbc:postgresql://{host}/{database}
+    depends_on:
+      - postgres
+      - redis
     ports:
       - "8080:80"
       - "8433:433"
+    environment:
+      - "KATAN_DB_URL=jdbc:postgresql://0.0.0.0/5432"
+      - "KATAN_DB_NAME=katan"
+      - "KATAN_DB_USER=katan"
+      - "KATAN_DB_PASSWORD=katan"
+      - "KATAN_REDIS_PASSWORD=katan"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./katan/server:/usr/katan"
+  postgres:
+    image: postgres:9.6
+    container_name: "postgres"
+    restart: always
+    environment:
+      - POSTGRES_DB=katan
+      - POSTGRES_USER=katan
+      - POSTGRES_PASSWORD=katan
+    volumes:
+      - "./katan/db/postgres:/var/lib/postgresql/data"
+    ports:
+      - 5432:5432
+  redis:
+    image: "redis:alpine"
+    restart: always
+    command: redis-server --requirepass katan
