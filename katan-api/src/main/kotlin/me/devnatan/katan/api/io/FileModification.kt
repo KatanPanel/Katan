@@ -26,7 +26,7 @@ interface FileModification {
     /**
      * Returns the subject of the change.
      */
-    val mutator: FileMutator
+    val mutator: Any
 
     /**
      * Returns the [Instant] when the modification occurred.

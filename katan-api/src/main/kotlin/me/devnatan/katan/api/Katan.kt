@@ -19,12 +19,9 @@ package me.devnatan.katan.api
 import br.com.devsrsouza.eventkt.EventScope
 import kotlinx.coroutines.CoroutineScope
 import me.devnatan.katan.api.cache.Cache
-import me.devnatan.katan.api.command.CommandManager
 import me.devnatan.katan.api.game.Game
 import me.devnatan.katan.api.game.GameManager
 import me.devnatan.katan.api.io.FileSystemAccessor
-import me.devnatan.katan.api.plugin.Plugin
-import me.devnatan.katan.api.plugin.PluginManager
 import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.api.security.permission.PermissionManager
 import me.devnatan.katan.api.server.Server
@@ -47,8 +44,6 @@ interface Katan : CoroutineScope {
 
         const val ENVIRONMENT_PROPERTY = "katan.environment"
         const val LOCALE_PROPERTY = "katan.locale"
-        const val LOG_LEVEL_PROPERTY = "katan.log.level"
-        const val LOG_PATTERN_PROPERTY = "katan.log.pattern"
         const val TIMEZONE_PROPERTY = "katan.timezone"
 
     }
@@ -87,7 +82,7 @@ interface Katan : CoroutineScope {
     /**
      * Returns the Katan [Plugin] manager.
      */
-    val pluginManager: PluginManager
+    val pluginManager: Any
 
     /**
      * Returns the Katan [Game] manager.
@@ -110,7 +105,7 @@ interface Katan : CoroutineScope {
      */
     val permissionManager: PermissionManager
 
-    val commandManager: CommandManager
+    val commandManager: Any
 
     val fileSystemAccessor: FileSystemAccessor
 
