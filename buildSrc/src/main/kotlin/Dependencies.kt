@@ -1,6 +1,7 @@
 object Dependencies {
 
     const val kotlinVersion = "1.4.21"
+    const val config4k = "io.github.config4k:config4k:0.4.2"
 
     object Coroutines {
         private const val prefix = "org.jetbrains.kotlinx:kotlinx-coroutines"
