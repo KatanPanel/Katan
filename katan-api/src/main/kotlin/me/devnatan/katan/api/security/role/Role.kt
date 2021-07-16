@@ -37,10 +37,9 @@ import java.time.Instant
 interface Role : PermissionsHolder {
 
     /**
-     * Returns the role descriptor, the id contained in this [descriptor]
-     * is actually an [Int] and must be treated properly.
+     * Returns the role id.
      */
-    val descriptor: Descriptor
+    val id: String
 
     /**
      * Returns the role name.

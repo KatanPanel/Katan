@@ -106,6 +106,23 @@ inline class PasswordCredentials(private val nonHashedValue: CharArray) :
 
 }
 
+inline class HashedPasswordCredentials(val hashedValue: String) :
+    HashedCredentials {
+
+    override fun validate(value: String, hash: Hash): Boolean {
+        TODO()
+    }
+
+}
+
+object EmptyCredentials : Credentials {
+
+    override fun validate(value: String): Boolean {
+        return true
+    }
+
+}
+
 /**
  * Thrown if there is a problem during the validation of a [Credentials].
  *
@@ -117,3 +134,5 @@ class InvalidCredentialsException(
     message: String? = null,
     cause: Throwable? = null
 ) : SecurityException(message, cause)
+
+fun Credentials.isEmpty() = this is EmptyCredentials

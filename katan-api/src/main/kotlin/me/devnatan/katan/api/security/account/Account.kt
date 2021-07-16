@@ -16,6 +16,7 @@
 
 package me.devnatan.katan.api.security.account
 
+import me.devnatan.katan.api.security.Credentials
 import me.devnatan.katan.api.security.permission.PermissionsHolder
 import me.devnatan.katan.api.security.role.Role
 import java.time.Instant
@@ -51,5 +52,7 @@ interface Account : PermissionsHolder {
      * Returns the current [Role] of the account or `null` if it has no role.
      */
     var role: Role?
+
+    var credentials: Credentials
 
 }

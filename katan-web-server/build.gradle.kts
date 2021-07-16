@@ -6,6 +6,8 @@ repositories {
 
 dependencies {
     implementation(project(":katan-core"))
+    implementation(project(":katan-database"))
+    implementation(project(":katan-database-jdbc"))
     implementation(Dependencies.Modules.WS.javaJwt)
     implementation(Dependencies.Modules.WS.jacksonDataBind)
     implementation(Dependencies.Modules.WS.Ktor.serverNetty)
