@@ -2,8 +2,7 @@ val dockerJavaVersion = "3.2.5"
 
 dependencies {
     api(project(":katan-common"))
-    implementation(project(":katan-database"))
-    implementation(project(":katan-database-jdbc"))
+    implementation(project(":katan-plugin-api"))
     implementation(Dependencies.AtomicFU.jvmArtifact)
     implementation(Dependencies.Modules.Core.h2Database)
     implementation(Dependencies.Modules.Core.mysqlConnector)

@@ -16,19 +16,30 @@
 
 package me.devnatan.katan.bootstrap
 
-import me.devnatan.katan.core.CoreModule
+import kotlinx.coroutines.DEBUG_PROPERTY_NAME
+import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
+import kotlinx.coroutines.runBlocking
+import me.devnatan.katan.api.KatanEnvironment
+import me.devnatan.katan.api.defaultLogLevel
+import me.devnatan.katan.common.EnvKeys
+import me.devnatan.katan.core.KatanCore2
+import me.devnatan.katan.core.di.CoreModule
+import me.devnatan.katan.database.di.DatabaseModule
 import me.devnatan.katan.webserver.WsModule
 import org.koin.core.context.startKoin
 import org.koin.logger.slf4jLogger
+import kotlin.system.exitProcess
 
 fun main() {
     startKoin {
         slf4jLogger()
-        modules(CoreModule, WsModule)
+        modules(CoreModule + DatabaseModule + WsModule)
     }
+
+    runBlocking { KatanCore2(setupEnv()).start() }
 }
 
-/* fun getEnv() {
+fun setupEnv(): KatanEnvironment {
     val currEnv = (System.getenv(EnvKeys.ENVIRONMENT) ?: KatanEnvironment.PRODUCTION).toLowerCase()
 
     // check if it is a valid environment mode
@@ -45,15 +56,9 @@ fun main() {
     }
 
     System.setProperty(
-        Katan.LOG_LEVEL_PROPERTY,
-        it.defaultLogLevel().toString()
-    )
-    System.setProperty(
-        Katan.LOG_PATTERN_PROPERTY, if (it.isProduction())
-            "[%d{yyyy-MM-dd HH:mm:ss}] [%-4level]: %msg%n"
-        else
-            "[%d{yyyy-MM-dd HH:mm:ss}] [%t/%-4level @ %logger{1}]: %msg%n"
+        "katan.log.level",
+        env.defaultLogLevel().toString()
     )
 
     return env
-} */
+}

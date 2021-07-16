@@ -31,4 +31,5 @@ dependencies {
     implementation(project(":katan-core"))
     implementation(project(":katan-cli"))
     implementation(project(":katan-web-server"))
+    implementation(project(":katan-database"))
 }
