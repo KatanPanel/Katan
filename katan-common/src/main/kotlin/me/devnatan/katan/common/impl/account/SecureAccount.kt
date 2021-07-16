@@ -9,6 +9,7 @@ import me.devnatan.katan.common.impl.permission.PermissionImpl
 import java.time.Instant
 import java.util.*
 
+@Deprecated("Exclusive for the Web Server module")
 data class SecureAccount(
     override val id: UUID,
     override val username: String,
