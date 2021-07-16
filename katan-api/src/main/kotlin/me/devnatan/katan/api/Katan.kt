@@ -97,7 +97,7 @@ interface Katan : CoroutineScope {
     /**
      * Returns the Katan message translator.
      */
-    val translator: Translator
+    // val translator: Translator
 
     /**
      * Returns the Katan permissions manager.

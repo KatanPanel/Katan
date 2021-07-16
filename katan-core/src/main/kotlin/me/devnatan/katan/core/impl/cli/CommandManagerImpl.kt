@@ -1,9 +1,9 @@
 package me.devnatan.katan.core.impl.cli
 
 import kotlinx.coroutines.*
-import me.devnatan.katan.api.command.*
 import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.plugin.Plugin
+import me.devnatan.katan.api.plugin.command.*
 import org.slf4j.event.Level
 
 class CommandManagerImpl : CommandManager, CoroutineScope by CoroutineScope(CoroutineName("Katan::CommandManager")) {

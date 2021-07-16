@@ -5,11 +5,9 @@ import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.common.EnvKeys
 import me.devnatan.katan.common.util.getEnv
 import me.devnatan.katan.common.util.getMap
-import me.devnatan.katan.database.DatabaseConnector
-import me.devnatan.katan.database.DatabaseFactory
-import me.devnatan.katan.database.DatabaseQueryHandler
+import me.devnatan.katan.database.DatabaseService
 import me.devnatan.katan.database.DatabaseSettings
-import me.devnatan.katan.database.jdbc.JDBCConnector
+import me.devnatan.katan.database.JDBCDatabaseService
 import org.slf4j.Logger
 import kotlin.system.exitProcess
 import kotlin.time.Duration
@@ -34,13 +32,13 @@ class DatabaseManager(private val core: KatanCore) {
     }
 
     private val factory = DatabaseFactory()
-    private var _db: DatabaseConnector? = null
+    private var _db: DatabaseService? = null
 
-    val db: DatabaseConnector
+    val db: DatabaseService
         get() = _db ?: error("Not connected yet")
 
     init {
-        factory.register(JDBCConnector(QueryHandler))
+        factory.register(JDBCDatabaseService(QueryHandler))
     }
 
     @OptIn(ExperimentalTime::class)

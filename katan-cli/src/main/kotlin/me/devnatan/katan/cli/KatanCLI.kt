@@ -4,7 +4,6 @@ import com.github.ajalt.clikt.core.PrintHelpMessage
 import com.github.ajalt.clikt.core.UsageError
 import kotlinx.coroutines.*
 import me.devnatan.katan.api.Katan
-import me.devnatan.katan.api.command.RegisteredCommand
 import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.security.account.AccountManager
 import me.devnatan.katan.api.server.ServerManager
@@ -30,7 +29,7 @@ class KatanCLI(val katan: Katan) {
     // Clikt's localization is not recursive, so we will have
     // to declare the object here and spread it out for commands.
     val localization by lazy {
-        KatanLocalization(katan.translator)
+        KatanLocalization()
     }
 
     /*
@@ -71,7 +70,7 @@ class KatanCLI(val katan: Katan) {
                 }
 
                 // search for plugins commands
-                val match =
+                /* val match =
                     katan.commandManager.getCommand(cmd) as? RegisteredCommand
                         ?: throw PrintHelpMessage(command)
 
@@ -80,7 +79,7 @@ class KatanCLI(val katan: Katan) {
                     match,
                     cmd,
                     args.subList(1, args.size).toTypedArray()
-                )
+                ) */
             } catch (e: PrintHelpMessage) {
                 logger.info(e.command.getFormattedHelp())
             } catch (e: UsageError) {
@@ -100,7 +99,7 @@ class KatanCLI(val katan: Katan) {
     }
 
     fun translate(key: String, vararg args: Any): String {
-        return katan.translator.translate(key, *args)
+        return "" // katan.translator.translate(key, *args)
     }
 
 }

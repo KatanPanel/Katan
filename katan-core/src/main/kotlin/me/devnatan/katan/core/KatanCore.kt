@@ -11,13 +11,12 @@ import me.devnatan.katan.api.*
 import me.devnatan.katan.api.annotations.UnstableKatanApi
 import me.devnatan.katan.api.cache.Cache
 import me.devnatan.katan.api.cache.UnavailableCacheProvider
-import me.devnatan.katan.api.command.CommandManager
 import me.devnatan.katan.api.logging.logger
 import me.devnatan.katan.api.plugin.KatanInit
 import me.devnatan.katan.api.plugin.KatanStarted
+import me.devnatan.katan.api.plugin.command.CommandManager
 import me.devnatan.katan.api.security.crypto.Hash
 import me.devnatan.katan.api.security.permission.PermissionKey
-import me.devnatan.katan.api.server.ServerManager
 import me.devnatan.katan.api.service.get
 import me.devnatan.katan.common.util.get
 import me.devnatan.katan.core.cache.RedisCacheProvider
@@ -34,7 +33,6 @@ import me.devnatan.katan.core.impl.services.ServiceManagerImpl
 import me.devnatan.katan.io.file.DefaultFileSystemAccessor
 import me.devnatan.katan.io.file.DockerHostFileSystem
 import me.devnatan.katan.io.file.PersistentFileSystem
-import org.koin.dsl.module
 import org.slf4j.Logger
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.JedisPoolConfig
@@ -46,7 +44,6 @@ import kotlin.system.exitProcess
 class KatanCore(
     val config: Config,
     override val environment: KatanEnvironment,
-    override val translator: Translator,
     val rootDirectory: File
 ) : Katan, CoroutineScope by CoroutineScope(Job() + CoroutineName("Katan")) {
 
@@ -92,13 +89,13 @@ class KatanCore(
     private fun caching() {
         val redis = config.getConfig("redis")
         if (!redis.get("use", false)) {
-            log.warn(translator.translate("katan.redis.disabled"))
+            /* log.warn(translator.translate("katan.redis.disabled"))
             log.warn(
                 translator.translate(
                     "katan.redis.alert",
                     "https://redis.io/"
                 )
-            )
+            ) */
             return
         }
 
@@ -111,34 +108,34 @@ class KatanCore(
                     redis.get("host", "localhost")
                 )
             )
-            log.info(translator.translate("katan.redis.ready"))
+            // log.info(translator.translate("katan.redis.ready"))
         } catch (e: Throwable) {
             cache = UnavailableCacheProvider()
-            log.error(translator.translate("katan.redis.connection-failed"))
+            // log.error(translator.translate("katan.redis.connection-failed"))
         }
     }
 
     suspend fun start() {
-        log.info(
+        /* log.info(
             translator.translate(
                 "katan.starting",
                 Katan.VERSION,
                 translator.translate("katan.env.$environment")
                     .toLowerCase(translator.locale)
             )
-        )
-        log.info(translator.translate("katan.platform", "$platform"))
+        ) */
+        // log.info(translator.translate("katan.platform", "$platform"))
 
         val zoneId = config.get("timezone", "default")
         if (zoneId != "default") {
             val timezone = TimeZone.getTimeZone(zoneId)
             System.setProperty(Katan.TIMEZONE_PROPERTY, timezone.id)
-            log.info(
+            /* log.info(
                 translator.translate(
                     "katan.timezone",
                     timezone.displayName
                 )
-            )
+            ) */
         }
 
         docker.initialize()
@@ -163,7 +160,7 @@ class KatanCore(
                 ?: throw IllegalArgumentException("Unsupported hashing algorithm: $algorithm")
         }
 
-        log.info(translator.translate("katan.selected-hash", hash.name))
+        // log.info(translator.translate("katan.selected-hash", hash.name))
         accountManager.loadAccounts()
         dockerEventsListener.listen()
 
@@ -172,7 +169,7 @@ class KatanCore(
 
     suspend fun close() {
         pluginManager.disableAll()
-        fs.close()
+        // fs.close()
 
         if (::cache.isInitialized)
             cache.close()
@@ -185,8 +182,4 @@ class KatanCore(
         return DockerHostFileSystem(this)
     }
 
-}
-
-val CoreModule = module {
-    single { DockerServerManager() as ServerManager }
 }

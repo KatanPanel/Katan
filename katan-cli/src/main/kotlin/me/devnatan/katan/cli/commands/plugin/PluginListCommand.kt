@@ -12,8 +12,6 @@ import me.devnatan.katan.common.KatanTranslationKeys.CLI_PLUGIN_LIST_DESCRIPTOR_
 import me.devnatan.katan.common.KatanTranslationKeys.CLI_PLUGIN_LIST_DESCRIPTOR_NAME
 import me.devnatan.katan.common.KatanTranslationKeys.CLI_PLUGIN_LIST_DESCRIPTOR_VERSION
 import me.devnatan.katan.common.KatanTranslationKeys.CLI_PLUGIN_LIST_STATE
-import me.devnatan.katan.common.KatanTranslationKeys.CLI_PLUGIN_STATE
-import me.devnatan.katan.common.util.timeFormatter
 
 class PluginListCommand(private val cli: KatanCLI) : CliktCommand(
     name = cli.translate(CLI_ALIAS_PLUGIN_LIST),
@@ -21,7 +19,7 @@ class PluginListCommand(private val cli: KatanCLI) : CliktCommand(
 ) {
 
     override fun run() {
-        val plugins = cli.pluginManager.getPlugins()
+        val plugins = listOf<Any>() /* cli.pluginManager.getPlugins() */
         render(table {
             cellStyle {
                 paddingLeft = 1
@@ -47,13 +45,13 @@ class PluginListCommand(private val cli: KatanCLI) : CliktCommand(
             }
 
             body {
-                for (plugin in plugins.sortedBy { it.state })
+                /* for (plugin in plugins.sortedBy { it.state })
                     row(
                         plugin.descriptor.id,
                         plugin.descriptor.version?.toString() ?: "",
                         plugin.descriptor.author.orEmpty(),
                         cli.translate("$CLI_PLUGIN_STATE.${plugin.state.order}", "(${timeFormatter.format(plugin.state.timestamp)})")
-                    )
+                    ) */
             }
         })
     }
