@@ -1,6 +1,6 @@
-package me.devnatan.katan.database.dto.server
+package me.devnatan.katan.core.database.dto
 
-class ServerDTO(
+data class ServerDTO(
     val id: Int,
     val name: String,
     val containerId: String,

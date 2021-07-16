@@ -1,10 +1,10 @@
 
 dependencies {
     implementation(project(":katan-api"))
-    implementation(project(":katan-database"))
+    implementation(project(":katan-database-api"))
     implementation(Dependencies.Exposed.core)
-    implementation(Dependencies.Exposed.dao)
+    api(Dependencies.Exposed.dao)
+    api(Dependencies.Exposed.javaTime)
     implementation(Dependencies.Exposed.jdbc)
-    implementation(Dependencies.Exposed.javaTime)
     implementation(Dependencies.AtomicFU.jvmArtifact)
 }

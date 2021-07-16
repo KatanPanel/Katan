@@ -1,4 +1,4 @@
-package me.devnatan.katan.database.jdbc.entity
+package me.devnatan.katan.database.entity
 
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
@@ -7,7 +7,7 @@ import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.`java-time`.timestamp
 import java.util.*
 
-internal object AccountsTable : UUIDTable("katan_accounts") {
+internal object JDBCAccountsTable : UUIDTable("katan_accounts") {
 
     val username = varchar("username", 255)
     val password = varchar("password", 255).nullable()
@@ -17,13 +17,13 @@ internal object AccountsTable : UUIDTable("katan_accounts") {
 
 }
 
-class AccountEntity(id: EntityID<UUID>) : UUIDEntity(id) {
-    companion object : UUIDEntityClass<AccountEntity>(AccountsTable)
+class JDBCAccountEntity(id: EntityID<UUID>) : UUIDEntity(id) {
+    companion object : UUIDEntityClass<JDBCAccountEntity>(JDBCAccountsTable)
 
-    var username by AccountsTable.username
-    var password by AccountsTable.password
-    var permissions by AccountsTable.permissions
-    var registeredAt by AccountsTable.registeredAt
-    var lastLogin by AccountsTable.lastLogin
+    var username by JDBCAccountsTable.username
+    var password by JDBCAccountsTable.password
+    var permissions by JDBCAccountsTable.permissions
+    var registeredAt by JDBCAccountsTable.registeredAt
+    var lastLogin by JDBCAccountsTable.lastLogin
 
 }
