@@ -27,6 +27,6 @@ interface ServerEvent : Event {
     /**
      * Returns the server involved with the event.
      */
-    val server: Server?
+    val server: Server
 
 }
