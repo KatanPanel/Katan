@@ -19,7 +19,28 @@ package me.devnatan.katan.api.event
 import br.com.devsrsouza.eventkt.EventScope
 
 /**
- * It represents an event that can be launched throughout the life cycle and a closed scope (plugin for example)
+ * An event that can be launched throughout the life cycle and a closed scope (plugin for example)
  * or for the entire application, events are published using a [EventScope].
+ *
+ * @see RemoteEvent
+ * @see EventSource
+ * @author Natan Vieira
  */
 interface Event
+
+/**
+ * Events can be launched from any location until they reach the application's internal context,
+ * we need to know their origin in order to handle them properly and appropriately.
+ *
+ * @see Event
+ * @see EventSource
+ * @author Natan Vieira
+ */
+interface RemoteEvent : Event {
+
+    /**
+     * Returns the event source.
+     */
+    val source: EventSource
+
+}

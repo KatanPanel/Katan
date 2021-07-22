@@ -46,6 +46,6 @@ interface Backup {
     /**
      * Returns all the backup run process.
      */
-    val workflow: BackupWorkflow
+    val workflows: List<BackupWorkflow>
 
 }
