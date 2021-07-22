@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package me.devnatan.katan.api.backup
+package me.devnatan.katan.core.impl.backup
 
-import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
+import me.devnatan.katan.api.backup.BackupWorkflow
+import me.devnatan.katan.api.backup.BackupWorkflowRun
 
-interface BackupWorkflowRun {
-
-    val id: Long
-
-    val jobs: List<BackupWorkflowJob>
-
-    val startedAt: Instant
-
-    val finishedAt: Instant
-
-    val author: BackupTriggerable?
-
-    val isActive: Boolean
-
-    val isSuccessful: Boolean
-
-}
+@Serializable
+data class BackupWorkflowImpl(
+    override val name: String,
+    override val runs: List<BackupWorkflowRun>
+) : BackupWorkflow

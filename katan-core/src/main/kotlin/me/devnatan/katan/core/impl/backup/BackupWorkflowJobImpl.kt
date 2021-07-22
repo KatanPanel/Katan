@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package me.devnatan.katan.api.backup
+package me.devnatan.katan.core.impl.backup
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
+import me.devnatan.katan.api.backup.BackupWorkflowJob
 
-interface BackupWorkflowRun {
+@Serializable
+data class BackupWorkflowJobImpl(
+    override val id: String,
+    override val startedAt: Instant
+) : BackupWorkflowJob {
 
-    val id: Long
-
-    val jobs: List<BackupWorkflowJob>
-
-    val startedAt: Instant
-
-    val finishedAt: Instant
-
-    val author: BackupTriggerable?
-
-    val isActive: Boolean
-
-    val isSuccessful: Boolean
+    override var status: BackupWorkflowJob.Status = BackupWorkflowJob.Status.NONE
+    override var finishedAt: Instant = Instant.DISTANT_PAST
+        get() = if (status == BackupWorkflowJob.Status.NONE)
+            error("Job is not active")
+        else field
 
 }

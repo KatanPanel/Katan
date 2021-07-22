@@ -16,20 +16,20 @@
 
 package me.devnatan.katan.api.backup
 
+import kotlinx.datetime.Instant
+
 interface BackupWorkflowJob {
 
     enum class Status {
-        PENDING, RUNNING, COMPLETED_SUCCESS, COMPLETE_FAILED
+        NONE, RUNNING, COMPLETED_SUCCESS, COMPLETED_FAILED
     }
 
     val id: String
+
     val status: Status
-}
 
-abstract class AbstractBackupWorkflowJob(
-    override val id: String
-) : BackupWorkflowJob {
+    val startedAt: Instant
 
-    override val status: BackupWorkflowJob.Status = BackupWorkflowJob.Status.PENDING
+    val finishedAt: Instant
 
 }
