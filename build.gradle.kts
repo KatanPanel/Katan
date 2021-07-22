@@ -42,6 +42,7 @@ subprojects {
         implementation(Dependencies.Koin.core)
         implementation(Dependencies.Koin.slf4j)
         testImplementation(Dependencies.Koin.test)
+        implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.1")
     }
 
     tasks {
