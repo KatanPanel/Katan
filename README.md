@@ -9,7 +9,14 @@
  <a href="LICENSE"><img src="https://img.shields.io/github/license/KatanPanel/Katan?color=%231dd1a1&style=for-the-badge"></a>
 </p>
 
-<hr>
+<h2>Project Status</h2>
+Katan and other projects like <a href="https://github.com/KatanPanel/katan-ui">katan-web-ui</a> and <a href="https://github.com/KatanPanel/katan-cli">katan-cli</a> are currently <b>under intensive development</b>
+
+You can follow updates on project status in our official Discord community and discuss.
+
+* [Discord Community](https://discord.gg/ey8dwsv)
+* [Official Website](https://katanpanel.github.io/katan-website)
+
 <h2>Documentation</h2>
 <p>Check out the <a href="https://katanpanel.github.io/katan-website">Official Website</a> for installation steps and developer API.</p>
 
