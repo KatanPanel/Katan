@@ -14,7 +14,7 @@ Katan and other projects like <a href="https://github.com/KatanPanel/katan-ui">k
 
 You can follow updates on project status in our official Discord community and discuss.
 
-* [Discord Community](https://discord.gg/ey8dwsv)
+* [Discord Community](https://discord.gg/j8JahE8xuV)
 * [Official Website](https://katanpanel.github.io/katan-website)
 
 <h2>Documentation</h2>
@@ -26,7 +26,7 @@ Issues not conforming to the guidelines may be closed immediately.
   
 <h2>Stay In Touch</h2>
 <p>
-    Join our <a href="https://discord.gg/ey8dwsv">Official Discord Community</a>.<br/>
+    Join our <a href="https://discord.gg/j8JahE8xuV">Official Discord Community</a>.<br/>
     Discuss changes, discover news and things to come on Katan.
 </p>
 <h2>License</h2>
