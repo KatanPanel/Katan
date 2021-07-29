@@ -1,0 +1,21 @@
+name: 🤗 Support Question
+description: If you have a question 💬, please check out our docs or Discord community!
+title: "[QA] "
+labels: ["type: question"]
+body:
+- type: markdown
+  attributes:
+    value: |
+      We primarily use GitHub as an issue tracker; for usage and support questions, please check out these resources below. Thanks!
+       * [Official Documentation](https://katanpanel.github.io/katan-website)
+       * [Our Discord community](https://discord.gg/j8JahE8xuV)
+       
+       Also have a look at the [README](https://github.com/KatanPanel/Katan) for more information on how to get support
+- type: textarea
+  id: cannot_help
+  attributes:
+    label: 😭 My question was not resolved
+    description: If you have visited the resources mentioned above and your question has not been answered, you can create an issue so that not only Katan contributors and developers can help you, but anyone else can.
+    placeholder: "Please detail your question here so that it can be answered, try to put in as much detail as possible and also explain your context and motivation, this will help us to help you."
+  validations:
+    required: false
