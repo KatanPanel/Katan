@@ -2,7 +2,7 @@
 name: 🐜 Bug report
 about: Something isn't working 🔧
 title: ''
-labels: type: bug
+labels: 'type: bug'
 assignees: DevNatan
 ---
 
