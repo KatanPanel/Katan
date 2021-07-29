@@ -1,27 +1,26 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: 🐜 Bug report
+about: Something isn't working 🔧
 title: ''
-labels: bug
+labels: type: bug
 assignees: DevNatan
-
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+### 💻 Environment
+- Katan: <!-- put katan version here, ex: 1.0-beta -->
+- Operating System: <!-- e.g. Windows 35 -->
 
-**To Reproduce**
-Steps to reproduce the behavior:
+### 🐛 Describe the bug
+<!-- A clear and concise description of what the bug is. -->
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+### 👣 Steps to Reproduce
+<!-- Steps to reproduce the bug -->
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+### ✔️ Expected behavior
+<!-- A clear and concise description of what you expected to happen. -->
 
-**Environment (please complete the following information):**
- - OS: [e.g. iOS]
- - Katan Version [e.g. 1.0.0]
+### 🖼️ Screenshots
+<!-- If applicable, add screenshots to help explain your problem. -->
 
-**Additional context**
-Add any other context about the problem here.
+### ✍️ Additional context
+<!-- Add any other context about the problem here. -->
