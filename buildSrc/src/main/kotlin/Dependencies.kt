@@ -1,6 +1,6 @@
 object Dependencies {
 
-    const val kotlinVersion = "1.4.21"
+    const val kotlinVersion = "1.6.10"
     const val config4k = "io.github.config4k:config4k:0.4.2"
 
     object Coroutines {
