@@ -5,7 +5,7 @@ rootProject.name = "katan-server"
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        jcenter()
+        mavenCentral()
     }
 }
 
