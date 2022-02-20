@@ -28,10 +28,8 @@ subprojects {
 
     repositories {
         mavenCentral()
-        jcenter()
         maven(Repositories.jitpack)
         maven(Repositories.kotlinExposed)
-        maven(Repositories.eventKt)
     }
 
     dependencies {
