@@ -3,37 +3,6 @@ object Dependencies {
     const val kotlinVersion = "1.6.10"
     const val config4k = "io.github.config4k:config4k:0.4.2"
 
-    object Coroutines {
-        private const val prefix = "org.jetbrains.kotlinx:kotlinx-coroutines"
-        private const val version = "1.4.2"
-
-        const val coreArtifact = "$prefix-core:$version"
-    }
-
-    object Serialization {
-        private const val prefix = "org.jetbrains.kotlinx:kotlinx-serialization"
-        private const val version = "1.0.0-RC2"
-
-        const val jsonArtifact = "$prefix-json:$version"
-    }
-
-    object Exposed {
-        private const val prefix = "org.jetbrains.exposed:exposed"
-        private const val version = "0.27.1"
-
-        const val core = "$prefix-core:$version"
-        const val dao = "$prefix-dao:$version"
-        const val jdbc = "$prefix-jdbc:$version"
-        const val javaTime = "$prefix-java-time:$version"
-    }
-
-    object AtomicFU {
-        private const val prefix = "org.jetbrains.kotlinx:atomicfu"
-        private const val version = "0.14.4"
-
-        const val jvmArtifact = "$prefix:$version"
-    }
-
     object Koin {
         private const val prefix = "io.insert-koin:koin"
         private const val version = "3.1.2"

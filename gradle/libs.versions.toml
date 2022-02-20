@@ -1,0 +1,39 @@
+[versions]
+kotlin = "1.6.10"
+ktx-serialization = "1.3.2"
+ktx-coroutines = "1.6.0"
+ktx-atomicfu = "0.17.0"
+ktx-datetime = "0.3.2"
+exposed = "0.37.3"
+
+[libraries.ktx-atomicfu]
+module = "org.jetbrains.kotlinx:atomicfu"
+version.ref = "ktx-atomicfu"
+
+[libraries.ktx-datetime]
+module = "org.jetbrains.kotlinx:kotlinx-datetime"
+version.ref = "ktx-datetime"
+
+[libraries.ktx-serialization-json]
+module = "org.jetbrains.kotlinx:kotlinx-serialization-json"
+version.ref = "ktx-serialization"
+
+[libraries.ktx-coroutines-core]
+module = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+version.ref = "ktx-coroutines"
+
+[libraries.exposed-core]
+module = "org.jetbrains.exposed:exposed-core"
+version.ref = "exposed"
+
+[libraries.exposed-dao]
+module = "org.jetbrains.exposed:exposed-dao"
+version.ref = "exposed"
+
+[libraries.exposed-jdbc]
+module = "org.jetbrains.exposed:exposed-jdbc"
+version.ref = "exposed"
+
+[libraries.exposed-java-time]
+module = "org.jetbrains.exposed:exposed-java-time"
+version.ref = "exposed"

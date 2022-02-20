@@ -35,12 +35,12 @@ subprojects {
     dependencies {
         implementation(kotlin("stdlib"))
         implementation(kotlin("reflect"))
-        implementation(Dependencies.Coroutines.coreArtifact)
-        implementation(Dependencies.Serialization.jsonArtifact)
+        implementation(rootProject.libs.ktx.coroutines.core)
+        implementation(rootProject.libs.ktx.serialization.json)
         implementation(Dependencies.Koin.core)
         implementation(Dependencies.Koin.slf4j)
         testImplementation(Dependencies.Koin.test)
-        implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.1")
+        implementation(rootProject.libs.ktx.datetime)
     }
 
     tasks {
