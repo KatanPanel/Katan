@@ -39,3 +39,11 @@ version.ref = "grpc"
 [libraries.grpc-testing]
 module = "io.grpc:grpc-testing"
 version.ref = "grpc"
+
+[libraries.grpc-kotlin-stub]
+module = "io.grpc:grpc-kotlin-stub"
+version.ref = "grpc"
+
+[libraries.grpc-protobuf]
+module = "io.grpc:grpc-protobuf"
+version.ref = "grpc"
