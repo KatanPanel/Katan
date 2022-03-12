@@ -3,7 +3,7 @@ services:
   katan:
     image: katanio/server:latest
     container_name: katan-server jdbc:postgresql://{host}/{database}
-    depends_on:
+    links:
       - postgres
       - redis
     ports:
