@@ -33,9 +33,8 @@ subprojects {
         implementation(kotlin("reflect"))
         implementation(rootProject.libs.ktx.coroutines.core)
         implementation(rootProject.libs.ktx.serialization.json)
-        implementation(Dependencies.Koin.core)
-        implementation(Dependencies.Koin.slf4j)
-        testImplementation(Dependencies.Koin.test)
+        implementation(rootProject.libs.koin.core)
+        testImplementation(rootProject.libs.koin.test)
         implementation(rootProject.libs.ktx.datetime)
     }
 

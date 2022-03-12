@@ -5,6 +5,8 @@ ktx-coroutines = "1.6.0"
 ktx-atomicfu = "0.17.0"
 ktx-datetime = "0.3.2"
 exposed = "0.37.3"
+koin = "3.1.2"
+grpc = "1.45.0"
 
 [libraries.ktx-atomicfu]
 module = "org.jetbrains.kotlinx:atomicfu"
@@ -22,18 +24,10 @@ version.ref = "ktx-serialization"
 module = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
 version.ref = "ktx-coroutines"
 
-[libraries.exposed-core]
-module = "org.jetbrains.exposed:exposed-core"
-version.ref = "exposed"
+[libraries.koin-core]
+module = "io.insert-koin:koin-core"
+version.ref = "koin"
 
-[libraries.exposed-dao]
-module = "org.jetbrains.exposed:exposed-dao"
-version.ref = "exposed"
-
-[libraries.exposed-jdbc]
-module = "org.jetbrains.exposed:exposed-jdbc"
-version.ref = "exposed"
-
-[libraries.exposed-java-time]
-module = "org.jetbrains.exposed:exposed-java-time"
-version.ref = "exposed"
+[libraries.koin-test]
+module = "io.insert-koin:koin-test"
+version.ref = "koin"
