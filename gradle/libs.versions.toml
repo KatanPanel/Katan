@@ -31,3 +31,11 @@ version.ref = "koin"
 [libraries.koin-test]
 module = "io.insert-koin:koin-test"
 version.ref = "koin"
+
+[libraries.grpc-netty]
+module = "io.grpc:grpc-netty"
+version.ref = "grpc"
+
+[libraries.grpc-testing]
+module = "io.grpc:grpc-testing"
+version.ref = "grpc"
