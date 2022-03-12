@@ -7,8 +7,8 @@ services:
       - postgres
       - redis
     ports:
-      - "8080:80"
-      - "8433:433"
+      - "80:80"
+      - "433:433"
     environment:
       - "KATAN_DB_URL=jdbc:postgresql://0.0.0.0/5432"
       - "KATAN_DB_NAME=katan"
