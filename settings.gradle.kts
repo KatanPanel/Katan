@@ -8,3 +8,5 @@ pluginManagement {
         mavenCentral()
     }
 }
+
+include("protocol")
