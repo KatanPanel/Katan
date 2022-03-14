@@ -10,6 +10,7 @@ grpc = "1.45.0"
 grpcKotlin = "1.2.1"
 protobuf = "3.19.4"
 plugin-protobuf = "0.8.18"
+log4j = "2.17.2"
 
 [libraries.ktx-atomicfu]
 module = "org.jetbrains.kotlinx:atomicfu"
@@ -50,6 +51,10 @@ version.ref = "grpcKotlin"
 [libraries.grpc-protobuf]
 module = "io.grpc:grpc-protobuf"
 version.ref = "grpc"
+
+[libraries.log4j-core]
+module = "org.apache.logging.log4j:log4j-core"
+version.ref = "log4j"
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "plugin-protobuf" }

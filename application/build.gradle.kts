@@ -6,6 +6,10 @@ application {
 	mainClass.set("org.katan.Application")
 }
 
+dependencies {
+	implementation(libs.log4j.core)
+}
+
 tasks {
 	jar {
 		manifest {
