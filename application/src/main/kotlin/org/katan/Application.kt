@@ -13,9 +13,10 @@ fun main() {
 	
 	// starts Katan application
 	val app = Katan()
-	app.start()
 	
 	Runtime.getRuntime().addShutdownHook(Thread {
 		app.close()
 	})
+	
+	app.start()
 }
