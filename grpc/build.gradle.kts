@@ -14,7 +14,7 @@ dependencies {
     testImplementation(libs.grpc.testing)
     implementation(libs.grpc.protobuf)
     implementation(libs.grpc.kotlin.stub)
-    protobuf(project(":protocol:protos"))
+    protobuf(project(":grpc:protos"))
 }
 
 protobuf {

@@ -10,5 +10,5 @@ pluginManagement {
 }
 
 include("grpc:stub", "grpc:protos")
-include("control")
-include("model")
+include("maestro")
+include("data-types")
