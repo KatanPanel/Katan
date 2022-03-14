@@ -1,31 +1,20 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    kotlin("jvm") version Dependencies.kotlinVersion
-    id("org.jetbrains.dokka") version "1.4.10.2"
+    kotlin("jvm") version libs.versions.kotlin.get()
 }
-
-val projectGroup = "me.devnatan.katan"
-val projectVersion = "0.0.1"
-
-group = projectGroup
-version = projectVersion
 
 repositories {
     mavenCentral()
 }
 
 subprojects {
-    group = projectGroup
-    version = projectVersion
+    group = "org.katan"
+    version = "0.1.0"
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "org.jetbrains.dokka")
 
     repositories {
         mavenCentral()
-        maven(Repositories.jitpack)
-        maven(Repositories.kotlinExposed)
     }
 
     dependencies {
@@ -36,10 +25,11 @@ subprojects {
         implementation(rootProject.libs.koin.core)
         testImplementation(rootProject.libs.koin.test)
         implementation(rootProject.libs.ktx.datetime)
+        implementation(rootProject.libs.log4j.core)
     }
 
     tasks {
-        withType<KotlinCompile> {
+        withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
             kotlinOptions {
                 freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn", "-Xinline-classes")
                 jvmTarget = "1.8"
@@ -47,7 +37,3 @@ subprojects {
         }
     }
 }
-
-//tasks.dokkaHtmlMultiModule.configure {
-//    outputDirectory.set(buildDir.resolve("dokkaCustomMultiModuleOutput"))
-//}

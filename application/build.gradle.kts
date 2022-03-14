@@ -7,7 +7,7 @@ application {
 }
 
 dependencies {
-	implementation(libs.log4j.core)
+	implementation(project(":core"))
 }
 
 tasks {
