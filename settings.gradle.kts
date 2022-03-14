@@ -12,3 +12,4 @@ pluginManagement {
 include("grpc:stub", "grpc:protos")
 include("maestro")
 include("data-types")
+include("application")
