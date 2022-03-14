@@ -22,7 +22,7 @@ class Katan : KoinComponent, Closeable {
 	private val maestro: Maestro = get()
 	
 	fun start() {
-	
+		LOGGER.info("Katan started")
 	}
 	
 	override fun close() {

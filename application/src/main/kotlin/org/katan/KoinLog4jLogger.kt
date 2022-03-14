@@ -1,5 +1,7 @@
 package org.katan
 
+import org.apache.logging.log4j.LogManager
+import org.koin.core.Koin
 import org.koin.core.logger.Level
 import org.koin.core.logger.Logger
 import org.koin.core.logger.MESSAGE
@@ -10,7 +12,9 @@ typealias Log4jLogLevel = org.apache.logging.log4j.Level
 /**
  * Implementation of Koin's Logger backed by a Log4j2 Logger
  */
-internal class KoinLog4jLogger(private val backingLogger: Log4jLogger) : Logger(Level.DEBUG) {
+internal class KoinLog4jLogger : Logger(Level.DEBUG) {
+	
+	private val backingLogger: Log4jLogger = LogManager.getLogger(Koin::class.java)
 	
 	override fun log(level: Level, msg: MESSAGE) {
 		backingLogger.log(transformLevel(level), msg)
