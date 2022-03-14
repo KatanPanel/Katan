@@ -9,4 +9,7 @@ pluginManagement {
     }
 }
 
-include("protocol")
+include("protocol:stub", "protocol:protos")
+include("control")
+include("model")
+include("snowflake-id")
