@@ -9,6 +9,6 @@ pluginManagement {
     }
 }
 
-include("protocol:stub", "protocol:protos")
+include("grpc:stub", "grpc:protos")
 include("control")
 include("model")
