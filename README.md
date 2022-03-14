@@ -9,8 +9,4 @@ who uses it.
 
 * [Official Website](https://katan.org)
 * [Discord Community](https://discord.gg/j8JahE8xuV)
-* [License](#license)
-
-## License
-
-Katan is licensed under the [MIT license](https://github.com/KatanPanel/Katan/blob/master/LICENSE").
+* [License](./LICENSE)
