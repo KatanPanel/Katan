@@ -1,7 +1,9 @@
 package org.katan
 
+typealias EntityVersion = Int
+
 interface Versioned {
 
-    val entityVersion: Int
+    val entityVersion: EntityVersion
 
 }
