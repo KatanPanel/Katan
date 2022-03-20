@@ -21,6 +21,7 @@ subprojects {
         implementation(kotlin("stdlib"))
         implementation(kotlin("reflect"))
         implementation(rootProject.libs.ktx.coroutines.core)
+        implementation(rootProject.libs.ktx.serialization.core)
         implementation(rootProject.libs.koin.core)
         testImplementation(rootProject.libs.koin.test)
         implementation(rootProject.libs.ktx.datetime)
