@@ -1,4 +1,4 @@
-package org.katan.runtime
+package org.katan.runtime.internal.event
 
 import kotlinx.coroutines.flow.Flow
 

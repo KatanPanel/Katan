@@ -3,7 +3,7 @@ package org.katan
 import kotlinx.datetime.Instant
 import java.util.*
 
-interface Server {
+interface Server : Versioned {
 	
 	/**
 	 * The globally unique ID for this server.
