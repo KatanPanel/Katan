@@ -1,7 +1,7 @@
 version: "3"
 services:
   katan:
-    image: katanio/server:latest
+    image: katanpanel/server:latest
     container_name: katan-server jdbc:postgresql://{host}/{database}
     links:
       - postgres
