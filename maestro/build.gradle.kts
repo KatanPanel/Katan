@@ -4,5 +4,6 @@ repositories {
 
 dependencies {
     implementation(project(":data-types"))
+    implementation(project(":runtime"))
     implementation(rootProject.libs.yoki)
 }
