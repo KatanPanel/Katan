@@ -7,12 +7,8 @@ import org.katan.routes.create
 import org.katan.routes.find
 
 @Suppress("FunctionName")
-fun ApplicationEngineEnvironmentBuilder.ServerModule() = module {
-    ServerModule()
-}
-
-@Suppress("FunctionName")
-fun Application.ServerModule() {
+fun ApplicationEngineEnvironmentBuilder.ServerModule(before: Application.() -> Unit) = module {
+    before()
     routing {
         find()
         create()
