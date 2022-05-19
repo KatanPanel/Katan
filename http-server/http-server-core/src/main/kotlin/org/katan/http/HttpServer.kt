@@ -1,64 +1,47 @@
 package org.katan.http
 
 import io.ktor.server.application.Application
-import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
-import io.ktor.server.engine.ApplicationEngineEnvironment
-import io.ktor.server.engine.ApplicationEngineEnvironmentBuilder
+import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.addShutdownHook
-import io.ktor.server.engine.applicationEngineEnvironment
-import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.autohead.AutoHeadResponse
-import io.ktor.server.plugins.callloging.CallLogging
-import io.ktor.server.plugins.defaultheaders.DefaultHeaders
-import io.ktor.server.resources.Resources
-import io.ktor.server.routing.Routing
-import org.katan.ServerModule
-
-private typealias ApplicationBlock = Application.() -> Unit
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 
 class HttpServer(
     val host: String? = null,
     val port: Int
-) {
+) : CoroutineScope by CoroutineScope(CoroutineName("HttpServer")) {
 
     init {
         System.setProperty("io.ktor.development", "true")
     }
 
-    private val engine: ApplicationEngine = embeddedServer(Netty, setupEngine())
+    private var shutdownPending by atomic(false)
 
-    private fun setupEngine(): ApplicationEngineEnvironment {
-        val httpServer = this
-        return applicationEngineEnvironment {
-            registerModules()
+    private val engine: ApplicationEngine = embeddedServer(
+        factory = Netty,
+        module = { setupEngine() },
+        connectors = arrayOf(createHttpConnector())
+    )
 
-            connector {
-                host = httpServer.host ?: "0.0.0.0"
-                port = httpServer.port
-            }
-        }
+    private fun Application.setupEngine() {
+        installDefaultFeatures()
+        registerModules()
     }
 
-    private fun ApplicationEngineEnvironmentBuilder.registerModules() {
-        val before: ApplicationBlock = { installDefaultFeatures() }
-        val modules: Array<ApplicationBlock> = arrayOf({ ServerModule(before) })
-
-        module {
-            modules.forEach {
-                it.invoke(this@module)
-            }
-        }
+    private fun createHttpConnector() = EngineConnectorBuilder().apply {
+        host = this@HttpServer.host ?: "0.0.0.0"
+        port = this@HttpServer.port
     }
 
-    private fun Application.installDefaultFeatures() {
-        install(Routing)
-        install(Resources)
-        install(DefaultHeaders)
-        install(AutoHeadResponse)
-        install(CallLogging)
+    private fun setupSsl() {
+    }
+
+    private fun Application.registerModules() {
+        ServerModule()
     }
 
     fun start() {
@@ -69,10 +52,14 @@ class HttpServer(
     }
 
     fun stop() {
+        if (shutdownPending) return
+
+        shutdownPending = true
         engine.stop(
             gracePeriodMillis = 1000,
             timeoutMillis = 5000
         )
+        shutdownPending = false
     }
 
 }

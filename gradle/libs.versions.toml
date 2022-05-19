@@ -5,7 +5,7 @@ ktx-coroutines = "1.6.0"
 ktx-atomicfu = "0.17.0"
 ktx-datetime = "0.3.2"
 exposed = "0.37.3"
-koin = "3.2.0-beta-1"
+koin = "3.2.0"
 grpc = "1.45.0"
 grpcKotlin = "1.2.1"
 protobuf = "3.19.4"
@@ -40,6 +40,10 @@ version.ref = "koin"
 
 [libraries.koin-test]
 module = "io.insert-koin:koin-test"
+version.ref = "koin"
+
+[libraries.koin-ktor]
+module = "io.insert-koin:koin-ktor"
 version.ref = "koin"
 
 [libraries.grpc-netty]
@@ -98,8 +102,24 @@ version.ref = "ktor"
 module = "io.ktor:ktor-server-call-logging"
 version.ref = "ktor"
 
+[libraries.ktor-server-feature-content-negotiation]
+module = "io.ktor:ktor-server-content-negotiation"
+version.ref = "ktor"
+
+[libraries.ktor-serialization-json]
+module = "io.ktor:ktor-serialization-kotlinx-json"
+version.ref = "ktor"
+
 [libraries.ktor-server-test]
 module = "io.ktor:ktor-server-test-host"
+version.ref = "ktor"
+
+[libraries.ktor-client-feature-resources]
+module = "io.ktor:ktor-client-resources"
+version.ref = "ktor"
+
+[libraries.ktor-client-feature-content-negotiation]
+module = "io.ktor:ktor-client-content-negotiation"
 version.ref = "ktor"
 
 [plugins]
