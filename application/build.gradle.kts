@@ -8,7 +8,6 @@ application {
 
 dependencies {
 	implementation(project(":core"))
-	implementation(project(":maestro"))
 	implementation(project(":runtime"))
 }
 

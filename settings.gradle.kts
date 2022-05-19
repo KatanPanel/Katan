@@ -10,8 +10,8 @@ pluginManagement {
 }
 
 include("grpc:stub", "grpc:protos")
-include("maestro")
-include("data-types")
+include("model")
 include("application")
 include("core")
 include("runtime")
+include("services:container-service")

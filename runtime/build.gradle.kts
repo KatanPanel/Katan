@@ -1,3 +1,3 @@
 dependencies {
-    implementation(project(":data-types"))
+    implementation(project(":model"))
 }

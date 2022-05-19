@@ -65,5 +65,9 @@ version.ref = "log4j"
 module = "org.katan:yoki-core-jvm"
 version.ref = "yoki"
 
+[libraries.yoki-docker]
+module = "org.katan:yoki-engine-docker-jvm"
+version.ref = "yoki"
+
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "plugin-protobuf" }
