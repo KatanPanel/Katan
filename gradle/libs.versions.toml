@@ -98,6 +98,10 @@ version.ref = "ktor"
 module = "io.ktor:ktor-server-call-logging"
 version.ref = "ktor"
 
+[libraries.ktor-server-test]
+module = "io.ktor:ktor-server-test-host"
+version.ref = "ktor"
+
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "plugin-protobuf" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

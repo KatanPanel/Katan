@@ -7,6 +7,7 @@ import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import org.katan.ServerModule
 
 class HttpServer(
     val host: String? = null,
@@ -19,8 +20,8 @@ class HttpServer(
         val httpServer = this
         return applicationEngineEnvironment {
             module {
+                ServerModule()
                 installFeatures(httpServer)
-                createRouter()
             }
 
             connector {

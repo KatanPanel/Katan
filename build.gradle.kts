@@ -20,6 +20,7 @@ subprojects {
     dependencies {
         implementation(kotlin("stdlib"))
         implementation(kotlin("reflect"))
+        testImplementation("org.jetbrains.kotlin:kotlin-test:1.6.10") // TODO version catalogs
         implementation(rootProject.libs.ktx.coroutines.core)
         implementation(rootProject.libs.ktx.serialization.core)
         implementation(rootProject.libs.koin.core)

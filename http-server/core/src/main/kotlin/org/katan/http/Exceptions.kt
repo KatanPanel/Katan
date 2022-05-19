@@ -1,6 +1,6 @@
 package org.katan.http
 
-class Exceptions(
+class KatanHttpException(
     val errorCode: Int,
     val httpStatus: Int,
 ) : RuntimeException()

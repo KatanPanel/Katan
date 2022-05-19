@@ -1,4 +1,4 @@
-package org.katan.http.locations
+package org.katan.locations
 
 import io.ktor.resources.Resource
 import kotlinx.serialization.Serializable
