@@ -2,7 +2,7 @@ package org.katan
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.katan.maestro.di.MaestroModule
+import org.katan.di.ContainerServiceModule
 import org.katan.runtime.di.RuntimeModule
 import org.koin.core.context.startKoin
 
@@ -15,7 +15,7 @@ private object Application {
 	fun main(args: Array<String>) {
 		startKoin {
 			logger(KoinLog4jLogger())
-			modules(MaestroModule, RuntimeModule)
+			modules(ContainerServiceModule, RuntimeModule)
 		}
 		
 		val app = Katan()
