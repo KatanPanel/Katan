@@ -106,6 +106,10 @@ version.ref = "ktor"
 module = "io.ktor:ktor-server-content-negotiation"
 version.ref = "ktor"
 
+[libraries.ktor-server-feature-statuspages]
+module = "io.ktor:ktor-server-status-pages"
+version.ref = "ktor"
+
 [libraries.ktor-serialization-json]
 module = "io.ktor:ktor-serialization-kotlinx-json"
 version.ref = "ktor"

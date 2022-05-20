@@ -9,6 +9,7 @@ import io.ktor.server.netty.Netty
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import org.katan.http.module.server.ServerModule
 
 class HttpServer(
     val host: String? = null,
@@ -28,7 +29,7 @@ class HttpServer(
     )
 
     private fun Application.setupEngine() {
-        installDefaultFeatures()
+        installDefaultServerFeatures()
         registerModules()
     }
 

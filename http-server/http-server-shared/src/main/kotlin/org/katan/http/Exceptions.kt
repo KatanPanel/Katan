@@ -4,8 +4,5 @@ import io.ktor.http.HttpStatusCode
 
 class KatanHttpException(
     val errorCode: Int,
-    val httpStatus: Int,
+    val httpStatus: HttpStatusCode,
 ) : RuntimeException()
-
-fun throwHttpError(errorCode: Int, status: HttpStatusCode): Nothing =
-    throw KatanHttpException(errorCode, status.value)

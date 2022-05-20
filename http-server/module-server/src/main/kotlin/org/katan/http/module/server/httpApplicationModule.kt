@@ -1,4 +1,4 @@
-package org.katan.http
+package org.katan.http.module.server
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.call

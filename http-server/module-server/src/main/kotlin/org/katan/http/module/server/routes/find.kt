@@ -6,8 +6,9 @@ import io.ktor.server.resources.get
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import org.katan.http.SERVER_NOT_FOUND
+import org.katan.http.httpResponse
+import org.katan.http.throwHttpException
 import org.katan.http.module.server.locations.Servers
-import org.katan.http.throwHttpError
 import org.katan.service.server.ServerService
 import org.koin.ktor.ext.inject
 
@@ -16,8 +17,8 @@ internal fun Route.findServer() {
 
     get<Servers.Get> { parameters ->
         val server = serverService.get(parameters.id)
-            ?: throwHttpError(SERVER_NOT_FOUND, HttpStatusCode.BadRequest)
+            ?: throwHttpException(SERVER_NOT_FOUND, HttpStatusCode.BadRequest)
 
-        call.respond(HttpStatusCode.OK, server)
+        call.respond(httpResponse(server))
     }
 }
