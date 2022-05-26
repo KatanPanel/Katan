@@ -9,6 +9,9 @@ application {
 dependencies {
 	implementation(project(":core"))
 	implementation(project(":runtime"))
+
+	implementation(project(":services:service-container"))
+	implementation(project(":services:service-server"))
 }
 
 tasks {
