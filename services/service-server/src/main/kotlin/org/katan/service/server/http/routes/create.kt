@@ -1,4 +1,4 @@
-package org.katan.http.module.server.routes
+package org.katan.service.server.http.routes
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -13,7 +13,7 @@ import org.katan.http.HttpError
 import org.katan.http.HttpError.Companion.ServerConflict
 import org.katan.http.HttpError.Companion.ServerMissingCreateOptions
 import org.katan.http.httpResponse
-import org.katan.http.module.server.locations.Servers
+import org.katan.service.server.http.locations.Servers
 import org.katan.http.throwHttpException
 import org.katan.service.server.ServerConflictException
 import org.katan.service.server.ServerCreateOptions

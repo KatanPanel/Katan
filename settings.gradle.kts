@@ -20,6 +20,5 @@ include(
     "services:service-server",
     "http-server:http-server-shared",
     "http-server:http-server-core",
-    "http-server:module-server",
     "http-server:http-server-test"
 )

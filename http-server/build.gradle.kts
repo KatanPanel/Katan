@@ -1,5 +1,5 @@
 subprojects {
-    apply(plugin = rootProject.libs.plugins.serialization.get().pluginId)
+
 
     dependencies {
         compileOnly(rootProject.libs.ktor.server.host.common)

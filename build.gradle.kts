@@ -1,7 +1,7 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     kotlin("jvm") version libs.versions.kotlin.get()
-    alias(libs.plugins.serialization)
+    alias(libs.plugins.serialization) apply false
 }
 
 repositories {
@@ -13,6 +13,7 @@ subprojects {
     version = "0.1.0"
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = rootProject.libs.plugins.serialization.get().pluginId)
 
     repositories {
         mavenCentral()

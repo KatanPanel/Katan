@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.runtime.di.RuntimeModule
 import org.katan.service.container.ContainerServiceModule
-import org.katan.service.server.ServerServiceModule
+import org.katan.service.server.di.ServerServiceModule
 import org.koin.core.context.startKoin
 
 @Suppress("UNUSED")
