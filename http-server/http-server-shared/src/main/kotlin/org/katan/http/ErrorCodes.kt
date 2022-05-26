@@ -1,4 +1,17 @@
 package org.katan.http
 
-const val SERVER_NOT_FOUND = 1001
-const val SERVER_CONFLICT = 1002
+@kotlinx.serialization.Serializable
+data class HttpError(
+    val code: Int,
+    val message: String
+) {
+
+    companion object {
+
+        val ServerNotFound = HttpError(1001, "Server not found")
+        val ServerConflict = HttpError(1002, "Server already exists")
+        val ServerMissingCreateOptions = HttpError(1003, "Missing create options")
+
+    }
+
+}

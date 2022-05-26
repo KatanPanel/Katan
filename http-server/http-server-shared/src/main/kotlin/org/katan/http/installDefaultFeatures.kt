@@ -2,7 +2,6 @@ package org.katan.http
 
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.plugins.callloging.CallLogging
@@ -25,7 +24,11 @@ fun Application.installDefaultServerFeatures() {
     install(StatusPages) {
         exception<KatanHttpException> { call, cause ->
             cause.printStackTrace()
-            call.respond(cause.httpStatus, HttpResponse.Error(cause.errorCode))
+            call.respond(cause.httpStatus, HttpResponse.Error(cause.code, cause.message!!))
+        }
+
+        exception<Throwable> { _, cause ->
+            cause.printStackTrace()
         }
     }
 }
