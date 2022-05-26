@@ -40,6 +40,9 @@ public fun ApplicationTestBuilder.createTestClient(
             host = "localhost"
             port = 80
             url { protocol = URLProtocol.HTTP }
+            headers {
+                contentType(ContentType.Application.Json)
+            }
         }
     }.apply { block?.invoke(this) }
 }
