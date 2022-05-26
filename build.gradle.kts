@@ -1,7 +1,7 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     kotlin("jvm") version libs.versions.kotlin.get()
-    alias(libs.plugins.serialization) apply false
+    alias(libs.plugins.serialization)
 }
 
 repositories {
@@ -26,7 +26,6 @@ subprojects {
         implementation(rootProject.libs.ktx.coroutines.core)
         implementation(rootProject.libs.ktx.serialization.core)
         implementation(rootProject.libs.koin.core)
-        testImplementation(rootProject.libs.koin.test)
         implementation(rootProject.libs.ktx.datetime)
         implementation(rootProject.libs.log4j.core)
     }
