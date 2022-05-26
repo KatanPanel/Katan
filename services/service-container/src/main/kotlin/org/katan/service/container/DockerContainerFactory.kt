@@ -6,7 +6,7 @@ import org.katan.yoki.containers
 import org.katan.yoki.resource.container.create
 import java.util.UUID
 
-internal class DefaultContainerFactory(
+internal class DockerContainerFactory(
     dockerClient: Lazy<Yoki> = lazy { Yoki(Docker) }
 ) : ContainerFactory {
 
