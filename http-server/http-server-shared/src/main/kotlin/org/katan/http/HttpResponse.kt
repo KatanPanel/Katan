@@ -1,25 +1,23 @@
 package org.katan.http
 
-import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.Serializable
 
-@kotlinx.serialization.Serializable
+@Serializable
 sealed class HttpResponse(val response: String) {
 
+    @Serializable
     data class Success<T>(
         val data: T,
     ) : HttpResponse("success")
 
+    @Serializable
     class Error(
-        val errorCode: Int
+        val code: Int,
+        val message: String
     ) : HttpResponse("error")
 
 }
 
-fun <T> httpResponse(data: T): HttpResponse {
+inline fun <reified T> httpResponse(data: T): HttpResponse {
     return HttpResponse.Success(data)
-}
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun throwHttpException(errorCode: Int, httpStatus: HttpStatusCode): Nothing {
-    throw KatanHttpException(errorCode, httpStatus)
 }
