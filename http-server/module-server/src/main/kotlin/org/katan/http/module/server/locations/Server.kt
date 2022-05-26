@@ -6,14 +6,10 @@ import org.jetbrains.annotations.TestOnly
 
 @Serializable
 @Resource("/servers")
-object Servers {
+class Servers {
 
     @Serializable
     @Resource("{id}")
-    class Get(val parent: Servers = Servers, val id: String)
-
-    @Serializable
-    @Resource("/")
-    class Create(val parent: Servers = Servers)
+    class Get(val parent: Servers = Servers(), val id: String)
 
 }

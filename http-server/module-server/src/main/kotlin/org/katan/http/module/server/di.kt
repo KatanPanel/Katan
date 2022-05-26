@@ -1,7 +1,7 @@
-package org.katan.http
+package org.katan.http.module.server
 
-import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-val ServerModule = module {
+val HttpServerModule = module {
+
 }

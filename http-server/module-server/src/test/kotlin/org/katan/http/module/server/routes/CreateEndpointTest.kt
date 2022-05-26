@@ -6,21 +6,29 @@ import io.ktor.server.routing.routing
 import org.katan.http.createTestClient
 import org.katan.http.module.server.locations.Servers
 import org.katan.http.withTestApplication
+import org.katan.service.container.FakeContainerFactory
+import org.katan.service.server.ServerService
+import org.katan.service.server.ServerServiceMock
+import org.koin.test.KoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class CreateEndpointTest {
+class CreateEndpointTest : KoinTest {
 
     @Test
-    fun `should respond bad request on missing parameters`() = withTestApplication(setup = {
-        routing {
-            createServer()
+    fun `should respond bad request on missing parameters`() = withTestApplication(
+        di = {
+            single<ServerService> { ServerServiceMock(FakeContainerFactory()) }
+        },
+        setup = {
+            routing {
+                createServer()
+            }
         }
-    }) {
+    ) {
         val testClient = createTestClient()
-        val request = testClient.post(Servers.Create())
+        val request = testClient.post(Servers())
 
-        println(request)
         assertEquals(HttpStatusCode.BadRequest, request.status)
     }
 
