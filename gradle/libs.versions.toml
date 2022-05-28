@@ -73,11 +73,11 @@ module = "org.apache.logging.log4j:log4j-core"
 version.ref = "log4j"
 
 [libraries.yoki]
-module = "org.katan:yoki-core-jvm"
+module = "org.katan:yoki-core"
 version.ref = "yoki"
 
 [libraries.yoki-docker]
-module = "org.katan:yoki-engine-docker-jvm"
+module = "org.katan:yoki-engine-docker"
 version.ref = "yoki"
 
 [libraries.ktor-server-cio]
