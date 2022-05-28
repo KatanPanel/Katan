@@ -8,7 +8,7 @@ import io.ktor.client.request.headers
 import io.ktor.http.ContentType
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
@@ -22,7 +22,7 @@ fun withTestApplication(
 ) {
     testApplication {
         application {
-            installDefaultServerFeatures()
+            installDefaultFeatures()
             setup()
         }
 
@@ -36,7 +36,7 @@ fun ApplicationTestBuilder.createTestClient(
     return createClient {
         install(Resources)
         install(ContentNegotiation) {
-            json()
+            jackson()
         }
 
         defaultRequest {

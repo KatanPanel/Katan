@@ -12,6 +12,7 @@ protobuf = "3.19.4"
 log4j = "2.17.2"
 yoki = "0.0.1-SNAPSHOT"
 ktor = "2.0.2"
+jackson = "2.13.2"
 plugin-protobuf = "0.8.18"
 plugin-shadowjar = "7.1.2"
 
@@ -79,8 +80,8 @@ version.ref = "yoki"
 module = "org.katan:yoki-engine-docker-jvm"
 version.ref = "yoki"
 
-[libraries.ktor-server-netty]
-module = "io.ktor:ktor-server-netty"
+[libraries.ktor-server-cio]
+module = "io.ktor:ktor-server-cio"
 version.ref = "ktor"
 
 [libraries.ktor-server-core]
@@ -115,14 +116,6 @@ version.ref = "ktor"
 module = "io.ktor:ktor-server-status-pages"
 version.ref = "ktor"
 
-[libraries.ktor-serialization-json]
-module = "io.ktor:ktor-serialization-kotlinx-json"
-version.ref = "ktor"
-
-[libraries.ktor-server-test]
-module = "io.ktor:ktor-server-test-host"
-version.ref = "ktor"
-
 [libraries.ktor-client-feature-resources]
 module = "io.ktor:ktor-client-resources"
 version.ref = "ktor"
@@ -130,6 +123,22 @@ version.ref = "ktor"
 [libraries.ktor-client-feature-content-negotiation]
 module = "io.ktor:ktor-client-content-negotiation"
 version.ref = "ktor"
+
+[libraries.ktor-server-test]
+module = "io.ktor:ktor-server-test-host"
+version.ref = "ktor"
+
+[libraries.ktor-serialization-jackson]
+module = "io.ktor:ktor-serialization-jackson"
+version.ref = "ktor"
+
+[libraries.jackson-databind]
+module = "com.fasterxml.jackson.core:jackson-databind"
+version.ref = "jackson"
+
+[libraries.jackson-kotlin]
+module = "com.fasterxml.jackson.module:jackson-module-kotlin"
+version.ref = "jackson"
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "plugin-protobuf" }

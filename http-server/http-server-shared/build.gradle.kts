@@ -5,5 +5,5 @@ dependencies {
     implementation(libs.ktor.server.feature.resources)
     implementation(libs.ktor.server.feature.content.negotiation)
     implementation(libs.ktor.server.feature.statuspages)
-    api(libs.ktor.serialization.json)
+    implementation(libs.ktor.serialization.jackson)
 }

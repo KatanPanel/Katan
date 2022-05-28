@@ -6,10 +6,9 @@ import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.resources.post
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import org.katan.http.httpResponse
-import org.katan.http.throwHttpException
+import org.katan.http.respondError
+import org.katan.http.respondOk
 import org.katan.service.server.ServerConflictException
 import org.katan.service.server.ServerCreateOptions
 import org.katan.service.server.ServerService
@@ -28,15 +27,15 @@ internal fun Route.createServer() {
         val request = try {
             call.receive<CreateServerRequest>()
         } catch (e: Throwable) {
-            throwHttpException(ServerMissingCreateOptions, BadRequest, e)
+            respondError(ServerMissingCreateOptions, e)
         }
 
         val server = try {
             serverService.create(ServerCreateOptions(request.name))
         } catch (e: ServerConflictException) {
-            throwHttpException(ServerConflict, Conflict, e)
+            respondError(ServerConflict, e, Conflict)
         }
 
-        call.respond(Created, httpResponse(server))
+        respondOk(server, Created)
     }
 }

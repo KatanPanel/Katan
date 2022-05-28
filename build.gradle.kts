@@ -28,7 +28,6 @@ subprojects {
         implementation(kotlin("reflect"))
         implementation(rootProject.libs.ktx.coroutines.core)
         implementation(rootProject.libs.ktx.serialization.core)
-        implementation(rootProject.libs.ktx.serialization.json)
         implementation(rootProject.libs.koin.core)
         implementation(rootProject.libs.ktx.datetime)
         implementation(rootProject.libs.log4j.core)

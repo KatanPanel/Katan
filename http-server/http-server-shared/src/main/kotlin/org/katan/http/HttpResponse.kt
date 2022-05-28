@@ -1,29 +1,23 @@
 package org.katan.http
 
-import kotlinx.serialization.Serializable
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.util.pipeline.PipelineContext
 
-@Serializable
-sealed class HttpResponse {
-    abstract val response: String
+suspend inline fun PipelineContext<*, ApplicationCall>.respondOk(
+    response: Any,
+    status: HttpStatusCode = HttpStatusCode.OK
+) = call.respond(
+    status, mapOf(
+        "response" to "success",
+        "data" to response
+    ) as Map<String, Any?>
+)
 
-    @Serializable
-    data class Success<T>(
-        val data: T,
-    ) : HttpResponse() {
-        override val response: String get() = "success"
-    }
-
-    @Serializable
-    class Error(
-        @Suppress("unused") val code: Int,
-        @Suppress("unused") val message: String?
-    ) : HttpResponse() {
-        override val response: String get() = "error"
-    }
-
-}
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun <T> httpResponse(data: T): HttpResponse {
-    return HttpResponse.Success(data)
-}
+fun respondError(
+    error: HttpError,
+    cause: Throwable? = null,
+    status: HttpStatusCode = HttpStatusCode.BadRequest
+): Nothing = throw KatanHttpException(error.code, error.message, status, cause)

@@ -1,11 +1,11 @@
 package org.katan.http
 
 import io.ktor.server.application.Application
+import io.ktor.server.cio.CIO
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.addShutdownHook
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +30,7 @@ class HttpServer(
 
     private val engine: ApplicationEngine by lazy {
         embeddedServer(
-            factory = Netty,
+            factory = CIO,
             module = { setupEngine(this) },
             connectors = arrayOf(createHttpConnector())
         )
@@ -55,9 +55,7 @@ class HttpServer(
     }
 
     private fun setupEngine(app: Application) {
-        app.installDefaultServerFeatures()
-
-        logger.info("Installing modules...")
+        app.installDefaultFeatures()
         for (module in httpModuleRegistry) {
             module.install(app)
             logger.info("Module {} installed", module::class.simpleName)

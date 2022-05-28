@@ -1,13 +1,10 @@
 package org.katan.service.server.http.routes
 
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.OK
-import io.ktor.server.application.call
 import io.ktor.server.resources.get
-import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import org.katan.http.httpResponse
-import org.katan.http.throwHttpException
+import org.katan.http.respondError
+import org.katan.http.respondOk
 import org.katan.service.server.ServerService
 import org.katan.service.server.http.ServerNotFound
 import org.katan.service.server.http.locations.Servers
@@ -18,8 +15,8 @@ internal fun Route.findServer() {
 
     get<Servers.Get> { parameters ->
         val server = serverService.get(parameters.id)
-            ?: throwHttpException(ServerNotFound, BadRequest)
+            ?: respondError(ServerNotFound)
 
-        call.respond(OK, httpResponse(server))
+        respondOk(server)
     }
 }
