@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     kotlin("jvm") version libs.versions.kotlin.get()
