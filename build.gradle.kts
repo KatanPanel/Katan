@@ -2,8 +2,9 @@
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    kotlin("jvm") version libs.versions.kotlin.get()
-    alias(libs.plugins.serialization) apply false
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.kotlin.atomicfu)
 }
 
 repositories {
@@ -14,8 +15,9 @@ subprojects {
     group = "org.katan"
     version = "0.1.0"
 
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = rootProject.libs.plugins.serialization.get().pluginId)
+    apply(plugin = rootProject.libs.plugins.kotlin.jvm.get().pluginId)
+    apply(plugin = rootProject.libs.plugins.kotlin.serialization.get().pluginId)
+    apply(plugin = rootProject.libs.plugins.kotlin.atomicfu.get().pluginId)
 
     repositories {
         mavenCentral()
@@ -23,22 +25,15 @@ subprojects {
 
     dependencies {
         implementation(kotlin("stdlib"))
-        implementation(rootProject.libs.ktx.atomicfu)
         implementation(kotlin("reflect"))
-        testImplementation("org.jetbrains.kotlin:kotlin-test:1.6.10") // TODO version catalogs
         implementation(rootProject.libs.ktx.coroutines.core)
         implementation(rootProject.libs.ktx.serialization.core)
+        implementation(rootProject.libs.ktx.serialization.json)
         implementation(rootProject.libs.koin.core)
         implementation(rootProject.libs.ktx.datetime)
         implementation(rootProject.libs.log4j.core)
-    }
-
-    tasks {
-        withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-            kotlinOptions {
-                freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn", "-Xinline-classes")
-                jvmTarget = "1.8"
-            }
-        }
+        compileOnly(rootProject.libs.ktx.atomicfu)
+        runtimeOnly(rootProject.libs.ktx.atomicfu)
+        testImplementation(rootProject.libs.kotlin.test)
     }
 }
