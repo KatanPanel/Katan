@@ -16,15 +16,10 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.mock.declare
 
-fun KoinTest.withTestApplication(
-    di: org.koin.core.module.Module.() -> Unit = {},
+fun withTestApplication(
     setup: Application.() -> Unit,
     block: suspend ApplicationTestBuilder.() -> Unit = {}
 ) {
-    declare {
-        module {}.apply(di)
-    }
-
     testApplication {
         application {
             installDefaultServerFeatures()

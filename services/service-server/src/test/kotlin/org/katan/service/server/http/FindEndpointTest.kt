@@ -23,9 +23,6 @@ class FindEndpointTest : KoinTest {
 
     @Test
     fun `return 400 when server is not found`() = withTestApplication(
-        di = {
-            single<ServerService> { ServerServiceMock(FakeContainerFactory()) }
-        },
         setup = {
             routing {
                 findServer()
@@ -40,9 +37,6 @@ class FindEndpointTest : KoinTest {
 
     @Test
     fun `return 200 when server is found`() = withTestApplication(
-        di = {
-            single<ServerService> { ServerServiceMock(FakeContainerFactory()) }
-        },
         setup = {
             routing {
                 createServer()
