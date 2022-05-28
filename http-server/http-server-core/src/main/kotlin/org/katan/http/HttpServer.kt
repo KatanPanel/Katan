@@ -9,12 +9,18 @@ import io.ktor.server.netty.Netty
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import org.katan.http.module.server.ServerModule
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class HttpServer(
     val host: String? = null,
     val port: Int
-) : CoroutineScope by CoroutineScope(CoroutineName("HttpServer")) {
+) : CoroutineScope by CoroutineScope(CoroutineName("HttpServer")), KoinComponent {
+
+    private val httpModuleRegistry by inject<HttpModuleRegistry>()
+    private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
 
     init {
         System.setProperty("io.ktor.development", "true")
@@ -22,27 +28,12 @@ class HttpServer(
 
     private var shutdownPending by atomic(false)
 
-    private val engine: ApplicationEngine = embeddedServer(
-        factory = Netty,
-        module = { setupEngine() },
-        connectors = arrayOf(createHttpConnector())
-    )
-
-    private fun Application.setupEngine() {
-        installDefaultServerFeatures()
-        registerModules()
-    }
-
-    private fun createHttpConnector() = EngineConnectorBuilder().apply {
-        host = this@HttpServer.host ?: "0.0.0.0"
-        port = this@HttpServer.port
-    }
-
-    private fun setupSsl() {
-    }
-
-    private fun Application.registerModules() {
-        ServerModule()
+    private val engine: ApplicationEngine by lazy {
+        embeddedServer(
+            factory = Netty,
+            module = { setupEngine(this) },
+            connectors = arrayOf(createHttpConnector())
+        )
     }
 
     fun start() {
@@ -61,6 +52,21 @@ class HttpServer(
             timeoutMillis = 5000
         )
         shutdownPending = false
+    }
+
+    private fun setupEngine(app: Application) {
+        app.installDefaultServerFeatures()
+
+        logger.info("Installing modules...")
+        for (module in httpModuleRegistry) {
+            module.install(app)
+            logger.info("Module {} installed", module::class.simpleName)
+        }
+    }
+
+    private fun createHttpConnector() = EngineConnectorBuilder().apply {
+        host = this@HttpServer.host ?: "0.0.0.0"
+        port = this@HttpServer.port
     }
 
 }
