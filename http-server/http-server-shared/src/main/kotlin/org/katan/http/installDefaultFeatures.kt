@@ -1,5 +1,6 @@
 package org.katan.http
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -23,11 +24,15 @@ fun Application.installDefaultServerFeatures() {
     }
     install(StatusPages) {
         exception<KatanHttpException> { call, cause ->
-            cause.printStackTrace()
             call.respond(cause.httpStatus, HttpResponse.Error(cause.code, cause.message!!))
+            cause.printStackTrace()
         }
 
-        exception<Throwable> { _, cause ->
+        exception<Throwable> { call, cause ->
+            call.respond(HttpStatusCode.InternalServerError, HttpResponse.Error(
+                500,
+                cause.message
+            ))
             cause.printStackTrace()
         }
     }
