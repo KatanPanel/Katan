@@ -25,11 +25,11 @@ internal fun Route.createServer() {
     val serverService by inject<ServerService>()
 
     post<Servers> {
-        val request = runCatching {
+        val request = try {
             call.receive<CreateServerRequest>()
-        }.recoverCatching { error ->
-            throwHttpException(ServerMissingCreateOptions, BadRequest, error)
-        }.getOrThrow()
+        } catch (e: Throwable) {
+            throwHttpException(ServerMissingCreateOptions, BadRequest, e)
+        }
 
         val server = try {
             serverService.create(ServerCreateOptions(request.name))
