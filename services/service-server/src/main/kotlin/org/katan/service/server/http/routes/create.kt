@@ -1,6 +1,5 @@
 package org.katan.service.server.http.routes
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.Created
@@ -9,15 +8,14 @@ import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import org.katan.http.HttpError
-import org.katan.http.HttpError.Companion.ServerConflict
-import org.katan.http.HttpError.Companion.ServerMissingCreateOptions
 import org.katan.http.httpResponse
-import org.katan.service.server.http.locations.Servers
 import org.katan.http.throwHttpException
 import org.katan.service.server.ServerConflictException
 import org.katan.service.server.ServerCreateOptions
 import org.katan.service.server.ServerService
+import org.katan.service.server.http.ServerConflict
+import org.katan.service.server.http.ServerMissingCreateOptions
+import org.katan.service.server.http.locations.Servers
 import org.koin.ktor.ext.inject
 
 @kotlinx.serialization.Serializable

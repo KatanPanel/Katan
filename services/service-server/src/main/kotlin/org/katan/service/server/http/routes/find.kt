@@ -6,10 +6,10 @@ import io.ktor.server.application.call
 import io.ktor.server.resources.get
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import org.katan.http.HttpError.Companion.ServerNotFound
 import org.katan.http.httpResponse
 import org.katan.http.throwHttpException
 import org.katan.service.server.ServerService
+import org.katan.service.server.http.ServerNotFound
 import org.katan.service.server.http.locations.Servers
 import org.koin.ktor.ext.inject
 
