@@ -6,11 +6,11 @@ import org.katan.yoki.containers
 import org.katan.yoki.resource.container.create
 import java.util.UUID
 
-internal class DockerContainerFactory(
-    dockerClient: Lazy<Yoki> = lazy { Yoki(Docker) }
-) : ContainerFactory {
+internal class DockerContainerFactory : ContainerFactory {
 
-    private val dockerClient by dockerClient
+    private val dockerClient by lazy {
+        Yoki(Docker)
+    }
 
     override suspend fun generateId(): String {
         return UUID.randomUUID().toString()
