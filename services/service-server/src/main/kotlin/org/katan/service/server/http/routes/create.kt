@@ -1,6 +1,5 @@
 package org.katan.service.server.http.routes
 
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Conflict
 import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.server.application.call

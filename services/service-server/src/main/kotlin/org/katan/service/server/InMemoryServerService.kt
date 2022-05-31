@@ -6,7 +6,7 @@ import org.katan.service.container.ContainerCreateOptions
 import org.katan.service.container.ContainerFactory
 import java.util.UUID
 
-public class ServerServiceMock(
+public class InMemoryServerService(
     private val containerFactory: ContainerFactory
 ) : ServerService {
 
