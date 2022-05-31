@@ -16,9 +16,9 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.mock.declare
 
-fun withTestApplication(
-    setup: Application.() -> Unit,
-    block: suspend ApplicationTestBuilder.() -> Unit = {}
+inline fun withTestApplication(
+    noinline setup: Application.() -> Unit,
+    crossinline block: suspend ApplicationTestBuilder.() -> Unit = {}
 ) {
     testApplication {
         application {
@@ -31,7 +31,7 @@ fun withTestApplication(
 }
 
 fun ApplicationTestBuilder.createTestClient(
-    block: (HttpClient.() -> Unit)? = null,
+    block: HttpClient.() -> Unit = {},
 ): HttpClient {
     return createClient {
         install(Resources)
@@ -47,5 +47,5 @@ fun ApplicationTestBuilder.createTestClient(
                 contentType(ContentType.Application.Json)
             }
         }
-    }.apply { block?.invoke(this) }
+    }.apply { block(this) }
 }
