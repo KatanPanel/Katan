@@ -2,10 +2,7 @@ package org.katan
 
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.katan.http.HttpModule
-import org.katan.runtime.di.RuntimeModule
-import org.katan.service.container.ContainerServiceModule
-import org.katan.service.server.di.ServerServiceModule
+import org.katan.di.importAllModules
 import org.koin.core.context.startKoin
 
 @Suppress("UNUSED")
@@ -17,7 +14,7 @@ private object Application {
     fun main(args: Array<String>) {
         startKoin {
             logger(KoinLog4jLogger())
-            modules(HttpModule, RuntimeModule, ContainerServiceModule, ServerServiceModule)
+            importAllModules()
         }
 
         val app = Katan()

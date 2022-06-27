@@ -16,9 +16,11 @@ include(
     "application",
     "core",
     "runtime",
+    "services:service-account",
     "services:service-container",
     "services:service-server",
-    "http-server:http-server-shared",
-    "http-server:http-server-core",
-    "http-server:http-server-test"
+    "http:http-shared",
+    "http:http-server",
+    "http:http-test",
+    "http:http-routes-server"
 )
