@@ -4,5 +4,5 @@ Katan is a hyper fast and secure game server manager that allows developers to o
 with low cost while reducing the level of engineering and operational effort.
 
 * [Official Website](https://katan.org)
-* [Discord Community](https://discord.gg/j8JahE8xuV)
+* [Discord Community](https://discord.gg/qTgBt6xjTT)
 * [License](./LICENSE)
