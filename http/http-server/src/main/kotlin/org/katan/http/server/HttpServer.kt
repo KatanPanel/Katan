@@ -39,10 +39,12 @@ class HttpServer(
     }
 
     fun start() {
-        engine.start(wait = true)
         engine.addShutdownHook {
             stop()
         }
+
+        logger.info("Listening on {}", port)
+        engine.start(wait = true)
     }
 
     fun stop() {
