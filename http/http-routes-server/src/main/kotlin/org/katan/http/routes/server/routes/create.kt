@@ -7,7 +7,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.routing.Route
 import org.katan.http.respondError
-import org.katan.http.respondOk
+import org.katan.http.respond
 import org.katan.service.server.ServerConflictException
 import org.katan.service.server.ServerCreateOptions
 import org.katan.service.server.ServerService
@@ -35,6 +35,6 @@ internal fun Route.createServer() {
             respondError(ServerConflict, e, Conflict)
         }
 
-        respondOk(server, Created)
+        respond(server, Created)
     }
 }

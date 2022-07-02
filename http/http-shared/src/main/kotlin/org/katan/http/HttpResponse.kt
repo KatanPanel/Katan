@@ -6,7 +6,7 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.util.pipeline.PipelineContext
 
-suspend inline fun PipelineContext<*, ApplicationCall>.respondOk(
+suspend inline fun PipelineContext<*, ApplicationCall>.respond(
     response: Any,
     status: HttpStatusCode = HttpStatusCode.OK
 ) = call.respond(
