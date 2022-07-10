@@ -1,3 +1,5 @@
 package org.katan.service.server
 
-public class UnitException : RuntimeException()
+public open class UnitException : RuntimeException()
+
+public class UnitConflictException : UnitException()

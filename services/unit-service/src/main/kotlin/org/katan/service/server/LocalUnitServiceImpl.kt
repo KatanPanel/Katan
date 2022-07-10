@@ -26,8 +26,15 @@ public class LocalUnitServiceImpl(
         }
     }
 
-    override suspend fun create(options: UnitCreateOptions): KUnit = mutex.withLock {
-        unitFactory.create(options).also(registered::add)
+    override suspend fun create(options: UnitCreateOptions): KUnit {
+        val unit = unitFactory.create(options)
+
+        mutex.withLock {
+            if (!registered.add(unit))
+                throw UnitConflictException()
+        }
+
+        return unit
     }
 
 }
