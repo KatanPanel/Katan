@@ -14,7 +14,7 @@ internal class SnowflakeIdServiceImpl : IdService {
 
     override suspend fun generate(): Long {
         return suspendCoroutine {
-            generator.next()
+            it.resumeWith(runCatching { generator.next() })
         }
     }
 
