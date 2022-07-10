@@ -3,6 +3,8 @@ package org.katan.model.unit
 import kotlinx.datetime.Instant
 import org.katan.model.Connection
 
+typealias KUnit = Unit
+
 /**
  * "Unit" is what we call game servers running in the cloud.
  *
@@ -29,7 +31,7 @@ interface Unit {
      *
      * This id can be changed at any time at the user's request and is not restricted in any way.
      */
-    val externalId: String
+    val externalId: String?
 
     /**
      * Node ID where this unit is located.
@@ -53,7 +55,7 @@ interface Unit {
      * in a special way by Katan as it is used only for display character, besides not being unique,
      * that is, there can be more than one unit with the same display name in the same cluster.
      */
-    val displayName: String
+    val displayName: String?
 
     /**
      * Long description of this unit.
@@ -117,7 +119,3 @@ interface Unit {
     val status: UnitStatus
 
 }
-
-interface UnitInstance
-
-interface UnitStatus

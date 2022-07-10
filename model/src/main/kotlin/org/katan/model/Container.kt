@@ -1,4 +1,4 @@
-package org.katan
+package org.katan.model
 
 interface Container {
 
