@@ -1,42 +1,42 @@
-package org.katan.http.routes.server
+package org.katan.http.routes.unit
 
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
 import org.katan.http.createTestClient
+import org.katan.http.routes.unit.dto.CreateUnitRequest
+import org.katan.http.routes.unit.locations.UnitRoutes
+import org.katan.http.routes.unit.routes.createUnit
 import org.katan.http.withTestApplication
-import org.katan.service.server.UnitCreateOptions
-import org.katan.http.routes.server.locations.Servers
-import org.katan.http.routes.server.routes.createServer
 import org.koin.test.KoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class CreateServerTest : KoinTest {
+class CreateUnitTest : KoinTest {
 
     @Test
-    fun `should return 201 on server create`() = withTestApplication({
+    fun `should return 201 on unit successful create`() = withTestApplication({
         routing {
-            createServer()
+            createUnit()
         }
     }) {
         val testClient = createTestClient()
-        val request = testClient.post(Servers()) {
-            setBody(UnitCreateOptions("test"))
+        val request = testClient.post(UnitRoutes()) {
+            setBody(CreateUnitRequest("test"))
         }
 
         assertEquals(HttpStatusCode.Created, request.status)
     }
 
     @Test
-    fun `given missing parameters when creating server expect 400`() = withTestApplication({
+    fun `given missing parameters when creating unit expect 400`() = withTestApplication({
         routing {
-            createServer()
+            createUnit()
         }
     }) {
         val testClient = createTestClient()
-        val request = testClient.post(Servers())
+        val request = testClient.post(UnitRoutes())
 
         assertEquals(HttpStatusCode.BadRequest, request.status)
     }
