@@ -8,12 +8,7 @@ public class LocalUnitServiceImpl(
     private val unitFactory: UnitFactory
 ) : UnitService {
 
-    public companion object {
-        public const val IMAGE_NAME: String = "mock"
-    }
-
     private val registered: MutableList<KUnit> = mutableListOf()
-
     private val mutex = Mutex()
 
     override suspend fun list(): List<KUnit> {

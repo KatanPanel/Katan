@@ -10,6 +10,7 @@ internal data class AccountImpl(
     override val registeredAt: Instant
 ) : Account {
 
+    override val lastLoggedInAt: Instant? = null
     override val deactivated: Boolean = false
 
 }

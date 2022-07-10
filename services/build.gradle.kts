@@ -1,6 +1,6 @@
 subprojects {
     dependencies {
-        implementation(project(":model"))
+        api(project(":model"))
     }
 
     kotlin {

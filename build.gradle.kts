@@ -1,5 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -34,5 +36,13 @@ subprojects {
         compileOnly(rootProject.libs.ktx.atomicfu)
         runtimeOnly(rootProject.libs.ktx.atomicfu)
         testImplementation(rootProject.libs.kotlin.test)
+    }
+
+    tasks {
+        withType<KotlinCompile> {
+            kotlinOptions {
+                jvmTarget = "11"
+            }
+        }
     }
 }
