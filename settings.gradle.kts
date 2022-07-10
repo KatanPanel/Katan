@@ -24,5 +24,5 @@ include(
     "http:http-shared",
     "http:http-server",
     "http:http-test",
-    "http:http-routes-server"
+    "http:http-routes"
 )

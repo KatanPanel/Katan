@@ -4,16 +4,16 @@ import io.ktor.server.resources.get
 import io.ktor.server.routing.Route
 import org.katan.http.respondError
 import org.katan.http.respond
-import org.katan.service.server.ServerService
+import org.katan.service.server.UnitService
 import org.katan.http.routes.server.ServerNotFound
 import org.katan.http.routes.server.locations.Servers
 import org.koin.ktor.ext.inject
 
 internal fun Route.findServer() {
-    val serverService by inject<ServerService>()
+    val unitService by inject<UnitService>()
 
     get<Servers.Get> { parameters ->
-        val server = serverService.get(parameters.id)
+        val server = unitService.get(parameters.id)
             ?: respondError(ServerNotFound)
 
         respond(server)

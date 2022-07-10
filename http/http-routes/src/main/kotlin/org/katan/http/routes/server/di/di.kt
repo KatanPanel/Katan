@@ -6,6 +6,7 @@ import org.katan.http.HttpModule
 import org.katan.http.HttpModuleRegistry
 import org.katan.http.routes.server.routes.createServer
 import org.katan.http.routes.server.routes.findServer
+import org.katan.http.routes.server.routes.listServers
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.withOptions
@@ -21,6 +22,7 @@ private class HttpRoutesServerModuleHttpModule(registry: HttpModuleRegistry) : H
 
     override fun install(app: Application) {
         app.routing {
+            listServers()
             findServer()
             createServer()
         }

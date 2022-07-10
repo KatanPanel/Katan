@@ -8,9 +8,9 @@ import io.ktor.server.resources.post
 import io.ktor.server.routing.Route
 import org.katan.http.respondError
 import org.katan.http.respond
-import org.katan.service.server.ServerConflictException
-import org.katan.service.server.ServerCreateOptions
-import org.katan.service.server.ServerService
+import org.katan.service.server.UnitException
+import org.katan.service.server.UnitCreateOptions
+import org.katan.service.server.UnitService
 import org.katan.http.routes.server.ServerConflict
 import org.katan.http.routes.server.ServerMissingCreateOptions
 import org.katan.http.routes.server.locations.Servers
@@ -20,7 +20,7 @@ import org.koin.ktor.ext.inject
 private data class CreateServerRequest(val name: String)
 
 internal fun Route.createServer() {
-    val serverService by inject<ServerService>()
+    val unitService by inject<UnitService>()
 
     post<Servers> {
         val request = try {
@@ -30,8 +30,8 @@ internal fun Route.createServer() {
         }
 
         val server = try {
-            serverService.create(ServerCreateOptions(request.name))
-        } catch (e: ServerConflictException) {
+            unitService.create(UnitCreateOptions(request.name))
+        } catch (e: UnitException) {
             respondError(ServerConflict, e, Conflict)
         }
 

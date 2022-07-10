@@ -6,7 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
 import org.katan.http.createTestClient
 import org.katan.http.withTestApplication
-import org.katan.service.server.ServerCreateOptions
+import org.katan.service.server.UnitCreateOptions
 import org.katan.http.routes.server.locations.Servers
 import org.katan.http.routes.server.routes.createServer
 import org.koin.test.KoinTest
@@ -23,7 +23,7 @@ class CreateServerTest : KoinTest {
     }) {
         val testClient = createTestClient()
         val request = testClient.post(Servers()) {
-            setBody(ServerCreateOptions("test"))
+            setBody(UnitCreateOptions("test"))
         }
 
         assertEquals(HttpStatusCode.Created, request.status)

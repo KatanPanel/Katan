@@ -1,4 +1,4 @@
 dependencies {
     implementation(project(":http:http-shared"))
-    implementation(project(":services:service-server"))
+    implementation(project(":services:unit-service"))
 }
