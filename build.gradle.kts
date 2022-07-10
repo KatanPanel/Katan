@@ -21,9 +21,6 @@ subprojects {
 
     repositories {
         mavenCentral()
-
-        // https://github.com/DevNatan/yoki
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
 
     dependencies {
