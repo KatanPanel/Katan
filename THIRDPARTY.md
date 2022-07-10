@@ -10,3 +10,4 @@ This document contains a list of third-party libraries that Katan uses.
 * [Kotlinx AtomicFU](https://github.com/Kotlin/kotlinx-atomicfu). Apache License 2.0.
 * [Apache Log4j 2](https://logging.apache.org/log4j/2.x/). Apache License 2.0.
 * [Exposed](https://github.com/JetBrains/Exposed/). Apache License 2.0.
+* [snowflake-id](https://github.com/phxql/snowflake-id). LGPLv3

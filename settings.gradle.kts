@@ -16,6 +16,7 @@ include(
     "application",
     "core",
     "runtime",
+    "services:service-id",
     "services:service-account",
     "services:service-container",
     "services:service-server",

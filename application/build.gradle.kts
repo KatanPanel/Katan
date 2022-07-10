@@ -12,6 +12,7 @@ dependencies {
 	implementation(project(":runtime"))
 	implementation(project(":services:service-container"))
 	implementation(project(":services:service-server"))
+	implementation(project(":services:service-id"))
 }
 
 tasks {

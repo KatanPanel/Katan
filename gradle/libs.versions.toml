@@ -13,6 +13,7 @@ log4j = "2.17.2"
 yoki = "0.0.1-SNAPSHOT"
 ktor = "2.0.2"
 jackson = "2.13.2"
+snowflake-id = "0.0.1"
 plugin-protobuf = "0.8.18"
 plugin-shadowjar = "7.1.2"
 
@@ -139,6 +140,10 @@ version.ref = "jackson"
 [libraries.jackson-kotlin]
 module = "com.fasterxml.jackson.module:jackson-module-kotlin"
 version.ref = "jackson"
+
+[libraries.snowflakeId]
+module = "de.mkammerer.snowflake-id:snowflake-id"
+version.ref = "snowflake-id"
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "plugin-protobuf" }
