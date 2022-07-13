@@ -17,11 +17,11 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class HttpServer(
-    val host: String? = null,
-    val port: Int
+    private val port: Int
 ) : CoroutineScope by CoroutineScope(CoroutineName("HttpServer")), KoinComponent {
 
     private val httpModuleRegistry by inject<HttpModuleRegistry>()
+
     private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
 
     init {
@@ -39,6 +39,7 @@ class HttpServer(
     }
 
     fun start() {
+        println("http start")
         engine.addShutdownHook {
             stop()
         }
@@ -67,7 +68,7 @@ class HttpServer(
     }
 
     private fun createHttpConnector() = EngineConnectorBuilder().apply {
-        host = this@HttpServer.host ?: "0.0.0.0"
+        host = "0.0.0.0"
         port = this@HttpServer.port
     }
 
