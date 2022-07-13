@@ -1,26 +1,27 @@
 plugins {
-	application
-	alias(libs.plugins.shadowjar)
+    application
+    alias(libs.plugins.shadowjar)
 }
 
 application {
-	mainClass.set("org.katan.Application")
+    mainClass.set("org.katan.Application")
 }
 
 dependencies {
-	implementation(project(":core"))
-	implementation(project(":runtime"))
-	implementation(project(":services:id-service"))
-	implementation(project(":services:account-service"))
-	implementation(project(":services:unit-service"))
-	implementation(project(":services:unit-instance-service"))
+    implementation(projects.core)
+    implementation(projects.runtime)
+    implementation(projects.services.idService)
+    implementation(projects.services.accountService)
+    implementation(projects.services.unitService)
+    implementation(projects.services.unitInstanceService)
+    implementation(projects.configuration)
 }
 
 tasks {
-	jar {
-		manifest {
-			attributes["Main-Class"] = application.mainClass.get()
-			attributes["Implementation-Version"] = project.version
-		}
-	}
+    jar {
+        manifest {
+            attributes["Main-Class"] = application.mainClass.get()
+            attributes["Implementation-Version"] = project.version
+        }
+    }
 }

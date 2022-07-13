@@ -1,5 +1,6 @@
 package org.katan.di
 
+import org.katan.config.di.ConfigModule
 import org.katan.http.server.di.HttpModule
 import org.katan.runtime.di.RuntimeModule
 import org.katan.service.account.di.AccountServiceModule
@@ -20,5 +21,5 @@ private val ServicesModule
     }
 
 internal fun KoinApplication.importAllModules() {
-    modules(HttpModule, RuntimeModule, ServicesModule)
+    modules(ConfigModule, HttpModule, RuntimeModule, ServicesModule)
 }

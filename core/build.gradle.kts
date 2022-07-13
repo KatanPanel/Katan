@@ -1,3 +1,4 @@
 dependencies {
-    api(project(":http:http-server"))
+    api(projects.http.httpServer)
+    implementation(projects.configuration)
 }
