@@ -1,4 +1,5 @@
 enableFeaturePreview("VERSION_CATALOGS")
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "katan-server"
 
@@ -21,6 +22,8 @@ include(
     "services:unit-instance-service",
     "services:docker-unit-instance-service",
     "services:account-service",
+    "services:database-service",
+    "configuration",
     "http:http-shared",
     "http:http-server",
     "http:http-test",
