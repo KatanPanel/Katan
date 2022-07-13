@@ -12,3 +12,4 @@ This document contains a list of third-party libraries that Katan uses.
 * [Exposed](https://github.com/JetBrains/Exposed/). Apache License 2.0.
 * [snowflake-id](https://github.com/phxql/snowflake-id). LGPLv3.
 * [docker-java](https://github.com/docker-java/docker-java). Apache License 2.0.
+* [hoplite](https://github.com/sksamuel/hoplite). Apache License 2.0.
