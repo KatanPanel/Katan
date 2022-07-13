@@ -14,7 +14,7 @@ internal fun Route.findServer() {
 
     get<UnitRoutes.Get> { parameters ->
         // TODO handle "toLong" properly
-        val instance = unitService.get(parameters.id.toLong())
+        val instance = unitService.getUnit(parameters.id.toLong())
             ?: respondError(UnitNotFound)
 
         respond(instance)

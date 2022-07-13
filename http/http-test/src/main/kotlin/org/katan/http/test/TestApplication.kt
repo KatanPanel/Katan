@@ -12,9 +12,6 @@ import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
-import org.koin.dsl.module
-import org.koin.test.KoinTest
-import org.koin.test.mock.declare
 
 inline fun withTestApplication(
     noinline setup: Application.() -> Unit,
