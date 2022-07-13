@@ -6,5 +6,5 @@ import org.koin.dsl.module
 import org.koin.core.module.Module
 
 public val IdServiceModule: Module = module {
-    single<IdService> { SnowflakeIdServiceImpl() }
+    single<IdService> { SnowflakeIdServiceImpl(get()) }
 }
