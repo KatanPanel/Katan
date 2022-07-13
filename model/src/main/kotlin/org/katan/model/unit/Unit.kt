@@ -36,7 +36,7 @@ interface Unit {
     /**
      * Node ID where this unit is located.
      */
-    val nodeId: Long
+    val nodeId: Int
 
     /**
      * The name of this unit.
@@ -74,7 +74,7 @@ interface Unit {
      * The local address is used within the cluster to communicate with this unit and is not
      * externally accessible.
      */
-    val localAddress: Connection
+//    val localAddress: Connection
 
     /**
      * Remote address of this unit.
@@ -82,7 +82,7 @@ interface Unit {
      * The remote address is used by external users to communicate with this unit, normally this is
      * the address players use to access this unit.
      */
-    val remoteAddress: Connection
+//    val remoteAddress: Connection
 
     /**
      * The instant this unit was created.
