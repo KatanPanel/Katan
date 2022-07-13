@@ -1,6 +1,7 @@
 package org.katan.http
 
-import io.ktor.serialization.jackson.jackson
+import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.plugins.autohead.AutoHeadResponse
@@ -19,19 +20,16 @@ fun Application.installDefaultFeatures() {
     install(AutoHeadResponse)
     install(CallLogging)
     install(ContentNegotiation) {
-        jackson()
+        json()
     }
     install(StatusPages) {
         exception<KatanHttpException> { call, cause ->
-            cause.printStackTrace()
-            call.respond(cause.httpStatus, mapOf(
-                "code" to cause.code,
-                "message" to cause.message
-            ))
+            call.respond(cause.httpStatus, HttpError(cause.code, cause.message))
         }
 
-        exception<Throwable> { _, cause ->
+        exception<Throwable> { call, cause ->
             cause.printStackTrace()
+            call.respond(HttpStatusCode.InternalServerError)
         }
     }
 }

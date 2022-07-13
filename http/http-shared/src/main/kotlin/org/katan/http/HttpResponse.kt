@@ -10,10 +10,7 @@ suspend inline fun PipelineContext<*, ApplicationCall>.respond(
     response: Any,
     status: HttpStatusCode = HttpStatusCode.OK
 ) = call.respond(
-    status, mapOf(
-        "response" to "success",
-        "data" to response
-    ) as Map<String, Any?>
+    status, response
 )
 
 fun respondError(
