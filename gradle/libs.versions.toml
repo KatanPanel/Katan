@@ -14,6 +14,7 @@ ktor = "2.0.2"
 snowflake-id = "0.0.1"
 docker-java = "3.2.13"
 hoplite = "2.3.1"
+postgresql = "42.4.0"
 plugin-protobuf = "0.8.18"
 plugin-shadowjar = "7.1.2"
 
@@ -140,6 +141,14 @@ version.ref = "snowflake-id"
 [libraries.hoplite]
 module = "com.sksamuel.hoplite:hoplite-core"
 version.ref = "hoplite"
+
+[libraries.hoplite-hocon]
+module = "com.sksamuel.hoplite:hoplite-hocon"
+version.ref = "hoplite"
+
+[libraries.postgresql]
+module = "org.postgresql:postgresql"
+version.ref = "postgresql"
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "plugin-protobuf" }
