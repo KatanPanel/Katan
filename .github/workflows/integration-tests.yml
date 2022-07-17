@@ -1,0 +1,39 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  docker:
+    strategy:
+      fail-fast: false
+      matrix:
+        docker_version:
+          - "20.10"
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup Docker
+        uses: docker-practice/actions-setup-docker@master
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          server-id: github
+          cache: 'gradle'
+      - name: Prune Docker System
+        run: docker system prune -a -f
+      - name: Run Gradle Check
+        uses: burrunan/gradle-cache-action@v1
+        with:
+          arguments: check
+          gradle-version: wrapper
