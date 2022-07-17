@@ -14,6 +14,7 @@ dependencies {
     implementation(projects.services.accountService)
     implementation(projects.services.unitService)
     implementation(projects.services.unitInstanceService)
+    implementation(projects.services.dockerUnitInstanceService)
     implementation(projects.configuration)
 }
 

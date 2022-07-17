@@ -6,5 +6,5 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 public val UnitServiceModule: Module = module {
-    single<UnitService> { LocalUnitServiceImpl(get(), get()) }
+    single<UnitService> { LocalUnitServiceImpl(get(), get(), get()) }
 }

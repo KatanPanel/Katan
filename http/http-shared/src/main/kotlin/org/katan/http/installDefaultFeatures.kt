@@ -12,6 +12,7 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
+import kotlinx.serialization.json.Json
 
 fun Application.installDefaultFeatures() {
     install(Routing)
@@ -20,10 +21,13 @@ fun Application.installDefaultFeatures() {
     install(AutoHeadResponse)
     install(CallLogging)
     install(ContentNegotiation) {
-        json()
+        json(Json {
+            ignoreUnknownKeys = true
+        })
     }
     install(StatusPages) {
         exception<KatanHttpException> { call, cause ->
+            cause.printStackTrace()
             call.respond(cause.httpStatus, HttpError(cause.code, cause.message))
         }
 

@@ -6,6 +6,10 @@ public interface AccountService {
 
     public suspend fun getAccount(id: Long): Account?
 
+    /**
+     * TODO
+     * @throws AccountConflictException qnd cofnlita as contas
+     */
     public suspend fun createAccount(username: String): Account
 
     public suspend fun activateAccount(id: Long): Account

@@ -4,7 +4,7 @@ import kotlinx.datetime.Clock
 import org.katan.model.account.Account
 import org.katan.service.id.IdService
 
-internal class AccountServiceImpl(
+internal class LocalAccountServiceImpl(
     private val idService: IdService
 ) : AccountService {
 

@@ -6,7 +6,7 @@ import org.katan.runtime.di.RuntimeModule
 import org.katan.service.account.di.AccountServiceModule
 import org.katan.service.id.di.IdServiceModule
 import org.katan.service.server.di.UnitServiceModule
-import org.katan.service.unit.instance.di.UnitInstanceServiceModule
+import org.katan.service.unit.instance.docker.di.DockerUnitInstanceServiceModule
 import org.koin.core.KoinApplication
 import org.koin.dsl.module
 
@@ -16,7 +16,7 @@ private val ServicesModule
             IdServiceModule,
             AccountServiceModule,
             UnitServiceModule,
-            UnitInstanceServiceModule
+            DockerUnitInstanceServiceModule
         )
     }
 

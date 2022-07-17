@@ -14,14 +14,10 @@ public data class UnitImpl(
     override val name: String,
     override val displayName: String?,
     override val description: String?,
-//    override val localAddress: Connection,
-//    override val remoteAddress: Connection,
     override val createdAt: Instant,
-    override val updatedAt: Instant
-) : KUnit {
-
+    override val updatedAt: Instant,
     override val instance: UnitInstance
-        get() = object: UnitInstance {} // TODO fix this
+) : KUnit {
 
     override val deletedAt: Instant? = null
     override val status: UnitStatus = UnitStatus.Unknown
