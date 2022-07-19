@@ -5,7 +5,6 @@ import org.katan.model.unit.KUnit
 import org.katan.model.unit.UnitInstance
 import org.katan.model.unit.UnitStatus
 
-@kotlinx.serialization.Serializable
 public data class UnitImpl(
     override val id: Long,
     override val externalId: String?,
