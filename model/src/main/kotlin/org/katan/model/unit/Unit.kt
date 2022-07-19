@@ -108,7 +108,7 @@ interface Unit {
      * separated from the main object of the unit because it is an object of extremely mutable
      * object, that is, its data changes constantly.
      */
-    val instance: UnitInstance
+    val instance: UnitInstance?
 
     /**
      * Current status of this unit.
