@@ -46,17 +46,14 @@ public class LocalUnitServiceImpl(
 
     private suspend fun createUnit0(options: UnitCreateOptions): KUnit {
         val currentInstant = Clock.System.now()
+        val spec = unitInstanceService.fromSpec(mapOf("image" to options.dockerImage))
 
-        // TODO no magic string
-        val spec = unitInstanceService.fromSpec(mapOf(
-            "kind" to "docker",
-            "image" to options.dockerImage
-        ))
+        val instance = runCatching {
+            unitInstanceService.createInstanceFor(spec)
+        }.onFailure { error ->
+            logger.trace("Failed to create unit instance.", error)
+        }.getOrNull()
 
-        logger.info("Creating unit instance: $options (${unitInstanceService::class.simpleName})...")
-        val instance = unitInstanceService.createInstanceFor(spec)
-
-        logger.info("Generating unit unique identifier...")
         val unitId = idService.generate()
 
         return UnitImpl(
@@ -69,7 +66,7 @@ public class LocalUnitServiceImpl(
             createdAt = currentInstant,
             updatedAt = currentInstant,
             instance = instance
-        ).also { logger.info("New unit created: $it") }
+        )
     }
 
 }
