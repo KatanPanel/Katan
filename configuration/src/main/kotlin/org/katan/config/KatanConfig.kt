@@ -8,6 +8,8 @@ interface KatanConfig {
 
     val server: HttpServerConfig
 
+    val docker: DockerClientConfig
+
     interface DatabaseConfig {
 
         val connectionString: String
@@ -17,6 +19,12 @@ interface KatanConfig {
     interface HttpServerConfig {
 
         val port: Int
+
+    }
+
+    interface DockerClientConfig {
+
+        val path: String
 
     }
 
