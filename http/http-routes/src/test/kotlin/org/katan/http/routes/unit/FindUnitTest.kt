@@ -29,7 +29,7 @@ class FindUnitTest : KoinTest {
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)
-        assertEquals(UnitNotFound.code, body.code)
+        assertEquals(UnitNotFound, body)
     }
 
     @Test
@@ -43,7 +43,7 @@ class FindUnitTest : KoinTest {
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)
-        assertEquals(InvalidUnitIdFormat.code, body.code)
+        assertEquals(InvalidUnitIdFormat, body)
     }
 
 }
