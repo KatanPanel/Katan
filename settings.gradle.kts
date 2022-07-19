@@ -17,7 +17,6 @@ include(
     "model",
     "application",
     "core",
-    "runtime",
     "services:id-service",
     "services:unit-service",
     "services:unit-instance-service",
