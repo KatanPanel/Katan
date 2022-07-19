@@ -52,7 +52,7 @@ public class LocalUnitServiceImpl(
         val instance = runCatching {
             unitInstanceService.createInstanceFor(spec)
         }.onFailure { error ->
-            logger.trace("Failed to create unit instance.", error)
+            logger.error("Failed to create unit instance.", error)
         }.getOrNull()
 
         val unitId = idService.generate()
