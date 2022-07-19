@@ -1,8 +1,12 @@
 package org.katan.http.routes.unit
 
+import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
+import org.katan.http.HttpError
+import org.katan.http.InvalidUnitIdFormat
+import org.katan.http.UnitNotFound
 import org.katan.http.createTestClient
 import org.katan.http.routes.unit.locations.UnitRoutes
 import org.katan.http.routes.unit.routes.findUnit
@@ -14,15 +18,31 @@ import kotlin.test.assertEquals
 class FindUnitTest : KoinTest {
 
     @Test
-    fun `when server is not found expect 400`() = withTestApplication({
+    fun `when unit is not found expect error 1001`() = withTestApplication({
         routing {
             findUnit()
         }
     }) {
         val testClient = createTestClient()
         val request = testClient.get(UnitRoutes.Get(id = "unknown"))
+        val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)
+        assertEquals(UnitNotFound.code, body.code)
+    }
+
+    @Test
+    fun `when incorrect unit id expect error 1004`() = withTestApplication({
+        routing {
+            findUnit()
+        }
+    }) {
+        val testClient = createTestClient()
+        val request = testClient.get(UnitRoutes.Get(id = "abcdefgh"))
+        val body = request.body<HttpError>()
+
+        assertEquals(HttpStatusCode.BadRequest, request.status)
+        assertEquals(InvalidUnitIdFormat.code, body.code)
     }
 
 }

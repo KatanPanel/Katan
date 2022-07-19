@@ -16,4 +16,9 @@ internal class SnowflakeIdServiceImpl(
         }
     }
 
+    override suspend fun parse(input: String): Long {
+        // TODO check if it's a valid snowflake id
+        return input.toLong()
+    }
+
 }

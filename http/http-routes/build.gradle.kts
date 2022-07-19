@@ -1,5 +1,6 @@
 dependencies {
-    implementation(project(":http:http-shared"))
-    implementation(project(":services:unit-service"))
-    testImplementation(project(":http:http-test"))
+    implementation(projects.services.unitService)
+    implementation(projects.services.idService)
+    implementation(projects.http.httpShared)
+    testImplementation(projects.http.httpTest)
 }
