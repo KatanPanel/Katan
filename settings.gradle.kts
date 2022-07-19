@@ -1,5 +1,6 @@
 enableFeaturePreview("VERSION_CATALOGS")
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
 
 rootProject.name = "katan-server"
 
