@@ -12,6 +12,8 @@ import org.katan.http.UnitMissingCreateOptions
 import org.katan.http.respond
 import org.katan.http.respondError
 import org.katan.http.routes.unit.dto.CreateUnitRequest
+import org.katan.http.routes.unit.dto.CreateUnitResponse
+import org.katan.http.routes.unit.dto.UnitResponse
 import org.katan.http.routes.unit.locations.UnitRoutes
 import org.katan.service.server.UnitConflictException
 import org.katan.service.server.UnitCreateOptions
@@ -28,7 +30,7 @@ internal fun Route.createUnit() {
             respondError(UnitMissingCreateOptions, e)
         }
 
-        val instance = try {
+        val unit = try {
             unitService.createUnit(
                 UnitCreateOptions(
                     name = request.name,
@@ -42,6 +44,11 @@ internal fun Route.createUnit() {
             respondError(UnitConflict, e, Conflict)
         }
 
-        respond(instance, Created)
+        respond(
+            CreateUnitResponse(
+                dockerImage = request.dockerImage,
+                unit = UnitResponse(unit)
+            ), Created
+        )
     }
 }

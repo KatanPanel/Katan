@@ -6,6 +6,7 @@ import org.katan.http.InvalidUnitIdFormat
 import org.katan.http.UnitNotFound
 import org.katan.http.respond
 import org.katan.http.respondError
+import org.katan.http.routes.unit.dto.UnitResponse
 import org.katan.http.routes.unit.locations.UnitRoutes
 import org.katan.service.id.IdService
 import org.katan.service.server.UnitService
@@ -16,13 +17,15 @@ internal fun Route.findUnit() {
     val idService by inject<IdService>()
 
     get<UnitRoutes.Get> { parameters ->
-        val unitId = try {
+        val id = try {
             idService.parse(parameters.id)
         } catch (e: IllegalArgumentException) {
             respondError(InvalidUnitIdFormat)
         }
 
-        val instance = unitService.getUnit(unitId) ?: respondError(UnitNotFound)
-        respond(instance)
+        val unit = unitService.getUnit(id)
+            ?: respondError(UnitNotFound)
+
+        respond(UnitResponse(unit))
     }
 }
