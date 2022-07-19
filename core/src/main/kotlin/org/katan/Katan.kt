@@ -19,7 +19,6 @@ class Katan : KoinComponent {
     }
 
     fun start() {
-        println("katan start")
         httpServer.start()
     }
 

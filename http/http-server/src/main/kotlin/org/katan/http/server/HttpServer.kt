@@ -39,7 +39,6 @@ class HttpServer(
     }
 
     fun start() {
-        println("http start")
         engine.addShutdownHook {
             stop()
         }
