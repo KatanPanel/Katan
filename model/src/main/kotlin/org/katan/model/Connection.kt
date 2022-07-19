@@ -4,6 +4,6 @@ interface Connection {
 
     val host: String
 
-    val port: Short
+    val port: Int
 
 }
