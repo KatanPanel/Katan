@@ -9,7 +9,7 @@ import org.katan.http.routes.unit.locations.UnitRoutes
 import org.katan.service.server.UnitService
 import org.koin.ktor.ext.inject
 
-internal fun Route.findServer() {
+internal fun Route.findUnit() {
     val unitService by inject<UnitService>()
 
     get<UnitRoutes.Get> { parameters ->

@@ -5,7 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
 import org.katan.http.createTestClient
 import org.katan.http.routes.unit.locations.UnitRoutes
-import org.katan.http.routes.unit.routes.findServer
+import org.katan.http.routes.unit.routes.findUnit
 import org.katan.http.withTestApplication
 import org.koin.test.KoinTest
 import kotlin.test.Test
@@ -16,7 +16,7 @@ class FindUnitTest : KoinTest {
     @Test
     fun `when server is not found expect 400`() = withTestApplication({
         routing {
-            findServer()
+            findUnit()
         }
     }) {
         val testClient = createTestClient()
