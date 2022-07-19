@@ -1,6 +1,7 @@
 dependencies {
-    implementation(project(":services:unit-instance-service"))
+    implementation(projects.services.unitInstanceService)
+    implementation(projects.services.networkService)
+    implementation(projects.configuration)
     implementation(libs.dockerJava)
-    compileOnly(libs.dockerJava.transport.okhttp)
-    runtimeOnly(libs.dockerJava.transport.okhttp)
+    implementation(libs.dockerJava.transport.okhttp)
 }

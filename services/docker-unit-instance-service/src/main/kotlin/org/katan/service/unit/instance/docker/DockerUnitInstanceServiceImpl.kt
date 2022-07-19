@@ -1,34 +1,45 @@
 package org.katan.service.unit.instance.docker
 
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.command.CreateContainerResponse
+import com.github.dockerjava.api.command.PullImageResultCallback
+import com.github.dockerjava.api.exception.NotFoundException
+import com.github.dockerjava.api.model.PullResponseItem
+import com.github.dockerjava.core.DefaultDockerClientConfig
+import com.github.dockerjava.core.DockerClientBuilder
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.LogManager
-import org.katan.model.Connection
+import org.katan.config.KatanConfig
 import org.katan.model.unit.UnitInstance
-import org.katan.service.unit.instance.UnitInstanceCreationResult
+import org.katan.service.network.NetworkService
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.UnitInstanceSpec
+import java.io.Closeable
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.jvm.jvmName
 
-internal class DockerUnitInstanceServiceImpl : UnitInstanceService, CoroutineScope by CoroutineScope(
-    CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
-) {
+internal class DockerUnitInstanceServiceImpl(
+    private val config: KatanConfig,
+    private val networkService: NetworkService
+) : UnitInstanceService,
+    CoroutineScope by CoroutineScope(
+        CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
+    ) {
 
     private companion object {
         private val logger = LogManager.getLogger(DockerUnitInstanceServiceImpl::class.java)
     }
 
-    private lateinit var client: DockerClient
+    private val client: DockerClient by lazy { initClient() }
 
     override fun fromSpec(data: Map<String, Any>): UnitInstanceSpec {
-        println("before data check: $data")
         check(data.containsKey(IMAGE_PROPERTY)) { "Missing required property \"$IMAGE_PROPERTY\"." }
-
-        println("from spec")
         return DockerUnitInstanceSpec(data.getValue(IMAGE_PROPERTY) as String)
     }
 
@@ -39,27 +50,65 @@ internal class DockerUnitInstanceServiceImpl : UnitInstanceService, CoroutineSco
         return coroutineScope {
             // TODO better context switch
             val id = withContext(Dispatchers.IO) {
-                client.createContainerCmd(
-                    spec.image
-                ).exec()
-            }.id
+                tryCreateContainer(spec.image)
+            }
 
             logger.info("Unit instance generated successfully: $id")
             val container = withContext(Dispatchers.IO) { client.inspectContainerCmd(id).exec() }
-            container.networkSettings.ports.bindings.entries.first().key.
 
             logger.info("Generated instance name: ${container.name}")
-            object: UnitInstance {
-                override val remoteAddress: Connection
-                    get() = object : Connection {
-                        override val host: String
-                            get() = container.networkSettings.ipAddress
+            val connection =
+                networkService.createUnitConnection(container.networkSettings.ipAddress, 8080)
 
-                        override val port: Short
-                            get() = container
-                    }
-            }
+            UnitInstance(connection)
         }
+    }
+
+    private suspend fun tryCreateContainer(image: String): String {
+        return try {
+            createContainer(image)
+        } catch (e: NotFoundException) {
+            pullContainerImage(image)
+            createContainer(image)
+        }
+    }
+
+    private suspend fun createContainer(image: String): String =
+        suspendCoroutine<CreateContainerResponse> { cont ->
+            cont.resumeWith(runCatching {
+                client.createContainerCmd(image).exec()
+            })
+        }.id
+
+    private suspend fun pullContainerImage(image: String) =
+        suspendCancellableCoroutine<Unit> { cont ->
+            client.pullImageCmd(image).exec(object : PullImageResultCallback() {
+                override fun onStart(stream: Closeable?) {
+                    logger.info("Preparing to pull image...")
+                }
+
+                override fun onNext(item: PullResponseItem?) {
+                    logger.info("Pulling \"$image\"... $item")
+                }
+
+                override fun onError(throwable: Throwable?) {
+                    cont.cancel(throwable)
+                }
+
+                override fun onComplete() {
+                    logger.info("Image \"$image\" pull completed")
+                    cont.resume(Unit)
+                }
+            })
+        }
+
+    private fun initClient(): DockerClient {
+        return DockerClientBuilder.getInstance(
+            DefaultDockerClientConfig.createDefaultConfigBuilder()
+                .withDockerHost("tcp://localhost:2375")
+                .build()
+        )
+            .build()
     }
 
 }

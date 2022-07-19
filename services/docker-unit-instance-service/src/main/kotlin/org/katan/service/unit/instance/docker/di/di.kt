@@ -6,5 +6,5 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 public val DockerUnitInstanceServiceModule: Module = module {
-    single<UnitInstanceService> { DockerUnitInstanceServiceImpl() }
+    single<UnitInstanceService> { DockerUnitInstanceServiceImpl(get(), get()) }
 }
