@@ -5,9 +5,16 @@ sealed interface UnitStatus {
 
     val name: String
 
-    @kotlinx.serialization.Serializable
     object Unknown : UnitStatus {
         override val name: String = "unknown"
+    }
+
+    object Created : UnitStatus {
+        override val name: String = "created"
+    }
+
+    object MissingInstance : UnitStatus {
+        override val name: String = "missing-instance"
     }
 
 }
