@@ -23,6 +23,7 @@ fun Application.installDefaultFeatures() {
     install(ContentNegotiation) {
         json(Json {
             ignoreUnknownKeys = true
+            explicitNulls = false
         })
     }
     install(StatusPages) {
