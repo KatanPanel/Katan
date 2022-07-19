@@ -23,7 +23,12 @@ class CreateUnitTest : KoinTest {
     }) {
         val testClient = createTestClient()
         val request = testClient.post(UnitRoutes()) {
-            setBody(CreateUnitRequest("test"))
+            setBody(
+                CreateUnitRequest(
+                    name = "test",
+                    dockerImage = "test"
+                )
+            )
         }
 
         assertEquals(HttpStatusCode.Created, request.status)
