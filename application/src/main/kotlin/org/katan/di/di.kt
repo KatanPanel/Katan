@@ -5,6 +5,7 @@ import org.katan.http.server.di.HttpModule
 import org.katan.runtime.di.RuntimeModule
 import org.katan.service.account.di.AccountServiceModule
 import org.katan.service.id.di.IdServiceModule
+import org.katan.service.network.di.NetworkServiceDi
 import org.katan.service.server.di.UnitServiceModule
 import org.katan.service.unit.instance.docker.di.DockerUnitInstanceServiceModule
 import org.koin.core.KoinApplication
@@ -14,6 +15,7 @@ private val ServicesModule
     get() = module {
         includes(
             IdServiceModule,
+            NetworkServiceDi,
             AccountServiceModule,
             UnitServiceModule,
             DockerUnitInstanceServiceModule

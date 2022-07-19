@@ -24,6 +24,7 @@ include(
     "services:docker-unit-instance-service",
     "services:account-service",
     "services:database-service",
+    "services:network-service",
     "configuration",
     "http:http-shared",
     "http:http-server",

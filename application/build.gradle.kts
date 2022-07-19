@@ -10,12 +10,13 @@ application {
 dependencies {
     implementation(projects.core)
     implementation(projects.runtime)
+    implementation(projects.configuration)
     implementation(projects.services.idService)
-    implementation(projects.services.accountService)
     implementation(projects.services.unitService)
+    implementation(projects.services.accountService)
+    implementation(projects.services.networkService)
     implementation(projects.services.unitInstanceService)
     implementation(projects.services.dockerUnitInstanceService)
-    implementation(projects.configuration)
 }
 
 tasks {
