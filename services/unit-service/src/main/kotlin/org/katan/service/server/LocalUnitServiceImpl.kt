@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.model.unit.KUnit
+import org.katan.model.unit.UnitStatus
 import org.katan.service.id.IdService
 import org.katan.service.unit.instance.UnitInstanceService
 
@@ -65,7 +66,8 @@ public class LocalUnitServiceImpl(
             description = options.description,
             createdAt = currentInstant,
             updatedAt = currentInstant,
-            instance = instance
+            instance = instance,
+            status = if (instance == null) UnitStatus.MissingInstance else UnitStatus.Created
         )
     }
 

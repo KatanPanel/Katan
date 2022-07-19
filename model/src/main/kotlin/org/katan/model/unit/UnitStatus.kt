@@ -1,20 +1,11 @@
 package org.katan.model.unit
 
-@kotlinx.serialization.Serializable
-sealed interface UnitStatus {
+import kotlinx.serialization.Serializable
 
-    val name: String
-
-    object Unknown : UnitStatus {
-        override val name: String = "unknown"
-    }
-
-    object Created : UnitStatus {
-        override val name: String = "created"
-    }
-
-    object MissingInstance : UnitStatus {
-        override val name: String = "missing-instance"
-    }
+@Serializable
+enum class UnitStatus(val value: String) {
+    Unknown("unknown"),
+    Created("created"),
+    MissingInstance("missing-instance")
 
 }
