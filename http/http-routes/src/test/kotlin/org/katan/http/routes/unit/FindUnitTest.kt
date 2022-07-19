@@ -10,6 +10,7 @@ import org.katan.http.UnitNotFound
 import org.katan.http.createTestClient
 import org.katan.http.routes.unit.locations.UnitRoutes
 import org.katan.http.routes.unit.routes.findUnit
+import org.katan.http.test.VALID_SNOWFLAKE_ID
 import org.katan.http.withTestApplication
 import org.koin.test.KoinTest
 import kotlin.test.Test
@@ -24,7 +25,7 @@ class FindUnitTest : KoinTest {
         }
     }) {
         val testClient = createTestClient()
-        val request = testClient.get(UnitRoutes.Get(id = "unknown"))
+        val request = testClient.get(UnitRoutes.Get(id = VALID_SNOWFLAKE_ID))
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)
