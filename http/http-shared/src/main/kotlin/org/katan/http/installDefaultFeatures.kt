@@ -27,9 +27,9 @@ fun Application.installDefaultFeatures() {
         })
     }
     install(StatusPages) {
-        exception<KatanHttpException> { call, cause ->
-            cause.printStackTrace()
-            call.respond(cause.httpStatus, HttpError(cause.code, cause.message))
+        exception<KatanHttpException> { call, httpError ->
+            httpError.cause?.printStackTrace()
+            call.respond(httpError.httpStatus, HttpError(httpError.code, httpError.message))
         }
 
         exception<Throwable> { call, cause ->
