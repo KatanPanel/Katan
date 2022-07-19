@@ -18,7 +18,7 @@ internal data class ConfigImpl(
     ) : KatanConfig.HttpServerConfig
 
     data class DockerClientConfig(
-        override val path: String
+        override val host: String
     ) : KatanConfig.DockerClientConfig
 
 }

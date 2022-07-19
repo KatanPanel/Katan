@@ -105,7 +105,7 @@ internal class DockerUnitInstanceServiceImpl(
     private fun initClient(): DockerClient {
         return DockerClientBuilder.getInstance(
             DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withDockerHost("tcp://localhost:2375")
+                .withDockerHost(config.docker.host)
                 .build()
         )
             .build()

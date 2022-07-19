@@ -24,7 +24,7 @@ interface KatanConfig {
 
     interface DockerClientConfig {
 
-        val path: String
+        val host: String
 
     }
 
