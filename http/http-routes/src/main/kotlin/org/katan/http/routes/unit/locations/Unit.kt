@@ -9,6 +9,6 @@ internal class UnitRoutes {
 
     @Serializable
     @Resource("{id}")
-    internal class Get(val id: String)
+    internal class Get(val parent: UnitRoutes = UnitRoutes(), val id: String)
 
 }
