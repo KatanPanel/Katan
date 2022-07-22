@@ -3,6 +3,7 @@ package org.katan.http.routes.unit_instance.routes
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.resources.get
+import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import org.katan.http.routes.unit_instance.UnitInstanceResource
@@ -13,7 +14,7 @@ import org.koin.ktor.ext.inject
 internal fun Route.killUnitInstance() {
     val unitInstanceService by inject<UnitInstanceService>()
 
-    get<UnitInstanceResource.Start> { parameters ->
+    post<UnitInstanceResource.Kill> { parameters ->
         val instance = getInstanceOrThrow {
             unitInstanceService.getInstance(parameters.instanceId.toLong())
         }
