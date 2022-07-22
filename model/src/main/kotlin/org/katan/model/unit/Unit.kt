@@ -1,7 +1,7 @@
 package org.katan.model.unit
 
 import kotlinx.datetime.Instant
-import org.katan.model.Connection
+import kotlinx.serialization.Serializable
 
 typealias KUnit = Unit
 
@@ -118,4 +118,11 @@ interface Unit {
      */
     val status: UnitStatus
 
+}
+
+@Serializable
+enum class UnitStatus(val value: String) {
+    Unknown("unknown"),
+    Created("created"),
+    MissingInstance("missing-instance")
 }
