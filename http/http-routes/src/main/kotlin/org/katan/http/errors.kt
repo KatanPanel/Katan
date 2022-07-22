@@ -9,3 +9,8 @@ internal val UnitMissingCreateOptions =
 
 internal val InvalidUnitIdFormat =
     HttpError(1004, "Invalid unit id format")
+
+internal val UnitInstanceNotFound = HttpError(2000, "Unit instance not found")
+
+internal val ErrorWhileFetchingUnitInstance =
+    HttpError(2001, "Couldn't fetch unit instance info, try again later.")

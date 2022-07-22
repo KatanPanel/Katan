@@ -6,8 +6,8 @@ import org.katan.http.InvalidUnitIdFormat
 import org.katan.http.UnitNotFound
 import org.katan.http.respond
 import org.katan.http.respondError
+import org.katan.http.routes.unit.UnitResource
 import org.katan.http.routes.unit.dto.UnitResponse
-import org.katan.http.routes.unit.locations.UnitRoutes
 import org.katan.service.id.IdService
 import org.katan.service.server.UnitService
 import org.koin.ktor.ext.inject
@@ -16,7 +16,7 @@ internal fun Route.findUnit() {
     val unitService by inject<UnitService>()
     val idService by inject<IdService>()
 
-    get<UnitRoutes.Get> { parameters ->
+    get<UnitResource.ById> { parameters ->
         val id = try {
             idService.parse(parameters.id)
         } catch (e: IllegalArgumentException) {

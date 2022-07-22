@@ -4,7 +4,7 @@ ktx-serialization = "1.3.3"
 ktx-coroutines = "1.6.2"
 ktx-atomicfu = "0.17.2"
 ktx-datetime = "0.3.2"
-exposed = "0.37.3"
+exposed = "0.38.2"
 koin = "3.2.0"
 grpc = "1.45.0"
 grpcKotlin = "1.2.1"
@@ -149,6 +149,18 @@ version.ref = "hoplite"
 [libraries.postgresql]
 module = "org.postgresql:postgresql"
 version.ref = "postgresql"
+
+[libraries.exposed-core]
+module = "org.jetbrains.exposed:exposed-core"
+version.ref = "exposed"
+
+[libraries.exposed-kotlin-datetime]
+module = "org.jetbrains.exposed:exposed-kotlin-datetime"
+version.ref = "exposed"
+
+[libraries.exposed-dao]
+module = "org.jetbrains.exposed:exposed-dao"
+version.ref = "exposed"
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "plugin-protobuf" }

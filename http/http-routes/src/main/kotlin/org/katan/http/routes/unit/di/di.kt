@@ -11,7 +11,7 @@ import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.withOptions
 import org.koin.dsl.module
 
-internal val UnitRoutesDI: Module = module {
+internal val unitHttpRoutesDI: Module = module {
     single<HttpModule> { UnitRoutesHttpModule(get()) } withOptions {
         createdAtStart()
     }

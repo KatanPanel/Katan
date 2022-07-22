@@ -8,7 +8,6 @@ import org.katan.http.HttpError
 import org.katan.http.InvalidUnitIdFormat
 import org.katan.http.UnitNotFound
 import org.katan.http.createTestClient
-import org.katan.http.routes.unit.locations.UnitRoutes
 import org.katan.http.routes.unit.routes.findUnit
 import org.katan.http.test.VALID_SNOWFLAKE_ID
 import org.katan.http.withTestApplication
@@ -25,7 +24,7 @@ class FindUnitTest : KoinTest {
         }
     }) {
         val testClient = createTestClient()
-        val request = testClient.get(UnitRoutes.Get(id = VALID_SNOWFLAKE_ID))
+        val request = testClient.get(UnitResource.ById(id = VALID_SNOWFLAKE_ID))
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)
@@ -39,7 +38,7 @@ class FindUnitTest : KoinTest {
         }
     }) {
         val testClient = createTestClient()
-        val request = testClient.get(UnitRoutes.Get(id = "abcdefgh"))
+        val request = testClient.get(UnitResource.ById(id = "abcdefgh"))
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)

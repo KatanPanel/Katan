@@ -3,6 +3,7 @@ package org.katan.http.routes.unit.dto
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.katan.http.routes.unit_instance.dto.UnitInstanceResponse
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.UnitInstance
 
@@ -17,7 +18,7 @@ internal data class UnitResponse(
     @SerialName("created-at") val createdAt: Instant,
     @SerialName("updated-at") val updatedAt: Instant,
     @SerialName("deleted-at") val deletedAt: Instant?,
-    val instance: UnitInstance?,
+    val instance: UnitInstanceResponse?,
     val status: String
 ) {
 
@@ -31,7 +32,7 @@ internal data class UnitResponse(
         createdAt = value.createdAt,
         updatedAt = value.updatedAt,
         deletedAt = value.deletedAt,
-        instance = value.instance,
+        instance = value.instance?.let { UnitInstanceResponse(it) },
         status = value.status.value
     )
 

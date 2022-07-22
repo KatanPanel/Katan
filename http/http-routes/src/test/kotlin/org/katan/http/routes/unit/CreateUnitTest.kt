@@ -10,7 +10,7 @@ import org.katan.http.UnitMissingCreateOptions
 import org.katan.http.createTestClient
 import org.katan.http.routes.unit.dto.CreateUnitRequest
 import org.katan.http.routes.unit.dto.CreateUnitResponse
-import org.katan.http.routes.unit.locations.UnitRoutes
+import org.katan.http.routes.unit.locations.UnitResource
 import org.katan.http.routes.unit.routes.createUnit
 import org.katan.http.withTestApplication
 import org.koin.test.KoinTest
@@ -27,7 +27,7 @@ class CreateUnitTest : KoinTest {
     }) {
         val testClient = createTestClient()
         val propName = "test"
-        val request = testClient.post(UnitRoutes()) {
+        val request = testClient.post(UnitResource()) {
             setBody(
                 CreateUnitRequest(
                     name = propName,
@@ -49,7 +49,7 @@ class CreateUnitTest : KoinTest {
         }
     }) {
         val testClient = createTestClient()
-        val request = testClient.post(UnitRoutes())
+        val request = testClient.post(UnitResource())
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)

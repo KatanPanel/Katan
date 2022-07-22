@@ -1,14 +1,16 @@
-package org.katan.http.routes.unit.locations
+package org.katan.http.routes.unit
 
 import io.ktor.resources.Resource
 import kotlinx.serialization.Serializable
 
 @Serializable
 @Resource("/units")
-internal class UnitRoutes {
+internal class UnitResource {
 
     @Serializable
     @Resource("{id}")
-    internal class Get(val parent: UnitRoutes = UnitRoutes(), val id: String)
+    internal class ById(val parent: UnitResource = UnitResource(), val id: String)
+
+
 
 }
