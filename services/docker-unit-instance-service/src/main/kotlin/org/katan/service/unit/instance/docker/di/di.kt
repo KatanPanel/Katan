@@ -5,6 +5,12 @@ import org.katan.service.unit.instance.docker.DockerUnitInstanceServiceImpl
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-public val DockerUnitInstanceServiceModule: Module = module {
-    single<UnitInstanceService> { DockerUnitInstanceServiceImpl(get(), get()) }
+public val dockerUnitInstanceServiceImplDI: Module = module {
+    single<UnitInstanceService>(createdAtStart = true) {
+        DockerUnitInstanceServiceImpl(
+            get(),
+            get(),
+            get()
+        )
+    }
 }

@@ -16,7 +16,7 @@ include(
     "grpc:protos",
     "model",
     "application",
-    "core",
+    "events-dispatcher",
     "services:id-service",
     "services:unit-service",
     "services:unit-instance-service",

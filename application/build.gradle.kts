@@ -8,8 +8,9 @@ application {
 }
 
 dependencies {
-    implementation(projects.core)
     implementation(projects.configuration)
+    implementation(projects.eventsDispatcher)
+    implementation(projects.http.httpServer)
     implementation(projects.services.idService)
     implementation(projects.services.unitService)
     implementation(projects.services.accountService)

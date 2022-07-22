@@ -5,6 +5,6 @@ import org.katan.service.account.LocalAccountServiceImpl
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-public val AccountServiceModule: Module = module {
+public val accountServiceDI: Module = module {
     single<AccountService> { LocalAccountServiceImpl(get()) }
 }

@@ -5,6 +5,6 @@ import org.katan.service.id.SnowflakeIdServiceImpl
 import org.koin.dsl.module
 import org.koin.core.module.Module
 
-public val IdServiceModule: Module = module {
+public val idServiceDI: Module = module {
     single<IdService> { SnowflakeIdServiceImpl(get()) }
 }
