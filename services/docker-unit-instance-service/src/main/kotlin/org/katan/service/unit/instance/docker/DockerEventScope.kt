@@ -12,7 +12,7 @@ import org.katan.event.EventScope
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.jvm.jvmName
 
-internal class EventsListener(
+internal class DockerEventScope(
     private inline val client: () -> DockerClient,
     private val eventsDispatcher: EventScope,
     parentCoroutineContext: CoroutineContext
@@ -49,4 +49,4 @@ internal class EventsListener(
 }
 
 @JvmInline
-private value class DockerEvent(val type: String) : org.katan.event.Event
+internal value class DockerEvent(val type: String)

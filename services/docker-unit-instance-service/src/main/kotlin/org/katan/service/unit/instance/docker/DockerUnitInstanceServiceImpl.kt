@@ -45,7 +45,7 @@ internal class DockerUnitInstanceServiceImpl(
     }
 
     init {
-        EventsListener({ client }, eventsDispatcher, coroutineContext)
+        DockerEventScope({ client }, eventsDispatcher, coroutineContext)
     }
 
     private val client: DockerClient by lazy { initClient() }
@@ -109,9 +109,16 @@ internal class DockerUnitInstanceServiceImpl(
 //            val connection =
 //                networkService.createUnitConnection(container.networkSettings.ipAddress, 8080)
 
-            val instanceId = idService.generate()
+            val id = idService.generate()
+            val instance = UnitInstance(
+                id,
+                spec.image,
+                UnitInstanceStatus.None,
+                containerId
+            )
 
-            UnitInstance(instanceId, spec.image, UnitInstanceStatus.None, containerId)
+            mutex.withLock { instances[id] = instance }
+            instance
         }
     }
 

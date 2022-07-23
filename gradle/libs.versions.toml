@@ -22,6 +22,10 @@ plugin-shadowjar = "7.1.2"
 module = "org.jetbrains.kotlin:kotlin-test"
 version.ref = "kotlin"
 
+[libraries.kotlin-test-annotations-common]
+module = "org.jetbrains.kotlin:kotlin-test-annotations-common"
+version.ref = "kotlin"
+
 [libraries.ktx-atomicfu]
 module = "org.jetbrains.kotlinx:atomicfu"
 version.ref = "ktx-atomicfu"
@@ -40,6 +44,10 @@ version.ref = "ktx-serialization"
 
 [libraries.ktx-coroutines-core]
 module = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+version.ref = "ktx-coroutines"
+
+[libraries.ktx-coroutines-test]
+module = "org.jetbrains.kotlinx:kotlinx-coroutines-test"
 version.ref = "ktx-coroutines"
 
 [libraries.koin-core]
