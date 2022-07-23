@@ -1,26 +1,25 @@
 version: "3"
 services:
-  katan:
-    image: katanpanel/server:latest
-    container_name: katan-server jdbc:postgresql://{host}/{database}
-    links:
-      - postgres
-      - redis
-    ports:
-      - "80:80"
-      - "433:433"
-    environment:
-      - "KATAN_DB_URL=jdbc:postgresql://0.0.0.0/5432"
-      - "KATAN_DB_NAME=katan"
-      - "KATAN_DB_USER=katan"
-      - "KATAN_DB_PASSWORD=katan"
-      - "KATAN_REDIS_PASSWORD=katan"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./katan/server:/usr/katan"
+#  katan:
+#    image: katanpanel/server:latest
+#    container_name: katan-server jdbc:postgresql://{host}/{database}
+#    links:
+#      - postgres
+#      - redis
+#    ports:
+#      - "80:80"
+#      - "433:433"
+#    environment:
+#      - "KATAN_DB_URL=jdbc:postgresql://0.0.0.0/5432"
+#      - "KATAN_DB_NAME=katan"
+#      - "KATAN_DB_USER=katan"
+#      - "KATAN_DB_PASSWORD=katan"
+#      - "KATAN_REDIS_PASSWORD=katan"
+#    volumes:
+#      - "/var/run/docker.sock:/var/run/docker.sock"
+#      - "./katan/server:/usr/katan"
   postgres:
-    image: postgres:9.6
-    container_name: "postgres"
+    image: postgres:latest
     restart: always
     environment:
       - POSTGRES_DB=katan
