@@ -9,11 +9,6 @@ public interface UnitInstanceRepository {
 
     public suspend fun create(instance: UnitInstance)
 
-    public suspend fun updateStatus(
-        id: Long,
-        status: UnitInstanceStatus
-    )
-
     public suspend fun delete(id: Long)
 
 }

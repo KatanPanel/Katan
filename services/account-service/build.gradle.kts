@@ -1,3 +1,6 @@
 dependencies {
-    implementation(project(":services:id-service"))
+    implementation(projects.services.idService)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.jedis)
 }

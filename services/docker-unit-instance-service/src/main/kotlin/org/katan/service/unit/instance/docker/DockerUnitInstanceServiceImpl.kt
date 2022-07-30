@@ -1,17 +1,10 @@
 package org.katan.service.unit.instance.docker
 
 import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.command.CreateContainerResponse
-import com.github.dockerjava.api.command.PullImageResultCallback
-import com.github.dockerjava.api.exception.NotFoundException
-import com.github.dockerjava.api.model.PullResponseItem
-import com.github.dockerjava.core.DefaultDockerClientConfig
-import com.github.dockerjava.core.DockerClientBuilder
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -23,9 +16,6 @@ import org.katan.model.unit.UnitInstanceStatus
 import org.katan.service.id.IdService
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.UnitInstanceSpec
-import java.io.Closeable
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -42,6 +32,8 @@ internal class DockerUnitInstanceServiceImpl(
 
     private companion object {
         private val logger = LogManager.getLogger(DockerUnitInstanceServiceImpl::class.java)
+
+        private const val NETWORK_DRIVER_MACVLAN = "macvlan"
     }
 
     init {
@@ -58,7 +50,7 @@ internal class DockerUnitInstanceServiceImpl(
 
     override suspend fun deleteInstance(instance: UnitInstance) {
         withContext(Dispatchers.IO) {
-            client.removeContainerCmd(instance.container)
+            client.removeContainerCmd(instance.runtimeId)
                 .withRemoveVolumes(true)
                 .withForce(true)
                 .exec()
@@ -66,23 +58,32 @@ internal class DockerUnitInstanceServiceImpl(
     }
 
     override suspend fun stopInstance(instance: UnitInstance) {
-        if (!instance.status.canBeStopped())
-            throw IllegalStateException("Instance cannot be stopped: ${instance.status.name}")
+        check(instance.status.isRunning()) {
+            "Unit instance is not running, cannot be stopped (current status: %s)".format(
+                instance.status.name
+            )
+        }
 
         withContext(Dispatchers.IO) {
-            client.stopContainerCmd(instance.container).exec()
+            client.stopContainerCmd(instance.runtimeId).exec()
         }
     }
 
     override suspend fun startInstance(instance: UnitInstance) {
+        check(!instance.status.isRunning()) {
+            "Unit instance is already running, cannot be started again, stop it first (current status: %s)".format(
+                instance.status.name
+            )
+        }
+
         withContext(Dispatchers.IO) {
-            client.startContainerCmd(instance.container).exec()
+            client.startContainerCmd(instance.runtimeId).exec()
         }
     }
 
     override suspend fun killInstance(instance: UnitInstance) {
         withContext(Dispatchers.IO) {
-            client.killContainerCmd(instance.container).exec()
+            client.killContainerCmd(instance.runtimeId).exec()
         }
     }
 
@@ -120,70 +121,6 @@ internal class DockerUnitInstanceServiceImpl(
             mutex.withLock { instances[id] = instance }
             instance
         }
-    }
-
-    /**
-     * Tries to create a container using the given [image].
-     *
-     * If the given image is not available, it will pull the image and then try to create the
-     * container again suspending the current coroutine for both jobs.
-     * @return The created container id.
-     */
-    private suspend fun tryCreateContainer(image: String): String {
-        return try {
-            createContainer(image)
-        } catch (e: NotFoundException) {
-            pullContainerImage(image)
-            createContainer(image)
-        }
-    }
-
-    /**
-     * Creates a Docker container using the given [image] suspending the coroutine until the
-     * container creation workflow is completed.
-     */
-    private suspend fun createContainer(image: String): String =
-        suspendCoroutine<CreateContainerResponse> { cont ->
-            cont.resumeWith(runCatching {
-                client.createContainerCmd(image).exec()
-            })
-        }.id
-
-    /**
-     * Pulls a Docker image from suspending the current coroutine until that image pulls completely.
-     */
-    private suspend fun pullContainerImage(image: String) =
-        suspendCancellableCoroutine<Unit> { cont ->
-            client.pullImageCmd(image).exec(object : PullImageResultCallback() {
-                override fun onStart(stream: Closeable?) {
-                    logger.info("Preparing to pull image...")
-                }
-
-                override fun onNext(item: PullResponseItem?) {
-                    logger.info("Pulling \"$image\"... $item")
-                }
-
-                override fun onError(throwable: Throwable?) {
-                    cont.cancel(throwable)
-                }
-
-                override fun onComplete() {
-                    logger.info("Image \"$image\" pull completed")
-                    cont.resume(Unit)
-                }
-            })
-        }
-
-    /**
-     * Initializes a [DockerClient] with [KatanConfig.DockerClientConfig.host] as Docker host.
-     */
-    private fun initClient(): DockerClient {
-        return DockerClientBuilder.getInstance(
-            DefaultDockerClientConfig.createDefaultConfigBuilder()
-                .withDockerHost(config.docker.host)
-                .build()
-        )
-            .build()
     }
 
 }

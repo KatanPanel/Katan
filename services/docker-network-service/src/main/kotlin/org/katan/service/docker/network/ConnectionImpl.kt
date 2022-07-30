@@ -1,4 +1,4 @@
-package org.katan.service.network
+package org.katan.service.docker.network
 
 import org.katan.model.Connection
 

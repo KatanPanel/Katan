@@ -14,3 +14,6 @@ This document contains a list of third-party libraries that Katan uses.
 * [docker-java](https://github.com/docker-java/docker-java). Apache License 2.0.
 * [hoplite](https://github.com/sksamuel/hoplite). Apache License 2.0.
 * [PostgreSQL](https://jdbc.postgresql.org/). BSD-2-Clause.
+* [Yoki](https://github.com/DevNatan/yoki). MIT License.
+* [The Bouncy Castle Crypto Package For Java](https://github.com/bcgit/bc-java). MIT License.
+* [Jedis](https://github.com/redis/jedis). MIT License.

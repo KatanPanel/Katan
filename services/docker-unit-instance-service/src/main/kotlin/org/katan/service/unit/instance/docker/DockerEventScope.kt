@@ -8,15 +8,27 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import org.katan.event.EventScope
+import java.io.Closeable
+import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.jvm.jvmName
 
 internal class DockerEventScope(
     private inline val client: () -> DockerClient,
     private val eventsDispatcher: EventScope,
     parentCoroutineContext: CoroutineContext
-) : CoroutineScope by CoroutineScope(parentCoroutineContext + CoroutineName(EventsListener::class.jvmName)) {
+) : CoroutineScope by CoroutineScope(parentCoroutineContext + CoroutineName(DockerEventScope::class.jvmName)) {
+
+    companion object {
+        private const val MAX_LISTEN_RETRY_ATTEMPTS = 3
+        private val logger: Logger = LogManager.getLogger(DockerEventScope::class.java)
+    }
 
     init {
         val job = Job()
@@ -26,16 +38,57 @@ internal class DockerEventScope(
             throw IllegalStateException("Events listener job cannot be completed")
         }
 
-        launch(job) { listen() }
+        launch(job) {
+            tryListen()
+        }
     }
 
-    private fun listen() {
+    /**
+     * Listens for Docker events.
+     */
+    private fun listen(cont: Continuation<Unit>) {
         client().eventsCmd()
             .exec(object : ResultCallback.Adapter<Event>() {
+                override fun onStart(stream: Closeable?) {
+                    cont.resume(Unit)
+                    logger.info("Docker events listener operation started.")
+                }
+
                 override fun onNext(event: Event) {
                     handle(event)
                 }
+
+                override fun onError(throwable: Throwable) {
+                    cont.resumeWithException(throwable)
+                    super.onError(throwable)
+                }
+
+                override fun onComplete() {
+                    logger.info("Docker events listener operation completed.")
+                }
             })
+    }
+
+    /**
+     *
+     */
+    private suspend fun tryListen(currRetryCount: Int = 1) {
+        try {
+            suspendCoroutine<Unit> { listen(it) }
+        } catch (e: Throwable) {
+            logger.info(
+                "Failed to listen Docker events (%d of %d).".format(
+                    currRetryCount,
+                    MAX_LISTEN_RETRY_ATTEMPTS
+                ),
+                e
+            )
+
+            if (currRetryCount == MAX_LISTEN_RETRY_ATTEMPTS)
+                return
+
+            tryListen(currRetryCount + 1)
+        }
     }
 
     private fun handle(event: Event) {

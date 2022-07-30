@@ -14,19 +14,18 @@ interface Account {
      */
     val username: String
 
+    val hash: String
+
     /**
      * The instant this account was registered.
      */
-    val registeredAt: Instant
+    val createdAt: Instant
+
+    val updatedAt: Instant
 
     /**
      * The last instant this account was logged in.
      */
     val lastLoggedInAt: Instant?
-
-    /**
-     * If this account is deactivated for login.
-     */
-    val deactivated: Boolean
 
 }

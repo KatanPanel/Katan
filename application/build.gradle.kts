@@ -8,15 +8,18 @@ application {
 }
 
 dependencies {
+    implementation(libs.jedis)
     implementation(projects.configuration)
     implementation(projects.eventsDispatcher)
     implementation(projects.http.httpServer)
     implementation(projects.services.idService)
     implementation(projects.services.unitService)
     implementation(projects.services.accountService)
+    implementation(projects.services.authService)
     implementation(projects.services.networkService)
     implementation(projects.services.unitInstanceService)
     implementation(projects.services.dockerUnitInstanceService)
+    implementation(projects.services.cacheService)
 }
 
 tasks {
