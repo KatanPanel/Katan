@@ -81,6 +81,7 @@ internal class RedisCacheServiceImpl(
 
     override fun close() {
         client?.close()
+        logger.info("Redis client closed.")
     }
 
 }

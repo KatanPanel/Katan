@@ -19,6 +19,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.jvm.jvmName
 
+// TODO use it
 internal class DockerEventScope(
     private inline val client: () -> DockerClient,
     private val eventsDispatcher: EventScope,
@@ -70,7 +71,7 @@ internal class DockerEventScope(
     }
 
     /**
-     *
+     * TODO
      */
     private suspend fun tryListen(currRetryCount: Int = 1) {
         try {
