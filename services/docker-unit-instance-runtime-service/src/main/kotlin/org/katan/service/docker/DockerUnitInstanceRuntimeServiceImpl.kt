@@ -50,13 +50,8 @@ internal class DockerUnitInstanceRuntimeServiceImpl(
         }
     }
 
-    override suspend fun updateRuntimeStatus(id: String, newStatus: UnitInstanceStatus) {
-        when (newStatus) {
-            is ContainerStatus.Dead -> withContext(Dispatchers.IO) {
-                dockerJavaClient.killContainerCmd(id).exec()
-            }
-            is ContainerStatus.Star
-        }
+    override suspend fun stopRuntime(id: String) {
+        yokiClient.containers.stop(id)
     }
 
     /**
@@ -109,8 +104,6 @@ internal class DockerUnitInstanceRuntimeServiceImpl(
     private fun CreateContainerCmd.buildContainerBasedOnConfiguration() = apply {
 //        if (config.docker.network.driver == NETWORK_DRIVER_MACVLAN)
 //            applyMacvlanIpAddress()
-
-        withNetworkMode()
     }
 
     /**
