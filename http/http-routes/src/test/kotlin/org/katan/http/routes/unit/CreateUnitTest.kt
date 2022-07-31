@@ -10,7 +10,6 @@ import org.katan.http.UnitMissingCreateOptions
 import org.katan.http.createTestClient
 import org.katan.http.routes.unit.dto.CreateUnitRequest
 import org.katan.http.routes.unit.dto.CreateUnitResponse
-import org.katan.http.routes.unit.locations.UnitResource
 import org.katan.http.routes.unit.routes.createUnit
 import org.katan.http.withTestApplication
 import org.koin.test.KoinTest
