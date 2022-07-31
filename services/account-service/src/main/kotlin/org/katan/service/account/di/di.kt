@@ -1,10 +1,13 @@
 package org.katan.service.account.di
 
 import org.katan.service.account.AccountService
-import org.katan.service.account.LocalAccountServiceImpl
+import org.katan.service.account.AccountServerImpl
+import org.katan.service.account.repository.AccountsRepository
+import org.katan.service.account.repository.AccountsRepositoryImpl
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 public val accountServiceDI: Module = module {
-    single<AccountService> { LocalAccountServiceImpl(get()) }
+    single<AccountsRepository> { AccountsRepositoryImpl(get()) }
+    single<AccountService> { AccountServerImpl(get(), get(), get()) }
 }

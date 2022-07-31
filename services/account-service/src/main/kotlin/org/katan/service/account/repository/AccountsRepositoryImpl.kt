@@ -1,13 +1,14 @@
 package org.katan.service.account.repository
 
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.dao.LongEntity
 import org.jetbrains.exposed.dao.LongEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.account.Account
 import org.katan.service.account.AccountImpl
 
@@ -32,10 +33,18 @@ private class AccountsEntity(id: EntityID<Long>): LongEntity(id) {
 
 }
 
-internal class AccountsRepositoryImpl : AccountsRepository {
+internal class AccountsRepositoryImpl(
+    private val database: Database
+) : AccountsRepository {
+
+    init {
+        transaction(db = database) {
+            SchemaUtils.create(AccountsTable)
+        }
+    }
 
     override suspend fun findById(id: Long): Account? {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             AccountsEntity.findById(id)?.let {
                 AccountImpl(
                     it.id.value,
@@ -49,8 +58,23 @@ internal class AccountsRepositoryImpl : AccountsRepository {
         }
     }
 
+    override suspend fun findByUsername(username: String): Account? {
+        return newSuspendedTransaction(db = database) {
+            AccountsEntity.find { AccountsTable.username eq username }.firstOrNull()?.let {
+                AccountImpl(
+                    it.id.value,
+                    it.username,
+                    it.hash,
+                    it.createdAt,
+                    it.updatedAt,
+                    it.lastLoggedInAt
+                )
+            }
+        }
+    }
+
     override suspend fun addAccount(account: Account) {
-        newSuspendedTransaction {
+        newSuspendedTransaction(db = database) {
             AccountsEntity.new(account.id) {
                 username = account.username
                 hash = account.hash
@@ -62,7 +86,7 @@ internal class AccountsRepositoryImpl : AccountsRepository {
     }
 
     override suspend fun deleteAccount(accountId: Long) {
-        newSuspendedTransaction {
+        newSuspendedTransaction(db = database) {
             AccountsEntity.findById(accountId)?.delete()
         }
     }

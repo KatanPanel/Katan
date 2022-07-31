@@ -16,10 +16,6 @@ internal class PostgreSQLDatabaseServiceImpl(
     }
 
     override fun get(): Database {
-        return connect()
-    }
-
-    private fun connect(): Database {
         val url = "jdbc:${config.database.connectionString}"
         val conn = Database.connect(
             url = url,

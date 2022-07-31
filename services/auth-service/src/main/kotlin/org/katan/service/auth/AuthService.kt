@@ -3,13 +3,15 @@ package org.katan.service.auth
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTCreationException
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
 import org.katan.model.account.Account
 import org.katan.model.account.AccountNotFoundException
-import org.katan.model.security.Credentials
+import org.katan.model.security.AuthenticationException
 import org.katan.model.security.InvalidCredentialsException
 import org.katan.model.security.SaltedHash
+import org.katan.model.security.SecurityException
 import org.katan.service.account.AccountService
 import org.katan.service.auth.crypto.BcryptHash
 import kotlin.time.Duration
@@ -42,7 +44,7 @@ internal class AuthServiceImpl(
     private val hash: SaltedHash = BcryptHash()
 
     override fun getIdentifier(): String {
-        return ACCOUNT_CLAIM;
+        return ACCOUNT_CLAIM
     }
 
     private fun validate(
@@ -52,20 +54,29 @@ internal class AuthServiceImpl(
         if (hashValue.isEmpty() && value.isEmpty())
             return true
 
-        return hash.compare(hashValue, value)
+        // Catch any exception here to omit sensitive data
+        return try {
+            hash.compare(hashValue, value)
+        } catch (e: Throwable) {
+            throw SecurityException("Could not decrypt data.", e)
+        }
     }
 
     override suspend fun auth(username: String, password: String): String {
         val account = accountService.getAccount(username)
-            ?: throw AccountNotFoundException(username)
+            ?: throw AccountNotFoundException()
 
-        if (!validate(password, account.hash))
+        if (!validate(password, account.hash.toCharArray()))
             throw InvalidCredentialsException()
 
-        return JWT.create()
-            .withClaim(ACCOUNT_CLAIM, account.id.toString())
-            .withExpiresAt(Clock.System.now().plus(jwtTokenLifetime).toJavaInstant())
-            .sign(algorithm)
+        return try {
+            JWT.create()
+                .withClaim(ACCOUNT_CLAIM, account.id.toString())
+                .withExpiresAt(Clock.System.now().plus(jwtTokenLifetime).toJavaInstant())
+                .sign(algorithm)
+        } catch (e: JWTCreationException) {
+            throw AuthenticationException("Failed to generate access token", e)
+        }
     }
 
     override suspend fun verify(token: String): Account? {

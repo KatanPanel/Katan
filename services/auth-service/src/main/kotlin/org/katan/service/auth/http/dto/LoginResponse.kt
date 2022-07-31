@@ -1,8 +1,8 @@
-package org.katan.http.routes.auth.dto
+package org.katan.service.auth.http.dto
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class AuthLoginResponse(
+internal data class LoginResponse(
     val token: String
 )

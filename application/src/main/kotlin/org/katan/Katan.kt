@@ -9,7 +9,6 @@ import org.koin.core.definition.Kind
 import java.io.Closeable
 import kotlin.reflect.full.isSubclassOf
 
-@KoinInternalApi
 class Katan : KoinComponent {
 
     private val config: KatanConfig by inject()
@@ -28,6 +27,8 @@ class Katan : KoinComponent {
     }
 
     // https://github.com/InsertKoinIO/koin/issues/146#issuecomment-927189486
+    @Suppress("OPT_IN_IS_NOT_ENABLED")
+    @OptIn(KoinInternalApi::class)
     private inline fun <reified T : Any> getAll(): Collection<T> =
         getKoin().let { koin ->
             koin.instanceRegistry.instances.values.map { it.beanDefinition }

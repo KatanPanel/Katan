@@ -6,6 +6,8 @@ internal interface AccountsRepository {
 
     suspend fun findById(id: Long): Account?
 
+    suspend fun findByUsername(username: String): Account?
+
     suspend fun addAccount(account: Account)
 
     suspend fun deleteAccount(accountId: Long)
