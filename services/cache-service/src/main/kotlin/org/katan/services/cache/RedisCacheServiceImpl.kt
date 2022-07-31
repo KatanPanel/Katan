@@ -29,8 +29,9 @@ internal class RedisCacheServiceImpl(
     }
 
     private inline fun <T> pool(block: (UnifiedJedis) -> T): T {
-        if (client == null)
+        if (client == null) {
             client = initClient()
+        }
 
         return client!!.use(block)
     }
@@ -83,5 +84,4 @@ internal class RedisCacheServiceImpl(
         client?.close()
         logger.info("Redis client closed.")
     }
-
 }

@@ -11,5 +11,4 @@ internal interface AccountsRepository {
     suspend fun addAccount(account: Account)
 
     suspend fun deleteAccount(accountId: Long)
-
 }

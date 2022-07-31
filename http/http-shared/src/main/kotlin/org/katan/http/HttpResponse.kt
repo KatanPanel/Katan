@@ -10,7 +10,8 @@ suspend inline fun PipelineContext<*, ApplicationCall>.respond(
     response: Any,
     status: HttpStatusCode = HttpStatusCode.OK
 ) = call.respond(
-    status, response
+    status,
+    response
 )
 
 fun respondError(

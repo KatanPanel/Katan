@@ -19,10 +19,9 @@ private object AccountsTable : LongIdTable() {
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
     val lastLoggedInAt = timestamp("last_logged_in_at").nullable()
-
 }
 
-private class AccountsEntity(id: EntityID<Long>): LongEntity(id) {
+private class AccountsEntity(id: EntityID<Long>) : LongEntity(id) {
     companion object : LongEntityClass<AccountsEntity>(AccountsTable)
 
     var username by AccountsTable.username
@@ -30,7 +29,6 @@ private class AccountsEntity(id: EntityID<Long>): LongEntity(id) {
     var createdAt by AccountsTable.createdAt
     var updatedAt by AccountsTable.updatedAt
     var lastLoggedInAt by AccountsTable.lastLoggedInAt
-
 }
 
 internal class AccountsRepositoryImpl(
@@ -90,5 +88,4 @@ internal class AccountsRepositoryImpl(
             AccountsEntity.findById(accountId)?.delete()
         }
     }
-
 }

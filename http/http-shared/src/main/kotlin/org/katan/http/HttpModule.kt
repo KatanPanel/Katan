@@ -10,5 +10,4 @@ abstract class HttpModule(registry: HttpModuleRegistry) {
     }
 
     abstract fun install(app: Application)
-
 }

@@ -14,23 +14,22 @@ typealias Log4jLogLevel = org.apache.logging.log4j.Level
  */
 internal class KoinLog4jLogger : Logger(Level.DEBUG) {
 	
-	private val backingLogger: Log4jLogger = LogManager.getLogger(Koin::class.java)
+    private val backingLogger: Log4jLogger = LogManager.getLogger(Koin::class.java)
 	
-	override fun log(level: Level, msg: MESSAGE) {
-		backingLogger.log(transformLevel(level), msg)
-	}
+    override fun log(level: Level, msg: MESSAGE) {
+        backingLogger.log(transformLevel(level), msg)
+    }
 	
-	/**
-	 * Transform a Koin log level to Log4J log level.
-	 * @param level The Koin log level.
-	 */
-	private fun transformLevel(level: Level): Log4jLogLevel {
-		return when(level) {
-			Level.DEBUG -> Log4jLogLevel.DEBUG
-			Level.INFO -> Log4jLogLevel.INFO
-			Level.ERROR -> Log4jLogLevel.ERROR
-			else -> Log4jLogLevel.ALL
-		}
-	}
-	
+    /**
+     * Transform a Koin log level to Log4J log level.
+     * @param level The Koin log level.
+     */
+    private fun transformLevel(level: Level): Log4jLogLevel {
+        return when (level) {
+            Level.DEBUG -> Log4jLogLevel.DEBUG
+            Level.INFO -> Log4jLogLevel.INFO
+            Level.ERROR -> Log4jLogLevel.ERROR
+            else -> Log4jLogLevel.ALL
+        }
+    }
 }

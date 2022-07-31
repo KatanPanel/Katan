@@ -11,5 +11,4 @@ public interface AccountService {
     public suspend fun createAccount(username: String, password: String): Account
 
     public suspend fun deleteAccount(id: Long)
-
 }

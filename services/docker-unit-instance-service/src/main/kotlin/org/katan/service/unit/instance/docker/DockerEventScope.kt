@@ -85,8 +85,9 @@ internal class DockerEventScope(
                 e
             )
 
-            if (currRetryCount == MAX_LISTEN_RETRY_ATTEMPTS)
+            if (currRetryCount == MAX_LISTEN_RETRY_ATTEMPTS) {
                 return
+            }
 
             tryListen(currRetryCount + 1)
         }
@@ -99,7 +100,6 @@ internal class DockerEventScope(
             event.type?.let { eventsDispatcher.dispatch(DockerEvent(it.value)) }
         }
     }
-
 }
 
 @JvmInline

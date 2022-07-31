@@ -21,5 +21,4 @@ interface AuditLogChange {
      * The new value of the key.
      */
     val newValue: Any?
-
 }

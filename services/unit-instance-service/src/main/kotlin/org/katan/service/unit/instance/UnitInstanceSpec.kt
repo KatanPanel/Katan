@@ -5,5 +5,4 @@ public interface UnitInstanceSpec {
     public val kind: String
 
     public val data: Map<String, Any>
-
 }

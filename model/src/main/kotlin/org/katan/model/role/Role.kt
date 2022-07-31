@@ -21,5 +21,4 @@ interface Role : PermissionsHolder {
      * The position of this role.
      */
     val position: Int
-
 }

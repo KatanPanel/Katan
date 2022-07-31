@@ -13,5 +13,4 @@ object AuditLogEvents {
     const val RoleCreate = 4
     const val RoleUpdate = 5
     const val RoleDelete = 6
-
 }

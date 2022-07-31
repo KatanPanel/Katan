@@ -13,5 +13,4 @@ public interface NetworkService {
     )
 
     public suspend fun attachToDefaultNetwork(instance: UnitInstance)
-
 }

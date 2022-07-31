@@ -22,7 +22,7 @@ internal class AccountServerImpl(
 
     override suspend fun createAccount(
         username: String,
-        password: String,
+        password: String
     ): Account {
         val impl = AccountImpl(
             id = idService.generate(),
@@ -37,5 +37,4 @@ internal class AccountServerImpl(
     override suspend fun deleteAccount(id: Long) {
         return accountsRepository.deleteAccount(id)
     }
-
 }

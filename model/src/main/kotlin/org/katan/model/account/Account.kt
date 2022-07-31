@@ -27,5 +27,4 @@ interface Account {
      * The last instant this account was logged in.
      */
     val lastLoggedInAt: Instant?
-
 }

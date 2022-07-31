@@ -17,5 +17,4 @@ internal class AuthResource {
         @Suppress("unused") val parent: AuthResource = AuthResource(),
         val token: String? = null
     )
-
 }

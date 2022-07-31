@@ -117,7 +117,6 @@ interface Unit {
      * internal information that is accessed through its instance.
      */
     val status: UnitStatus
-
 }
 
 @Serializable

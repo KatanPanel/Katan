@@ -29,5 +29,4 @@ interface Hash {
      * @param hash The hash (obtained through [Hash.hash])
      */
     fun compare(value: CharArray, hash: String): Boolean
-
 }

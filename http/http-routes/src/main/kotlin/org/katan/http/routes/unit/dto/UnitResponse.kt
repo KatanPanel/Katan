@@ -21,7 +21,7 @@ internal data class UnitResponse(
     val status: String
 ) {
 
-    constructor(value: KUnit): this(
+    constructor(value: KUnit) : this(
         id = value.id,
         externalId = value.externalId,
         nodeId = value.nodeId,
@@ -34,5 +34,4 @@ internal data class UnitResponse(
         instance = value.instance,
         status = value.status.value
     )
-
 }

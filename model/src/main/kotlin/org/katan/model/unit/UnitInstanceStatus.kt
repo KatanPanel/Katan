@@ -13,5 +13,4 @@ sealed class UnitInstanceStatus(val name: String) {
     object Removing : UnitInstanceStatus("removing")
     object Stopping : UnitInstanceStatus("stopping")
     object Restarting : UnitInstanceStatus("restarting")
-
 }

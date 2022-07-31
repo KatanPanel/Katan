@@ -19,8 +19,9 @@ internal class DockerNetworkServiceImpl(
 
     override suspend fun attachToNetwork(networkName: String, instance: UnitInstance) {
         checkForNetworkAvailability(networkName)
-        if (networkName == NETWORK_MACVLAN)
+        if (networkName == NETWORK_MACVLAN) {
             applyMacvlanIpAddress()
+        }
     }
 
     override suspend fun attachToDefaultNetwork(instance: UnitInstance) {
@@ -32,7 +33,6 @@ internal class DockerNetworkServiceImpl(
      * be attached.
      */
     private fun checkForNetworkAvailability(network: String) {
-
     }
 
     /**
@@ -49,5 +49,4 @@ internal class DockerNetworkServiceImpl(
 
         throw IllegalStateException("Macvlan as Docker network driver is not supported")
     }
-
 }

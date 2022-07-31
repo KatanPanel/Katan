@@ -17,5 +17,4 @@ public interface UnitInstanceService {
     public suspend fun stopInstance(instance: UnitInstance)
 
     public suspend fun killInstance(instance: UnitInstance)
-
 }

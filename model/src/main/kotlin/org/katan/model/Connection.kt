@@ -5,5 +5,4 @@ interface Connection {
     val host: String
 
     val port: Int
-
 }

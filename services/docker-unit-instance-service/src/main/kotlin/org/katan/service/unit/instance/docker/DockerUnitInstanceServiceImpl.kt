@@ -14,8 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
@@ -41,10 +39,11 @@ internal class DockerUnitInstanceServiceImpl(
     private val idService: IdService,
     private val eventsDispatcher: EventScope,
     private val unitInstanceRepository: UnitInstanceRepository
-) : UnitInstanceService, CoroutineScope by CoroutineScope(
-    SupervisorJob() +
+) : UnitInstanceService,
+    CoroutineScope by CoroutineScope(
+        SupervisorJob() +
             CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
-) {
+    ) {
 
     private companion object {
         private val logger = LogManager.getLogger(DockerUnitInstanceServiceImpl::class.java)
@@ -174,11 +173,13 @@ internal class DockerUnitInstanceServiceImpl(
      */
     private suspend fun createContainer(image: String): String =
         suspendCoroutine<CreateContainerResponse> { cont ->
-            cont.resumeWith(runCatching {
-                dockerClient.createContainerCmd(image)
-                    .buildContainerBasedOnConfiguration()
-                    .exec()
-            })
+            cont.resumeWith(
+                runCatching {
+                    dockerClient.createContainerCmd(image)
+                        .buildContainerBasedOnConfiguration()
+                        .exec()
+                }
+            )
         }.id
 
     /**
@@ -217,5 +218,4 @@ internal class DockerUnitInstanceServiceImpl(
     private fun isRunning(status: UnitInstanceStatus): Boolean {
         return true
     }
-
 }

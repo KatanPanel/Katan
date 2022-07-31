@@ -4,12 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.last
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import kotlin.coroutines.CoroutineContext
@@ -26,7 +21,6 @@ interface EventScope : CoroutineScope {
      * Listens as Flow for an event of the given type.
      */
     fun <T : Any> listen(eventType: KClass<T>): Flow<T>
-
 }
 
 /**
@@ -54,10 +48,10 @@ internal class EventScopeImpl : EventScope {
     override fun dispatch(event: Any) {
         println("dispatching: $event")
 
-        if (!publisher.tryEmit(event))
+        if (!publisher.tryEmit(event)) {
             logger.warn("Failed to emit event: $event")
-        else
+        } else {
             logger.debug(event.toString())
+        }
     }
-
 }

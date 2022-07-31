@@ -21,13 +21,11 @@ interface KatanConfig {
         val username: String
 
         val password: String
-
     }
 
     interface HttpServerConfig {
 
         val port: Int
-
     }
 
     interface DockerClientConfig {
@@ -35,7 +33,6 @@ interface KatanConfig {
         val host: String
 
         val network: DockerNetworkConfig
-
     }
 
     interface DockerNetworkConfig {
@@ -43,7 +40,6 @@ interface KatanConfig {
         val name: String
 
         val driver: String
-
     }
 
     interface RedisConfig {
@@ -63,7 +59,6 @@ interface KatanConfig {
         val clusters: List<RedisClusterConfig>
 
         val database: Int?
-
     }
 
     interface RedisClusterConfig {
@@ -71,7 +66,5 @@ interface KatanConfig {
         val host: String?
 
         val port: Int?
-
     }
-
 }

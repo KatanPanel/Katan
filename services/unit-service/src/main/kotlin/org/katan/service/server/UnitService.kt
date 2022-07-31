@@ -7,5 +7,4 @@ public interface UnitService {
     public suspend fun getUnit(id: Long): KUnit?
 
     public suspend fun createUnit(options: UnitCreateOptions): KUnit
-
 }

@@ -18,11 +18,12 @@ private object Application {
         }
 
         val app = Katan()
-        Runtime.getRuntime().addShutdownHook(Thread {
-            app.close()
-        })
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                app.close()
+            }
+        )
 
         app.start()
     }
-
 }

@@ -27,5 +27,4 @@ interface PermissionsHolder {
      * Permissions bit set of this entity.
      */
     val permissions: Permission
-
 }

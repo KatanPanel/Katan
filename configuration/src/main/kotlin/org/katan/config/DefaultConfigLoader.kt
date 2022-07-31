@@ -2,7 +2,6 @@ package org.katan.config
 
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.addResourceSource
-import kotlin.coroutines.suspendCoroutine
 
 internal object DefaultConfigLoader : ConfigLoader {
 
@@ -14,5 +13,4 @@ internal object DefaultConfigLoader : ConfigLoader {
             .build()
             .loadConfigOrThrow<ConfigImpl>("/application.conf")
     }
-
 }

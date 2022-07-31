@@ -20,5 +20,4 @@ internal class SnowflakeIdServiceImpl(
         // TODO check if it's a valid snowflake id
         return input.toLong()
     }
-
 }

@@ -5,5 +5,4 @@ interface UnitInstance {
     val id: Long
 
     val status: UnitInstanceStatus
-
 }

@@ -14,7 +14,6 @@ internal object UnitInstanceTable : LongIdTable() {
 
     val imageId = varchar("image_id", length = 255)
     val containerId = varchar("container_id", length = 255)
-
 }
 
 internal class UnitInstanceEntity(id: EntityID<Long>) : LongEntity(id) {
@@ -22,7 +21,6 @@ internal class UnitInstanceEntity(id: EntityID<Long>) : LongEntity(id) {
 
     var imageId by UnitInstanceTable.imageId
     var containerId by UnitInstanceTable.containerId
-
 }
 
 internal class UnitInstanceRepositoryImpl : UnitInstanceRepository {
@@ -55,5 +53,4 @@ internal class UnitInstanceRepositoryImpl : UnitInstanceRepository {
             UnitInstanceEntity.findById(id)?.delete()
         }
     }
-
 }

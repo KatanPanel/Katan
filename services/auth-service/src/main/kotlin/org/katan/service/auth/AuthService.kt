@@ -24,7 +24,6 @@ public interface AuthService {
     public suspend fun auth(username: String, password: String): String
 
     public suspend fun verify(token: String): Account?
-
 }
 
 internal class AuthServiceImpl(
@@ -51,8 +50,9 @@ internal class AuthServiceImpl(
         value: String,
         hashValue: CharArray
     ): Boolean {
-        if (hashValue.isEmpty() && value.isEmpty())
+        if (hashValue.isEmpty() && value.isEmpty()) {
             return true
+        }
 
         // Catch any exception here to omit sensitive data
         return try {
@@ -66,8 +66,9 @@ internal class AuthServiceImpl(
         val account = accountService.getAccount(username)
             ?: throw AccountNotFoundException()
 
-        if (!validate(password, account.hash.toCharArray()))
+        if (!validate(password, account.hash.toCharArray())) {
             throw InvalidCredentialsException()
+        }
 
         return try {
             JWT.create()
@@ -83,5 +84,4 @@ internal class AuthServiceImpl(
         val accountId = jwtVerifier.verify(token).getClaim(ACCOUNT_CLAIM).asString()
         return accountService.getAccount(accountId.toLong())
     }
-
 }

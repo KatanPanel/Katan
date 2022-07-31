@@ -32,8 +32,9 @@ public class LocalUnitServiceImpl(
 
     override suspend fun createUnit(options: UnitCreateOptions): KUnit {
         mutex.withLock {
-            if (registered.any { it.name.equals(options.name, ignoreCase = true) })
+            if (registered.any { it.name.equals(options.name, ignoreCase = true) }) {
                 throw UnitConflictException()
+            }
         }
 
         val unit = createUnit0(options)
@@ -70,5 +71,4 @@ public class LocalUnitServiceImpl(
             status = if (instance == null) UnitStatus.MissingInstance else UnitStatus.Created
         )
     }
-
 }

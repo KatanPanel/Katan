@@ -36,5 +36,4 @@ class Katan : KoinComponent {
                 .filter { it.primaryType.isSubclassOf(T::class) }
                 .map { koin.get(clazz = it.primaryType, qualifier = null, parameters = null) }
         }
-
 }

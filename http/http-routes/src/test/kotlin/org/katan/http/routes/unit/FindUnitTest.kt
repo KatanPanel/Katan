@@ -44,5 +44,4 @@ class FindUnitTest : KoinTest {
         assertEquals(HttpStatusCode.BadRequest, request.status)
         assertEquals(InvalidUnitIdFormat, body)
     }
-
 }

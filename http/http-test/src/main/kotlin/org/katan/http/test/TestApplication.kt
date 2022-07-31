@@ -28,7 +28,7 @@ inline fun withTestApplication(
 }
 
 fun ApplicationTestBuilder.createTestClient(
-    block: HttpClient.() -> Unit = {},
+    block: HttpClient.() -> Unit = {}
 ): HttpClient {
     return createClient {
         install(Resources)

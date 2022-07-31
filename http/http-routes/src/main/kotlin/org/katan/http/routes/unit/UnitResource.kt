@@ -10,7 +10,4 @@ internal class UnitResource {
     @Serializable
     @Resource("{id}")
     internal class ById(val parent: UnitResource = UnitResource(), val id: String)
-
-
-
 }

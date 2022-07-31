@@ -39,5 +39,4 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
             }
         }
     }
-
 }

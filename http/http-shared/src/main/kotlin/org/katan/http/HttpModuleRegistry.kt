@@ -18,5 +18,4 @@ class HttpModuleRegistry : Iterable<HttpModule> {
     override fun iterator(): Iterator<HttpModule> {
         return Collections.unmodifiableList(modules).iterator()
     }
-
 }

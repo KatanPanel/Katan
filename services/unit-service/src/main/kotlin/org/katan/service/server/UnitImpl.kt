@@ -19,5 +19,4 @@ public data class UnitImpl(
 ) : KUnit {
 
     override val deletedAt: Instant? = null
-
 }

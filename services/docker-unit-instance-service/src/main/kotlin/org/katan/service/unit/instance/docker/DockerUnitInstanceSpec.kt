@@ -14,5 +14,4 @@ internal class DockerUnitInstanceSpec(
     override val data: Map<String, Any> by lazy {
         mapOf(IMAGE_PROPERTY to image)
     }
-
 }

@@ -14,5 +14,4 @@ interface SaltedHash : Hash {
      * Returns the length of the salt that will be used in the hashing process for that algorithm.
      */
     val saltLength: Int
-
 }

@@ -54,5 +54,4 @@ class CreateUnitTest : KoinTest {
         assertEquals(HttpStatusCode.BadRequest, request.status)
         assertEquals(UnitMissingCreateOptions, body)
     }
-
 }

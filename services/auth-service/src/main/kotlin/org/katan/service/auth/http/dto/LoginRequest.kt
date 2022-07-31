@@ -12,6 +12,4 @@ internal data class LoginRequest(
         const val MIN_USERNAME_LENGTH = 4
         const val MAX_USERNAME_LENGTH = 32
     }
-
-
 }

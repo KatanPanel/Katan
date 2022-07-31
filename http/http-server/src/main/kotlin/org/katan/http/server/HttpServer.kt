@@ -70,5 +70,4 @@ class HttpServer(
         host = "0.0.0.0"
         port = this@HttpServer.port
     }
-
 }

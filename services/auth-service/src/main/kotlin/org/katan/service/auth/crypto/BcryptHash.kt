@@ -30,5 +30,4 @@ internal class BcryptHash : SaltedHash {
     override fun compare(value: CharArray, hash: String): Boolean {
         return OpenBSDBCrypt.checkPassword(hash, value)
     }
-
 }
