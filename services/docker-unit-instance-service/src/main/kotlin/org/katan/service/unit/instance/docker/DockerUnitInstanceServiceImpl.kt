@@ -102,6 +102,13 @@ internal class DockerUnitInstanceServiceImpl(
         }
     }
 
+    override suspend fun restartInstance(instance: UnitInstance) {
+        require(instance is DockerUnitInstanceImpl)
+        withContext(Dispatchers.IO) {
+            dockerClient.restartContainerCmd(instance.containerId).exec()
+        }
+    }
+
     override fun fromSpec(data: Map<String, Any>): UnitInstanceSpec {
         check(data.containsKey(IMAGE_PROPERTY)) { "Missing required property \"$IMAGE_PROPERTY\"." }
         return DockerUnitInstanceSpec(data.getValue(IMAGE_PROPERTY) as String)

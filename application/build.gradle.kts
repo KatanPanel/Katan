@@ -18,6 +18,7 @@ dependencies {
     implementation(projects.services.accountService)
     implementation(projects.services.authService)
     implementation(projects.services.networkService)
+    implementation(projects.services.unitInstanceService)
     implementation(projects.services.dockerUnitInstanceService)
     implementation(projects.services.cacheService)
     implementation(projects.services.databaseService)
