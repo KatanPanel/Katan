@@ -12,7 +12,9 @@ internal data class ConfigImpl(
 ) : KatanConfig {
 
     data class DatabaseConfigImpl(
-        @ConfigAlias("uri") override val connectionString: String
+        @ConfigAlias("url") override val connectionString: String,
+        @ConfigAlias("user") override val username: String,
+        @ConfigAlias("pass") override val password: String
     ) : KatanConfig.DatabaseConfig
 
     data class HttpServerConfigImpl(
@@ -25,16 +27,13 @@ internal data class ConfigImpl(
     ) : KatanConfig.DockerClientConfig
 
     data class DockerNetworkConfigImpl(
-        override val driver: String
-    ) : KatanConfig.DockerNetworkConfig {
-
-        override val name: String get() = "katan0"
-
-    }
+        override val driver: String,
+        override val name: String
+    ) : KatanConfig.DockerNetworkConfig
 
     data class RedisConfigImpl(
-        override val host: String,
-        override val port: Int
+        override val host: String? = null,
+        override val port: Int? = null
     ) : KatanConfig.RedisConfig {
 
         override val username: String? = null

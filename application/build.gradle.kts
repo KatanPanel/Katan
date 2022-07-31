@@ -20,6 +20,7 @@ dependencies {
     implementation(projects.services.unitInstanceService)
     implementation(projects.services.dockerUnitInstanceService)
     implementation(projects.services.cacheService)
+    implementation(projects.services.databaseService)
 }
 
 tasks {

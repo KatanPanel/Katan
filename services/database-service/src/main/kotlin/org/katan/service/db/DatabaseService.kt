@@ -1,3 +1,9 @@
 package org.katan.service.db
 
-public interface DatabaseService
+import org.jetbrains.exposed.sql.Database
+
+public interface DatabaseService {
+
+    public fun get(): Database
+
+}

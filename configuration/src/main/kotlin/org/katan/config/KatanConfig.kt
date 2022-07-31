@@ -18,6 +18,10 @@ interface KatanConfig {
 
         val connectionString: String
 
+        val username: String
+
+        val password: String
+
     }
 
     interface HttpServerConfig {
