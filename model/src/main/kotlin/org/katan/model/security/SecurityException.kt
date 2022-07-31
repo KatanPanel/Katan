@@ -8,8 +8,10 @@ open class SecurityException(
 ) : KatanException(message, cause)
 
 open class AuthenticationException(
-    message: String? = null,
+    message: String,
     cause: Throwable? = null
 ) : SecurityException(message, cause)
 
-class InvalidCredentialsException : SecurityException(null, null)
+class InvalidAccessTokenException : SecurityException()
+
+class InvalidCredentialsException : SecurityException()

@@ -29,7 +29,7 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
 
                     validate { credentials ->
                         val account =
-                            credentials.payload.getClaim(authService.getIdentifier()).asString()?.let {
+                            credentials.payload.subject?.let {
                                 authService.verify(it)
                             } ?: respondError(org.katan.http.AccountNotFound)
 

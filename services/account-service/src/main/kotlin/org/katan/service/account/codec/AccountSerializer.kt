@@ -16,7 +16,7 @@ import org.katan.model.account.Account
 import org.katan.service.account.AccountImpl
 
 @Serializer(forClass = Account::class)
-internal object AccountSerializer : KSerializer<Account> {
+public object AccountSerializer : KSerializer<Account> {
 
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("org.katan.model.account") {
