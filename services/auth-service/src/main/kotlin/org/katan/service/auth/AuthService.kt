@@ -47,26 +47,26 @@ internal class AuthServiceImpl(
     }
 
     private fun validate(
-        value: String,
-        hashValue: CharArray
+        input: CharArray,
+        hash: String
     ): Boolean {
-        if (hashValue.isEmpty() && value.isEmpty()) {
+        if (input.isEmpty() && hash.isEmpty()) {
             return true
         }
 
         // Catch any exception here to omit sensitive data
         return try {
-            hash.compare(hashValue, value)
+            this.hash.compare(input, hash)
         } catch (e: Throwable) {
             throw SecurityException("Could not decrypt data.", e)
         }
     }
 
     override suspend fun auth(username: String, password: String): String {
-        val account = accountService.getAccount(username)
+        val (account, hash) = accountService.getAccountAndHash(username)
             ?: throw AccountNotFoundException()
 
-        if (!validate(password, account.hash.toCharArray())) {
+        if (!validate(input = password.toCharArray(), hash = hash)) {
             throw InvalidCredentialsException()
         }
 

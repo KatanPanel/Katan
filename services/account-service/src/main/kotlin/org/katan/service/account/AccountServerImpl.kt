@@ -20,17 +20,30 @@ internal class AccountServerImpl(
         return accountsRepository.findByUsername(username)
     }
 
+    override suspend fun getAccountAndHash(username: String): Pair<Account, String>? {
+        // TODO optimize it
+        val account = accountsRepository.findByUsername(username) ?: return null
+        val hash = accountsRepository.findHashByUsername(username) ?: return null
+
+        return account to hash
+    }
+
     override suspend fun createAccount(
         username: String,
         password: String
     ): Account {
+        if (accountsRepository.existsByUsername(username))
+            throw AccountConflictException()
+
         val impl = AccountImpl(
             id = idService.generate(),
             username = username,
-            createdAt = Clock.System.now(),
-            hash = hash.hash(password.toCharArray())
+            createdAt = Clock.System.now()
         )
-        accountsRepository.addAccount(impl)
+
+        val hash = hash.hash(password.toCharArray())
+
+        accountsRepository.addAccount(impl, hash)
         return impl
     }
 

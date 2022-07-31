@@ -9,13 +9,11 @@ import org.katan.http.respond
 import org.katan.http.respondError
 import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.InvalidCredentialsException
+import org.katan.model.security.SecurityException
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.http.AuthResource
 import org.katan.service.auth.http.InvalidCredentialsError
-import org.katan.service.auth.http.UsernameLengthError
 import org.katan.service.auth.http.dto.LoginRequest
-import org.katan.service.auth.http.dto.LoginRequest.Companion.MAX_USERNAME_LENGTH
-import org.katan.service.auth.http.dto.LoginRequest.Companion.MIN_USERNAME_LENGTH
 import org.katan.service.auth.http.dto.LoginResponse
 import org.koin.ktor.ext.inject
 
@@ -24,8 +22,6 @@ internal fun Route.login() {
 
     post<AuthResource.Login> {
         val req = call.receive<LoginRequest>()
-        checkUsernameLength(req.username)
-
         val token = try {
             authService.auth(req.username, req.password)
         } catch (e: Throwable) {
@@ -37,11 +33,5 @@ internal fun Route.login() {
         }
 
         respond(LoginResponse(token))
-    }
-}
-
-internal fun checkUsernameLength(username: String) {
-    if (username.length < MIN_USERNAME_LENGTH || username.length > MAX_USERNAME_LENGTH) {
-        respondError(UsernameLengthError(MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH))
     }
 }

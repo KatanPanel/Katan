@@ -14,8 +14,6 @@ interface Account {
      */
     val username: String
 
-    val hash: String
-
     /**
      * The instant this account was registered.
      */

@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.account.Account
 import org.katan.service.account.AccountImpl
 
-private object AccountsTable : LongIdTable() {
+internal object AccountsTable : LongIdTable() {
 
     val username = varchar("username", length = 255)
     val hash = varchar("hash", length = 255)
@@ -21,8 +21,8 @@ private object AccountsTable : LongIdTable() {
     val lastLoggedInAt = timestamp("last_logged_in_at").nullable()
 }
 
-private class AccountsEntity(id: EntityID<Long>) : LongEntity(id) {
-    companion object : LongEntityClass<AccountsEntity>(AccountsTable)
+internal class AccountsEntity(id: EntityID<Long>) : LongEntity(id) {
+    internal companion object : LongEntityClass<AccountsEntity>(AccountsTable)
 
     var username by AccountsTable.username
     var hash by AccountsTable.hash
@@ -43,14 +43,13 @@ internal class AccountsRepositoryImpl(
 
     override suspend fun findById(id: Long): Account? {
         return newSuspendedTransaction(db = database) {
-            AccountsEntity.findById(id)?.let {
+            AccountsEntity.findById(id)?.let { entity ->
                 AccountImpl(
-                    it.id.value,
-                    it.username,
-                    it.hash,
-                    it.createdAt,
-                    it.updatedAt,
-                    it.lastLoggedInAt
+                    entity.id.value,
+                    entity.username,
+                    entity.createdAt,
+                    entity.updatedAt,
+                    entity.lastLoggedInAt
                 )
             }
         }
@@ -58,27 +57,36 @@ internal class AccountsRepositoryImpl(
 
     override suspend fun findByUsername(username: String): Account? {
         return newSuspendedTransaction(db = database) {
-            AccountsEntity.find { AccountsTable.username eq username }.firstOrNull()?.let {
+            AccountsEntity.find {
+                AccountsTable.username eq username
+            }.firstOrNull()?.let { entity ->
                 AccountImpl(
-                    it.id.value,
-                    it.username,
-                    it.hash,
-                    it.createdAt,
-                    it.updatedAt,
-                    it.lastLoggedInAt
+                    entity.id.value,
+                    entity.username,
+                    entity.createdAt,
+                    entity.updatedAt,
+                    entity.lastLoggedInAt
                 )
             }
         }
     }
 
-    override suspend fun addAccount(account: Account) {
+    override suspend fun findHashByUsername(username: String): String? {
+        return newSuspendedTransaction(db = database) {
+            AccountsEntity.find {
+                AccountsTable.username eq username
+            }.firstOrNull()?.hash
+        }
+    }
+
+    override suspend fun addAccount(account: Account, hash: String) {
         newSuspendedTransaction(db = database) {
             AccountsEntity.new(account.id) {
-                username = account.username
-                hash = account.hash
-                createdAt = account.createdAt
-                updatedAt = account.updatedAt
-                lastLoggedInAt = account.lastLoggedInAt
+                this.username = account.username
+                this.hash = hash
+                this.createdAt = account.createdAt
+                this.updatedAt = account.updatedAt
+                this.lastLoggedInAt = account.lastLoggedInAt
             }
         }
     }
@@ -86,6 +94,12 @@ internal class AccountsRepositoryImpl(
     override suspend fun deleteAccount(accountId: Long) {
         newSuspendedTransaction(db = database) {
             AccountsEntity.findById(accountId)?.delete()
+        }
+    }
+
+    override suspend fun existsByUsername(username: String): Boolean {
+        return newSuspendedTransaction(db = database) {
+            !AccountsEntity.find { AccountsTable.username eq username }.empty()
         }
     }
 }

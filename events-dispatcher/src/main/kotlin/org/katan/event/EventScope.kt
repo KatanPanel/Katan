@@ -46,8 +46,6 @@ internal class EventScopeImpl : EventScope {
     }
 
     override fun dispatch(event: Any) {
-        println("dispatching: $event")
-
         if (!publisher.tryEmit(event)) {
             logger.warn("Failed to emit event: $event")
         } else {
