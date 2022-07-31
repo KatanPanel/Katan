@@ -2,6 +2,9 @@ package org.katan.service.account.http
 
 import org.katan.http.HttpError
 
+public val AccountNotFound: HttpError =
+    HttpError(3001, "Account not found")
+
 internal val AccountConflictError =
     HttpError(10001, "An account with the same username already exists.")
 

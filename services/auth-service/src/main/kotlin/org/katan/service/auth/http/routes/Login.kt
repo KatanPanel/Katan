@@ -4,11 +4,11 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.routing.Route
-import org.katan.http.AccountNotFound
 import org.katan.http.respond
 import org.katan.http.respondError
 import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.InvalidCredentialsException
+import org.katan.service.account.http.AccountNotFound
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.http.AuthResource
 import org.katan.service.auth.http.InvalidCredentialsError

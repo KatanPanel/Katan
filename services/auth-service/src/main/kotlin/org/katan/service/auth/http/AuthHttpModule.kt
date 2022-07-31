@@ -8,11 +8,11 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.routing.routing
-import org.katan.http.AccountNotFound
 import org.katan.http.HttpModule
 import org.katan.http.HttpModuleRegistry
 import org.katan.http.respondError
 import org.katan.service.account.AccountService
+import org.katan.service.account.http.AccountNotFound
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.http.routes.login
 import org.katan.service.auth.http.routes.verify

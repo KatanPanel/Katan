@@ -11,5 +11,3 @@ val InvalidUnitIdFormat =
     HttpError(1004, "Invalid unit id format")
 
 val UnitInstanceNotFound = HttpError(2001, "Unit instance not found")
-
-val AccountNotFound = HttpError(3001, "Account not found")
