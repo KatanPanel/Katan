@@ -11,6 +11,7 @@ import org.katan.service.account.AccountService
 import org.katan.service.account.http.AccountConflictError
 import org.katan.service.account.http.AccountRoutes
 import org.katan.service.account.http.UsernameLengthError
+import org.katan.service.account.http.dto.AccountResponse
 import org.katan.service.account.http.dto.RegisterRequest
 import org.katan.service.account.http.dto.RegisterRequest.Companion.MAX_USERNAME_LENGTH
 import org.katan.service.account.http.dto.RegisterRequest.Companion.MIN_USERNAME_LENGTH
@@ -30,7 +31,7 @@ internal fun Route.register() {
             respondError(AccountConflictError)
         }
 
-        respond(RegisterResponse(account))
+        respond(RegisterResponse(AccountResponse(account)))
     }
 }
 
