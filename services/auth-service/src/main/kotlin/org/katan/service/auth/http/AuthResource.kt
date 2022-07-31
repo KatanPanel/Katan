@@ -14,7 +14,6 @@ internal class AuthResource {
     @Serializable
     @Resource("")
     internal class Verify(
-        @Suppress("unused") val parent: AuthResource = AuthResource(),
-        val token: String? = null
+        @Suppress("unused") val parent: AuthResource = AuthResource()
     )
 }

@@ -41,7 +41,7 @@ internal data class ConfigImpl(
         override val connectionTimeout: Duration? = null
         override val soTimeout: Duration? = null
         override val database: Int? = null
-        override val clusters: List<KatanConfig.RedisClusterConfig> = emptyList()
+        override val clusters: List<RedisClusterConfigImpl> = emptyList()
     }
 
     data class RedisClusterConfigImpl(

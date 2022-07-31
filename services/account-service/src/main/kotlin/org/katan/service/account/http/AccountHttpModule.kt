@@ -13,5 +13,4 @@ internal class AccountHttpModule(registry: HttpModuleRegistry) : HttpModule(regi
             register()
         }
     }
-
 }

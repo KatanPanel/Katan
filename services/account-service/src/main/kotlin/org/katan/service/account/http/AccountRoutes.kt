@@ -10,5 +10,4 @@ internal class AccountRoutes {
     @Serializable
     @Resource("")
     internal class Register(@Suppress("unused") val parent: AccountRoutes = AccountRoutes())
-
 }

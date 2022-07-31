@@ -9,7 +9,6 @@ import org.katan.http.respond
 import org.katan.http.respondError
 import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.InvalidCredentialsException
-import org.katan.model.security.SecurityException
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.http.AuthResource
 import org.katan.service.auth.http.InvalidCredentialsError

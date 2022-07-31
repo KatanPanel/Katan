@@ -6,6 +6,6 @@ internal val GenericAuthenticationError: (String) -> HttpError = {
     HttpError(0, "Failed to authenticate: $it")
 }
 
-internal val InvalidAccessTokenError = HttpError(1002, "Invalid access token")
+internal val InvalidAccessTokenError = HttpError(1002, "Invalid or missing access token")
 
 internal val InvalidCredentialsError = HttpError(1003, "Invalid credentials")

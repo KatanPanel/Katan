@@ -53,9 +53,8 @@ public object AccountSerializer : KSerializer<Account> {
                     descriptor,
                     4,
                     InstantIso8601Serializer.nullable
-                ),
+                )
             )
         }
     }
-
 }

@@ -32,7 +32,6 @@ internal fun Route.register() {
 
         respond(RegisterResponse(account))
     }
-
 }
 
 internal fun checkUsernameLength(username: String) {

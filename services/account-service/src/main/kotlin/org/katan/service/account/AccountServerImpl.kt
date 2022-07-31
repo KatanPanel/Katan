@@ -32,8 +32,9 @@ internal class AccountServerImpl(
         username: String,
         password: String
     ): Account {
-        if (accountsRepository.existsByUsername(username))
+        if (accountsRepository.existsByUsername(username)) {
             throw AccountConflictException()
+        }
 
         val impl = AccountImpl(
             id = idService.generate(),
