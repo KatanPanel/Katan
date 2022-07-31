@@ -1,4 +1,4 @@
-package org.katan.http.routes.unit
+package org.katan.service.server.http
 
 import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.post
@@ -6,12 +6,11 @@ import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
 import org.katan.http.HttpError
-import org.katan.http.UnitMissingCreateOptions
 import org.katan.http.createTestClient
-import org.katan.http.routes.unit.dto.CreateUnitRequest
-import org.katan.http.routes.unit.dto.CreateUnitResponse
-import org.katan.http.routes.unit.routes.createUnit
 import org.katan.http.withTestApplication
+import org.katan.service.server.http.dto.CreateUnitRequest
+import org.katan.service.server.http.dto.CreateUnitResponse
+import org.katan.service.server.http.routes.createUnit
 import org.koin.test.KoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -26,7 +25,7 @@ class CreateUnitTest : KoinTest {
     }) {
         val testClient = createTestClient()
         val propName = "test"
-        val request = testClient.post(UnitResource()) {
+        val request = testClient.post(UnitRoutes()) {
             setBody(
                 CreateUnitRequest(
                     name = propName,
@@ -48,7 +47,7 @@ class CreateUnitTest : KoinTest {
         }
     }) {
         val testClient = createTestClient()
-        val request = testClient.post(UnitResource())
+        val request = testClient.post(UnitRoutes())
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)

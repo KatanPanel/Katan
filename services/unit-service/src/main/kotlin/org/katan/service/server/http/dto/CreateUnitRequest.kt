@@ -1,4 +1,4 @@
-package org.katan.http.routes.unit.dto
+package org.katan.service.server.http.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
