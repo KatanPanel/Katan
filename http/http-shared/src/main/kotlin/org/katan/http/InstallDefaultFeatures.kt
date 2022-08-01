@@ -1,5 +1,6 @@
 package org.katan.http
 
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -7,19 +8,25 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import kotlinx.serialization.json.Json
+import org.slf4j.LoggerFactory
+import org.slf4j.event.Level
 
 fun Application.installDefaultFeatures() {
     install(Routing)
     install(Resources)
     install(DefaultHeaders)
     install(AutoHeadResponse)
-    install(CallLogging)
+    install(CallLogging) {
+        level = Level.DEBUG
+        logger = LoggerFactory.getLogger("Ktor")
+    }
     install(ContentNegotiation) {
         json(
             Json {
@@ -40,5 +47,11 @@ fun Application.installDefaultFeatures() {
             cause.printStackTrace()
             call.respond(HttpStatusCode.InternalServerError)
         }
+    }
+    install(CORS) {
+        allowCredentials = true
+        allowNonSimpleContentTypes = true
+        allowHeader(HttpHeaders.Authorization)
+        anyHost()
     }
 }

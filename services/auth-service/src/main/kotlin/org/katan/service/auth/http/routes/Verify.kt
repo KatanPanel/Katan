@@ -8,9 +8,12 @@ import org.katan.http.respond
 import org.katan.service.account.http.dto.AccountResponse
 import org.katan.service.auth.http.AccountPrincipal
 import org.katan.service.auth.http.AuthResource
+import org.katan.service.auth.http.dto.VerifyResponse
 
 internal fun Route.verify() {
     get<AuthResource.Verify> {
-        respond(AccountResponse(call.principal<AccountPrincipal>()!!.account))
+        val account = call.principal<AccountPrincipal>()!!.account
+
+        respond(VerifyResponse(AccountResponse(account)))
     }
 }

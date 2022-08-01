@@ -140,6 +140,10 @@ version.ref = "ktor"
 module = "io.ktor:ktor-server-status-pages"
 version.ref = "ktor"
 
+[libraries.ktor-server-feature-cors]
+module = "io.ktor:ktor-server-cors"
+version.ref = "ktor"
+
 [libraries.ktor-client-feature-resources]
 module = "io.ktor:ktor-client-resources"
 version.ref = "ktor"
