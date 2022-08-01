@@ -1,6 +1,5 @@
 package org.katan.http
 
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -51,7 +50,6 @@ fun Application.installDefaultFeatures() {
     install(CORS) {
         allowCredentials = true
         allowNonSimpleContentTypes = true
-        allowHeader(HttpHeaders.Authorization)
         anyHost()
     }
 }
