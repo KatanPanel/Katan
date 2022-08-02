@@ -9,5 +9,5 @@ import org.koin.dsl.module
 
 public val unitServiceDI: Module = module {
     single<UnitService> { LocalUnitServiceImpl(get(), get(), get()) }
-    single<HttpModule> { UnitHttpModule(get()) }
+    single<HttpModule>(createdAtStart = true) { UnitHttpModule(get()) }
 }

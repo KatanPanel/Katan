@@ -6,5 +6,5 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 public val unitInstanceServiceDI: Module = module {
-    single<HttpModule> { UnitInstanceHttpModule(get()) }
+    single<HttpModule>(createdAtStart = true) { UnitInstanceHttpModule(get()) }
 }
