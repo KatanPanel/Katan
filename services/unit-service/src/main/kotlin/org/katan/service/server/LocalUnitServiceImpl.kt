@@ -50,12 +50,14 @@ public class LocalUnitServiceImpl(
         val currentInstant = Clock.System.now()
         val spec = unitInstanceService.fromSpec(mapOf("image" to options.dockerImage))
 
+        logger.info("Options: $options")
         val instance = runCatching {
             unitInstanceService.createInstanceFor(spec)
         }.onFailure { error ->
             logger.error("Failed to create unit instance.", error)
-        }.getOrNull()
+        }.getOrThrow()
 
+        logger.info("Created")
         val unitId = idService.generate()
 
         return UnitImpl(
@@ -68,7 +70,7 @@ public class LocalUnitServiceImpl(
             createdAt = currentInstant,
             updatedAt = currentInstant,
             instance = instance,
-            status = if (instance == null) UnitStatus.MissingInstance else UnitStatus.Created
+//            status = if (instance == null) UnitStatus.MissingInstance else UnitStatus.Created
         )
     }
 }

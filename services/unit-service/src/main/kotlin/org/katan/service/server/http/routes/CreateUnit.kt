@@ -1,7 +1,6 @@
 package org.katan.service.server.http.routes
 
-import io.ktor.http.HttpStatusCode.Companion.Conflict
-import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.resources.post
@@ -41,15 +40,9 @@ internal fun Route.createUnit() {
                 )
             )
         } catch (e: UnitConflictException) {
-            respondError(UnitConflict, e, Conflict)
+            respondError(UnitConflict, e, HttpStatusCode.Conflict)
         }
 
-        respond(
-            CreateUnitResponse(
-                dockerImage = request.dockerImage,
-                unit = UnitResponse(unit)
-            ),
-            Created
-        )
+        respond(CreateUnitResponse(unit = UnitResponse(unit)), HttpStatusCode.Created)
     }
 }

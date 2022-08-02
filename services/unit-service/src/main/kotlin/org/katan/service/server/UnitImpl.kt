@@ -3,7 +3,6 @@ package org.katan.service.server
 import kotlinx.datetime.Instant
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.UnitInstance
-import org.katan.model.unit.UnitStatus
 
 public data class UnitImpl(
     override val id: Long,
@@ -14,9 +13,7 @@ public data class UnitImpl(
     override val description: String?,
     override val createdAt: Instant,
     override val updatedAt: Instant,
-    override val instance: UnitInstance?,
-    override val status: UnitStatus = UnitStatus.Unknown
-) : KUnit {
-
+    override val instance: UnitInstance,
+//    override val status: UnitStatus = UnitStatus.Unknown
     override val deletedAt: Instant? = null
-}
+) : KUnit
