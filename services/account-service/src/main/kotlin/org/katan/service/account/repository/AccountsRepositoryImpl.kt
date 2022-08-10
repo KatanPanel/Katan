@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.account.Account
 import org.katan.service.account.AccountImpl
 
-internal object AccountsTable : LongIdTable() {
+internal object AccountsTable : LongIdTable("accounts") {
 
     val username = varchar("username", length = 255)
     val hash = varchar("hash", length = 255)

@@ -14,7 +14,7 @@ import org.katan.model.unit.UnitInstanceStatus
 import org.katan.service.unit.instance.docker.model.DockerUnitInstanceImpl
 import org.katan.service.unit.instance.repository.UnitInstanceRepository
 
-internal object UnitInstanceTable : LongIdTable() {
+internal object UnitInstanceTable : LongIdTable("unit_instances") {
 
     val imageId = varchar("image_id", length = 255)
     val imageUpdatePolicy = varchar("image_update_policy", length = 64)

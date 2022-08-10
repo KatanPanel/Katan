@@ -12,12 +12,9 @@ internal data class UnitResponse(
     @SerialName("external-id") val externalId: String?,
     @SerialName("node-id") val nodeId: Int,
     val name: String,
-    @SerialName("display-name") val displayName: String?,
-    val description: String?,
     @SerialName("created-at") val createdAt: Instant,
     @SerialName("updated-at") val updatedAt: Instant,
     @SerialName("deleted-at") val deletedAt: Instant?,
-    val instance: InstanceResponse,
 //    val status: String
 ) {
 
@@ -26,12 +23,9 @@ internal data class UnitResponse(
         externalId = value.externalId,
         nodeId = value.nodeId,
         name = value.name,
-        displayName = value.displayName,
-        description = value.description,
         createdAt = value.createdAt,
         updatedAt = value.updatedAt,
         deletedAt = value.deletedAt,
-        instance = InstanceResponse(value.instance),
 //        status = value.status.value
     )
 }

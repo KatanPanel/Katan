@@ -34,8 +34,6 @@ internal fun Route.createUnit() {
                 UnitCreateOptions(
                     name = request.name,
                     externalId = request.externalId,
-                    displayName = request.displayName,
-                    description = request.description,
                     dockerImage = request.dockerImage
                 )
             )

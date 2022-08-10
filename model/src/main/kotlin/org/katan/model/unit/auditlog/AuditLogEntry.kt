@@ -1,5 +1,7 @@
 package org.katan.model.unit.auditlog
 
+import kotlinx.datetime.Instant
+
 /**
  * An audit log entry represents a single event action indicated by a action type that can container
  * one to many changes that affect an entity.
@@ -41,5 +43,7 @@ interface AuditLogEntry {
     /**
      * Additional data for certain event types.
      */
-    val additionalData: AuditLogAdditionalData
+    val additionalData: String?
+
+    val createdAt: Instant
 }

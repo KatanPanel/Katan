@@ -24,6 +24,7 @@ internal class PostgreSQLDatabaseServiceImpl(
             driver = "org.postgresql.Driver",
             databaseConfig = DatabaseConfig.invoke {
                 sqlLogger = Slf4jSqlDebugLogger
+                useNestedTransactions = true
             }
         )
 

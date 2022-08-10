@@ -7,10 +7,10 @@ package org.katan.model.unit.auditlog
  */
 object AuditLogEvents {
 
-    const val UnitCreate = 1
-    const val UnitUpdate = 2
-    const val UnitDelete = 3
-    const val RoleCreate = 4
-    const val RoleUpdate = 5
-    const val RoleDelete = 6
+    const val UnitCreate = 1u
+    const val UnitUpdate = 2u
+    const val UnitDelete = 3u
+    const val RoleCreate = 4u
+    const val RoleUpdate = 5u
+    const val RoleDelete = 6u
 }

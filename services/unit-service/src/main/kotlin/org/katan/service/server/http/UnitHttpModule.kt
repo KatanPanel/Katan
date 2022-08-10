@@ -6,6 +6,7 @@ import org.katan.http.HttpModule
 import org.katan.http.HttpModuleRegistry
 import org.katan.service.server.http.routes.createUnit
 import org.katan.service.server.http.routes.findUnit
+import org.katan.service.server.http.routes.getUnitAuditLogs
 
 internal class UnitHttpModule(registry: HttpModuleRegistry) : HttpModule(registry) {
 
@@ -13,6 +14,7 @@ internal class UnitHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
         app.routing {
             findUnit()
             createUnit()
+            getUnitAuditLogs()
         }
     }
 }

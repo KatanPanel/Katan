@@ -7,14 +7,20 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.model.unit.KUnit
-import org.katan.model.unit.UnitStatus
+import org.katan.model.unit.auditlog.AuditLog
+import org.katan.model.unit.auditlog.AuditLogEntry
+import org.katan.model.unit.auditlog.AuditLogEvents
 import org.katan.service.id.IdService
+import org.katan.service.server.model.AuditLogEntryImpl
+import org.katan.service.server.model.UnitImpl
+import org.katan.service.server.repository.UnitRepository
 import org.katan.service.unit.instance.UnitInstanceService
 
 public class LocalUnitServiceImpl(
+    private val config: KatanConfig,
     private val idService: IdService,
     private val unitInstanceService: UnitInstanceService,
-    private val config: KatanConfig
+    private val unitRepository: UnitRepository
 ) : UnitService {
 
     private companion object {
@@ -30,20 +36,23 @@ public class LocalUnitServiceImpl(
         }
     }
 
-    override suspend fun createUnit(options: UnitCreateOptions): KUnit {
-        mutex.withLock {
-            if (registered.any { it.name.equals(options.name, ignoreCase = true) }) {
-                throw UnitConflictException()
-            }
+    override suspend fun createUnit(options: UnitCreateOptions): KUnit = mutex.withLock {
+        if (registered.any { it.name.equals(options.name, ignoreCase = true) }) {
+            throw UnitConflictException()
         }
 
         val unit = createUnit0(options)
 
-        mutex.withLock {
-            registered.add(unit)
-        }
-
+        registered.add(unit)
         return unit
+    }
+
+    override suspend fun getAuditLogs(unitId: Long): AuditLog {
+        return unitRepository.findAuditLogs(unitId)
+    }
+
+    override suspend fun addAuditLog(unitId: Long, auditLog: AuditLogEntry) {
+
     }
 
     private suspend fun createUnit0(options: UnitCreateOptions): KUnit {
@@ -58,19 +67,32 @@ public class LocalUnitServiceImpl(
         }.getOrThrow()
 
         logger.info("Created")
-        val unitId = idService.generate()
+        val generatedId = idService.generate()
 
-        return UnitImpl(
-            id = unitId,
+        val impl = UnitImpl(
+            id = generatedId,
             externalId = options.externalId,
             nodeId = config.nodeId,
             name = options.name,
-            displayName = options.displayName,
-            description = options.description,
             createdAt = currentInstant,
             updatedAt = currentInstant,
-            instance = instance,
+            instanceId = instance.id,
 //            status = if (instance == null) UnitStatus.MissingInstance else UnitStatus.Created
         )
+        unitRepository.createUnit(impl)
+        unitRepository.createAuditLog(
+            AuditLogEntryImpl(
+                id = idService.generate(),
+                targetId = generatedId,
+                actorId = null, // TODO determine actor id
+                event = AuditLogEvents.UnitCreate,
+                reason = null,
+                changes = emptyList(),
+                additionalData = null,
+                createdAt = currentInstant
+            )
+        )
+
+        return impl
     }
 }

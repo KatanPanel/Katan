@@ -55,7 +55,7 @@ interface Unit {
      * in a special way by Katan as it is used only for display character, besides not being unique,
      * that is, there can be more than one unit with the same display name in the same cluster.
      */
-    val displayName: String?
+//    val displayName: String?
 
     /**
      * Long description of this unit.
@@ -66,7 +66,7 @@ interface Unit {
      *
      * The value of this property is null if no description has been defined.
      */
-    val description: String?
+//    val description: String?
 
     /**
      * Local address of this unit.
@@ -108,7 +108,8 @@ interface Unit {
      * separated from the main object of the unit because it is an object of extremely mutable
      * object, that is, its data changes constantly.
      */
-    val instance: UnitInstance
+    val instanceId: Long
+//    val instance: UnitInstance
 
     /**
      * Current status of this unit.

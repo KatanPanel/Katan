@@ -15,10 +15,10 @@ interface AuditLogChange {
     /**
      * The old value of the key.
      */
-    val oldValue: Any?
+    val oldValue: String?
 
     /**
      * The new value of the key.
      */
-    val newValue: Any?
+    val newValue: String?
 }

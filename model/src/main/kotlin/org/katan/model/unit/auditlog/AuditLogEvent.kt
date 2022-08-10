@@ -5,4 +5,4 @@ package org.katan.model.unit.auditlog
  *
  * @see AuditLogEntry
  */
-typealias AuditLogEvent = UByte
+typealias AuditLogEvent = UInt
