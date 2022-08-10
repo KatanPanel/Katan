@@ -3,7 +3,6 @@ package org.katan.service.unit.instance.docker
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.CreateContainerCmd
 import com.github.dockerjava.api.command.CreateContainerResponse
-import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
 import com.github.dockerjava.api.model.PullResponseItem
 import com.github.dockerjava.core.DefaultDockerClientConfig
@@ -12,21 +11,25 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
+import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.model.unit.UnitInstance
 import org.katan.model.unit.UnitInstanceStatus
+import org.katan.model.unit.UnitInstanceUpdateStatusCode
 import org.katan.service.id.IdService
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.UnitInstanceSpec
 import org.katan.service.unit.instance.docker.model.DockerUnitInstanceImpl
+import org.katan.service.unit.instance.docker.util.attachResultCallback
 import org.katan.service.unit.instance.repository.UnitInstanceRepository
-import java.io.Closeable
-import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.jvm.jvmName
 
@@ -42,7 +45,7 @@ internal class DockerUnitInstanceServiceImpl(
 ) : UnitInstanceService,
     CoroutineScope by CoroutineScope(
         SupervisorJob() +
-            CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
+                CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
     ) {
 
     private companion object {
@@ -73,39 +76,87 @@ internal class DockerUnitInstanceServiceImpl(
         }
     }
 
-    override suspend fun stopInstance(instance: UnitInstance) {
-        check(isRunning(instance.status)) {
-            "Unit instance is not running, cannot be stopped"
-        }
-
-        require(instance is DockerUnitInstanceImpl)
-        withContext(Dispatchers.IO) {
-            dockerClient.stopContainerCmd(instance.containerId).exec()
-        }
-    }
-
-    override suspend fun startInstance(instance: UnitInstance) {
-        check(!isRunning(instance.status)) {
+    private suspend fun startInstance(containerId: String, currentStatus: UnitInstanceStatus) {
+        check(!isRunning(currentStatus)) {
             "Unit instance is already running, cannot be started again, stop it first"
         }
 
-        require(instance is DockerUnitInstanceImpl)
         withContext(Dispatchers.IO) {
-            dockerClient.startContainerCmd(instance.containerId).exec()
+            dockerClient.startContainerCmd(containerId).exec()
         }
     }
 
-    override suspend fun killInstance(instance: UnitInstance) {
-        require(instance is DockerUnitInstanceImpl)
+    private suspend fun stopInstance(containerId: String, currentStatus: UnitInstanceStatus) {
+        check(isRunning(currentStatus)) {
+            "Unit instance is not running, cannot be stopped"
+        }
+
         withContext(Dispatchers.IO) {
-            dockerClient.killContainerCmd(instance.containerId).exec()
+            dockerClient.stopContainerCmd(containerId).exec()
         }
     }
 
-    override suspend fun restartInstance(instance: UnitInstance) {
-        require(instance is DockerUnitInstanceImpl)
+    private suspend fun killInstance(containerId: String) {
+        withContext(Dispatchers.IO) {
+            dockerClient.killContainerCmd(containerId).exec()
+        }
+    }
+
+    private suspend fun restartInstance(instance: UnitInstance) {
+        // container will be deleted so restart command will fail
+        if (tryUpdateImage(instance.containerId, instance.imageUpdatePolicy))
+            return;
+
         withContext(Dispatchers.IO) {
             dockerClient.restartContainerCmd(instance.containerId).exec()
+        }
+    }
+
+    private suspend fun tryUpdateImage(
+        containerId: String,
+        imageUpdatePolicy: ImageUpdatePolicy
+    ): Boolean {
+        // fast path -- ignore image update if policy is set to Never
+        if (imageUpdatePolicy == ImageUpdatePolicy.Never)
+            return false
+
+        logger.debug("Trying to update container image")
+
+        val inspect = withContext(Dispatchers.IO) {
+            dockerClient.inspectContainerCmd(containerId).exec()
+        } ?: throw RuntimeException("Failed to inspect container: $containerId")
+
+        val currImage = inspect.config.image ?: return false
+
+        // fast path -- version-specific tag
+        if (currImage.substringAfterLast(":") == "latest")
+            return false
+
+        logger.debug("Removing image \"$currImage\"...")
+        withContext(Dispatchers.IO) {
+            dockerClient.removeImageCmd(currImage).exec()
+        }
+
+        pullContainerImage(currImage).collect {
+            logger.info("Pulling image... $it")
+        }
+        return true
+    }
+
+    // TODO check for parameters invalid property types
+    override suspend fun updateInstanceStatus(
+        instance: UnitInstance,
+        code: UnitInstanceUpdateStatusCode
+    ) {
+        when (code) {
+            UnitInstanceUpdateStatusCode.Start -> startInstance(
+                instance.containerId,
+                instance.status
+            )
+
+            UnitInstanceUpdateStatusCode.Stop -> stopInstance(instance.containerId, instance.status)
+            UnitInstanceUpdateStatusCode.Restart -> restartInstance(instance)
+            UnitInstanceUpdateStatusCode.Kill -> killInstance(instance.containerId)
         }
     }
 
@@ -137,6 +188,7 @@ internal class DockerUnitInstanceServiceImpl(
             val instance = DockerUnitInstanceImpl(
                 id = instanceId,
                 status = UnitInstanceStatus.Created,
+                imageUpdatePolicy = ImageUpdatePolicy.Always,
                 imageId = createdContainer.imageId,
                 containerId = generatedContainerId
             )
@@ -169,7 +221,7 @@ internal class DockerUnitInstanceServiceImpl(
         return try {
             createContainer(image)
         } catch (e: NotFoundException) {
-            pullContainerImage(image)
+            pullContainerImage(image).collect()
             createContainer(image)
         }
     }
@@ -200,27 +252,15 @@ internal class DockerUnitInstanceServiceImpl(
     /**
      * Pulls a Docker image from suspending the current coroutine until that image pulls completely.
      */
-    private suspend fun pullContainerImage(image: String) =
-        suspendCancellableCoroutine<Unit> { cont ->
-            dockerClient.pullImageCmd(image).exec(object : PullImageResultCallback() {
-                override fun onStart(stream: Closeable?) {
-                    logger.info("Preparing to pull image...")
-                }
-
-                override fun onNext(item: PullResponseItem?) {
-                    logger.info("Pulling \"$image\"... $item")
-                }
-
-                override fun onError(throwable: Throwable?) {
-                    cont.cancel(throwable)
-                }
-
-                override fun onComplete() {
-                    logger.info("Image \"$image\" pull completed")
-                    cont.resume(Unit)
-                }
+    private suspend fun pullContainerImage(image: String): Flow<String> {
+        return callbackFlow {
+            dockerClient.pullImageCmd(image).exec(attachResultCallback<PullResponseItem, String> {
+                it.toString()
             })
+
+            awaitClose()
         }
+    }
 
     private fun isRunning(status: UnitInstanceStatus): Boolean {
         return true

@@ -1,5 +1,6 @@
 package org.katan.http
 
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -54,6 +55,7 @@ fun Application.installDefaultFeatures() {
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Post)
         allowXHttpMethodOverride()
+        allowHeader(HttpHeaders.Authorization)
         anyHost()
     }
 }

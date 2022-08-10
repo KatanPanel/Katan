@@ -97,7 +97,10 @@ internal class DockerEventScope(
         if (event.type == null) return
 
         launch(Dispatchers.IO) {
-            event.type?.let { eventsDispatcher.dispatch(DockerEvent(it.value)) }
+            event.type?.let {
+                logger.info(event.toString())
+                eventsDispatcher.dispatch(DockerEvent(it.value))
+            }
         }
     }
 }

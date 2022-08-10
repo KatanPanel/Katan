@@ -1,6 +1,7 @@
 package org.katan.service.unit.instance
 
 import org.katan.model.unit.UnitInstance
+import org.katan.model.unit.UnitInstanceUpdateStatusCode
 
 public interface UnitInstanceService {
 
@@ -12,11 +13,8 @@ public interface UnitInstanceService {
 
     public suspend fun createInstanceFor(spec: UnitInstanceSpec): UnitInstance
 
-    public suspend fun startInstance(instance: UnitInstance)
-
-    public suspend fun stopInstance(instance: UnitInstance)
-
-    public suspend fun killInstance(instance: UnitInstance)
-
-    public suspend fun restartInstance(instance: UnitInstance)
+    public suspend fun updateInstanceStatus(
+        instance: UnitInstance,
+        code: UnitInstanceUpdateStatusCode
+    )
 }

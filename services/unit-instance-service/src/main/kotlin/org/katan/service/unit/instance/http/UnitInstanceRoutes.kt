@@ -8,8 +8,8 @@ import kotlinx.serialization.Serializable
 internal class UnitInstanceRoutes {
 
     @Serializable
-    @Resource("{instanceId}/start")
-    internal class Start(
+    @Resource("{instanceId}/status")
+    internal class UpdateStatus(
         @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
         val instanceId: String
     )
