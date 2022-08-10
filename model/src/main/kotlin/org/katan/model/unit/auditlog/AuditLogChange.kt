@@ -1,4 +1,4 @@
-package org.katan.model.auditlog
+package org.katan.model.unit.auditlog
 
 /**
  * Changes made to an entity in an audit log entry.

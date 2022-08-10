@@ -1,4 +1,4 @@
-package org.katan.model.auditlog
+package org.katan.model.unit.auditlog
 
 /**
  * Audit log entry event id.

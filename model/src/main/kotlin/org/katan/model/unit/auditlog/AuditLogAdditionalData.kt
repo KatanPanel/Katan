@@ -1,4 +1,4 @@
-package org.katan.model.auditlog
+package org.katan.model.unit.auditlog
 
 /**
  * Additional data for certain audit log event types.

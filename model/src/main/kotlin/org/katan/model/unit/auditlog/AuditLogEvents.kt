@@ -1,4 +1,4 @@
-package org.katan.model.auditlog
+package org.katan.model.unit.auditlog
 
 /**
  * All audit log events type ids.
@@ -7,7 +7,7 @@ package org.katan.model.auditlog
  */
 object AuditLogEvents {
 
-    const val UnitCrate = 1
+    const val UnitCreate = 1
     const val UnitUpdate = 2
     const val UnitDelete = 3
     const val RoleCreate = 4

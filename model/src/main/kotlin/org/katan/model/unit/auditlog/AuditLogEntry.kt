@@ -1,4 +1,4 @@
-package org.katan.model.auditlog
+package org.katan.model.unit.auditlog
 
 /**
  * An audit log entry represents a single event action indicated by a action type that can container
