@@ -2,7 +2,6 @@ package org.katan.service.server.model
 
 import kotlinx.datetime.Instant
 import org.katan.model.unit.KUnit
-import org.katan.model.unit.UnitInstance
 
 internal data class UnitImpl(
     override val id: Long,

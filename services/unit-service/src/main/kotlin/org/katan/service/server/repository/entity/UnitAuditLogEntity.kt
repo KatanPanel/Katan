@@ -17,7 +17,6 @@ internal object UnitAuditLogEntriesTable : LongIdTable("units_auditlogs_entries"
     val reason = varchar("reason", length = 255).nullable()
     val createdAt = timestamp("created_at")
     val additionalData = varchar("adt_data", length = 255).nullable()
-
 }
 
 internal class UnitAuditLogEntryEntity(id: EntityID<Long>) : LongEntity(id) {
@@ -30,7 +29,6 @@ internal class UnitAuditLogEntryEntity(id: EntityID<Long>) : LongEntity(id) {
     var createdAt by UnitAuditLogEntriesTable.createdAt
     var additionalData by UnitAuditLogEntriesTable.additionalData
     val changes by UnitAuditLogChangeEntity referrersOn UnitAuditLogChangesTable.entryId
-
 }
 
 internal object UnitAuditLogChangesTable : IntIdTable("units_auditlogs_changes") {
@@ -39,7 +37,6 @@ internal object UnitAuditLogChangesTable : IntIdTable("units_auditlogs_changes")
     val key = varchar("key", length = 255)
     val oldValue = varchar("old_value", length = 255).nullable()
     val newValue = varchar("new_value", length = 255).nullable()
-
 }
 
 internal class UnitAuditLogChangeEntity(id: EntityID<Int>) : IntEntity(id) {
@@ -49,5 +46,4 @@ internal class UnitAuditLogChangeEntity(id: EntityID<Int>) : IntEntity(id) {
     var oldValue by UnitAuditLogChangesTable.oldValue
     var newValue by UnitAuditLogChangesTable.newValue
     var entry by UnitAuditLogEntryEntity referencedOn UnitAuditLogChangesTable.entryId
-
 }

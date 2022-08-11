@@ -15,6 +15,7 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
@@ -39,14 +40,24 @@ fun Application.installDefaultFeatures() {
         )
     }
     install(StatusPages) {
-        exception<KatanHttpException> { call, httpError ->
-            httpError.cause?.printStackTrace()
-            call.respond(httpError.httpStatus, HttpError(httpError.code, httpError.message))
+        exception<KatanHttpException> { call, exception ->
+            exception.cause?.printStackTrace()
+            call.respond(exception.httpStatus, HttpError(exception.code, exception.message))
         }
 
-        exception<Throwable> { call, cause ->
-            cause.printStackTrace()
-            call.respond(HttpStatusCode.InternalServerError)
+        exception<SerializationException> { call, exception ->
+            call.respond(
+                HttpStatusCode.UnprocessableEntity,
+                HttpError.Generic(exception.localizedMessage)
+            )
+        }
+
+        exception<Throwable> { call, exception ->
+            exception.printStackTrace()
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                HttpError.Generic("${exception::class.simpleName}: ${exception.localizedMessage}")
+            )
         }
     }
     install(CORS) {

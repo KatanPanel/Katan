@@ -15,7 +15,6 @@ internal object UnitTable : LongIdTable("units") {
     val updatedAt = timestamp("updated_at")
     val deletedAt = timestamp("deleted_at").nullable()
     val instanceId = long("instance_id")
-
 }
 
 internal class UnitEntity(id: EntityID<Long>) : LongEntity(id) {
@@ -28,5 +27,4 @@ internal class UnitEntity(id: EntityID<Long>) : LongEntity(id) {
     var updatedAt by UnitTable.updatedAt
     var deletedAt by UnitTable.deletedAt
     var instanceId by UnitTable.instanceId
-
 }

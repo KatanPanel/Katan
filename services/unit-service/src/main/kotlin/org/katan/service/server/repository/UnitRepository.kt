@@ -10,8 +10,7 @@ public interface UnitRepository {
 
     public suspend fun createUnit(unit: KUnit)
 
-    public suspend fun findAuditLogs(unitId: Long): AuditLog
+    public suspend fun findAuditLogs(unitId: Long): AuditLog?
 
     public suspend fun createAuditLog(auditLogEntry: AuditLogEntry)
-
 }

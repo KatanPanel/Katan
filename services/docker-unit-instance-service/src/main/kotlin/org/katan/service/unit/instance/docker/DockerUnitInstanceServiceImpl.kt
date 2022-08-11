@@ -25,6 +25,7 @@ import org.katan.model.unit.UnitInstance
 import org.katan.model.unit.UnitInstanceStatus
 import org.katan.model.unit.UnitInstanceUpdateStatusCode
 import org.katan.service.id.IdService
+import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.UnitInstanceSpec
 import org.katan.service.unit.instance.docker.model.DockerUnitInstanceImpl
@@ -45,7 +46,7 @@ internal class DockerUnitInstanceServiceImpl(
 ) : UnitInstanceService,
     CoroutineScope by CoroutineScope(
         SupervisorJob() +
-                CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
+            CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
     ) {
 
     private companion object {
@@ -58,9 +59,10 @@ internal class DockerUnitInstanceServiceImpl(
         DockerEventScope({ dockerClient }, eventsDispatcher, coroutineContext)
     }
 
-    override suspend fun getInstance(id: Long): UnitInstance? {
+    override suspend fun getInstance(id: Long): UnitInstance {
         // TODO cache service
         return unitInstanceRepository.findById(id)
+            ?: throw InstanceNotFoundException()
     }
 
     override suspend fun deleteInstance(instance: UnitInstance) {
@@ -104,8 +106,9 @@ internal class DockerUnitInstanceServiceImpl(
 
     private suspend fun restartInstance(instance: UnitInstance) {
         // container will be deleted so restart command will fail
-        if (tryUpdateImage(instance.containerId, instance.imageUpdatePolicy))
-            return;
+        if (tryUpdateImage(instance.containerId, instance.imageUpdatePolicy)) {
+            return
+        }
 
         withContext(Dispatchers.IO) {
             dockerClient.restartContainerCmd(instance.containerId).exec()
@@ -117,8 +120,9 @@ internal class DockerUnitInstanceServiceImpl(
         imageUpdatePolicy: ImageUpdatePolicy
     ): Boolean {
         // fast path -- ignore image update if policy is set to Never
-        if (imageUpdatePolicy == ImageUpdatePolicy.Never)
+        if (imageUpdatePolicy == ImageUpdatePolicy.Never) {
             return false
+        }
 
         logger.debug("Trying to update container image")
 
@@ -129,8 +133,9 @@ internal class DockerUnitInstanceServiceImpl(
         val currImage = inspect.config.image ?: return false
 
         // fast path -- version-specific tag
-        if (currImage.substringAfterLast(":") == "latest")
+        if (currImage.substringAfterLast(":") == "latest") {
             return false
+        }
 
         logger.debug("Removing image \"$currImage\"...")
         withContext(Dispatchers.IO) {
@@ -254,9 +259,11 @@ internal class DockerUnitInstanceServiceImpl(
      */
     private suspend fun pullContainerImage(image: String): Flow<String> {
         return callbackFlow {
-            dockerClient.pullImageCmd(image).exec(attachResultCallback<PullResponseItem, String> {
-                it.toString()
-            })
+            dockerClient.pullImageCmd(image).exec(
+                attachResultCallback<PullResponseItem, String> {
+                    it.toString()
+                }
+            )
 
             awaitClose()
         }

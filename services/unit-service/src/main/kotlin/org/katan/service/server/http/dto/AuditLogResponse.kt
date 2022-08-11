@@ -13,7 +13,6 @@ internal data class AuditLogResponse(
 ) {
 
     constructor(auditLog: AuditLog) : this(auditLog.entries.map(::AuditLogEntryResponse))
-
 }
 
 @Serializable
@@ -36,7 +35,6 @@ internal data class AuditLogEntryResponse(
         additionalData = entry.additionalData,
         changes = entry.changes.map(::AuditLogEntryChangesResponse)
     )
-
 }
 
 @Serializable
@@ -51,5 +49,4 @@ internal data class AuditLogEntryChangesResponse(
         oldValue = change.oldValue,
         newValue = change.newValue
     )
-
 }

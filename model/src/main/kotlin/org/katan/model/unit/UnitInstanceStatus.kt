@@ -32,11 +32,9 @@ sealed class UnitInstanceUpdateStatusCode(val name: String, val code: Int) {
         fun getByCode(code: Int): UnitInstanceUpdateStatusCode? {
             return mappings[code]
         }
-
     }
 
     override fun toString(): String {
         return "$name ($code)"
     }
-
 }

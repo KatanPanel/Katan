@@ -16,6 +16,6 @@ suspend inline fun PipelineContext<*, ApplicationCall>.respond(
 
 fun respondError(
     error: HttpError,
-    cause: Throwable? = null,
-    status: HttpStatusCode = HttpStatusCode.BadRequest
+    status: HttpStatusCode = HttpStatusCode.BadRequest,
+    cause: Throwable? = null
 ): Nothing = throw KatanHttpException(error.code, error.message, status, cause)

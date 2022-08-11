@@ -2,10 +2,12 @@ package org.katan.service.unit.instance
 
 import org.katan.model.unit.UnitInstance
 import org.katan.model.unit.UnitInstanceUpdateStatusCode
+import kotlin.jvm.Throws
 
 public interface UnitInstanceService {
 
-    public suspend fun getInstance(id: Long): UnitInstance?
+    @Throws(InstanceException::class)
+    public suspend fun getInstance(id: Long): UnitInstance
 
     public suspend fun deleteInstance(instance: UnitInstance)
 

@@ -11,7 +11,5 @@ enum class ImageUpdatePolicy(val id: String) {
         fun getById(id: String): ImageUpdatePolicy {
             return values().first { it.id.equals(id, ignoreCase = true) }
         }
-
     }
-
 }

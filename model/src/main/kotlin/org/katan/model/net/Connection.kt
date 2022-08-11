@@ -1,4 +1,4 @@
-package org.katan.model
+package org.katan.model.net
 
 interface Connection {
 

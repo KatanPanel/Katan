@@ -1,5 +1,9 @@
 package org.katan.service.server
 
-public open class UnitException : RuntimeException()
+import org.katan.model.KatanException
+
+public open class UnitException : KatanException()
 
 public class UnitConflictException : UnitException()
+
+public class UnitNotFoundException : UnitException()

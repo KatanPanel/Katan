@@ -16,7 +16,7 @@ import kotlin.test.assertEquals
 class FindUnitTest : KoinTest {
 
     @Test
-    fun `when unit is not found expect error 1001`() = withTestApplication({
+    fun `when unit is not found expect HTTP 400`() = withTestApplication({
         routing {
             findUnit()
         }
@@ -26,11 +26,11 @@ class FindUnitTest : KoinTest {
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)
-        assertEquals(UnitNotFound, body)
+        assertEquals(HttpError.UnknownUnit, body)
     }
 
     @Test
-    fun `when incorrect unit id expect error 1004`() = withTestApplication({
+    fun `given incorrect unit id expect HTTP 400`() = withTestApplication({
         routing {
             findUnit()
         }
@@ -40,6 +40,6 @@ class FindUnitTest : KoinTest {
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)
-        assertEquals(InvalidUnitIdFormat, body)
+        assertEquals(HttpError.UnknownUnit, body)
     }
 }

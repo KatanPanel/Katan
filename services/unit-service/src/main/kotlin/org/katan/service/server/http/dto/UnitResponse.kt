@@ -4,7 +4,6 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.model.unit.KUnit
-import org.katan.service.unit.instance.http.dto.InstanceResponse
 
 @Serializable
 internal data class UnitResponse(
@@ -14,7 +13,7 @@ internal data class UnitResponse(
     val name: String,
     @SerialName("created-at") val createdAt: Instant,
     @SerialName("updated-at") val updatedAt: Instant,
-    @SerialName("deleted-at") val deletedAt: Instant?,
+    @SerialName("deleted-at") val deletedAt: Instant?
 //    val status: String
 ) {
 
@@ -25,7 +24,7 @@ internal data class UnitResponse(
         name = value.name,
         createdAt = value.createdAt,
         updatedAt = value.updatedAt,
-        deletedAt = value.deletedAt,
+        deletedAt = value.deletedAt
 //        status = value.status.value
     )
 }

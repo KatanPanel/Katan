@@ -8,11 +8,11 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.routing.routing
+import org.katan.http.HttpError
 import org.katan.http.HttpModule
 import org.katan.http.HttpModuleRegistry
 import org.katan.http.respondError
 import org.katan.service.account.AccountService
-import org.katan.service.account.http.AccountNotFound
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.http.routes.login
 import org.katan.service.auth.http.routes.verify
@@ -46,8 +46,8 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
 
                 challenge { _, _ ->
                     respondError(
-                        InvalidAccessTokenError,
-                        status = HttpStatusCode.Unauthorized
+                        HttpError.InvalidAccessToken,
+                        HttpStatusCode.Unauthorized
                     )
                 }
 
@@ -74,7 +74,7 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
         val id = jwtSubject.toLong()
         val account = runCatching {
             accountService.getAccount(id)
-        }.getOrNull() ?: respondError(AccountNotFound)
+        }.getOrNull() ?: respondError(HttpError.UnknownAccount)
 
         return AccountPrincipal(account)
     }

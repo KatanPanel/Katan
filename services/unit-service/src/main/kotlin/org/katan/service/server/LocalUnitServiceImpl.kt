@@ -8,7 +8,6 @@ import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.auditlog.AuditLog
-import org.katan.model.unit.auditlog.AuditLogEntry
 import org.katan.model.unit.auditlog.AuditLogEvents
 import org.katan.service.id.IdService
 import org.katan.service.server.model.AuditLogEntryImpl
@@ -30,32 +29,15 @@ public class LocalUnitServiceImpl(
     private val registered: MutableList<KUnit> = mutableListOf()
     private val mutex = Mutex()
 
-    override suspend fun getUnit(id: Long): KUnit? = mutex.withLock {
-        registered.firstOrNull {
-            it.id == id
+    override suspend fun getUnit(id: Long): KUnit {
+        return mutex.withLock {
+            registered.firstOrNull {
+                it.id == id
+            } ?: throw UnitNotFoundException()
         }
     }
 
     override suspend fun createUnit(options: UnitCreateOptions): KUnit = mutex.withLock {
-        if (registered.any { it.name.equals(options.name, ignoreCase = true) }) {
-            throw UnitConflictException()
-        }
-
-        val unit = createUnit0(options)
-
-        registered.add(unit)
-        return unit
-    }
-
-    override suspend fun getAuditLogs(unitId: Long): AuditLog {
-        return unitRepository.findAuditLogs(unitId)
-    }
-
-    override suspend fun addAuditLog(unitId: Long, auditLog: AuditLogEntry) {
-
-    }
-
-    private suspend fun createUnit0(options: UnitCreateOptions): KUnit {
         val currentInstant = Clock.System.now()
         val spec = unitInstanceService.fromSpec(mapOf("image" to options.dockerImage))
 
@@ -69,17 +51,17 @@ public class LocalUnitServiceImpl(
         logger.info("Created")
         val generatedId = idService.generate()
 
-        val impl = UnitImpl(
+        val unit = UnitImpl(
             id = generatedId,
             externalId = options.externalId,
             nodeId = config.nodeId,
             name = options.name,
             createdAt = currentInstant,
             updatedAt = currentInstant,
-            instanceId = instance.id,
+            instanceId = instance.id
 //            status = if (instance == null) UnitStatus.MissingInstance else UnitStatus.Created
         )
-        unitRepository.createUnit(impl)
+        unitRepository.createUnit(unit)
         unitRepository.createAuditLog(
             AuditLogEntryImpl(
                 id = idService.generate(),
@@ -93,6 +75,11 @@ public class LocalUnitServiceImpl(
             )
         )
 
-        return impl
+        registered.add(unit)
+        return unit
+    }
+
+    override suspend fun getAuditLogs(unitId: Long): AuditLog {
+        return unitRepository.findAuditLogs(unitId) ?: throw UnitNotFoundException()
     }
 }

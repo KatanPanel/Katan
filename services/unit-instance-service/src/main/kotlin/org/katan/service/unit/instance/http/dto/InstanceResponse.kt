@@ -16,5 +16,4 @@ public data class InstanceResponse(
         imageUpdatePolicy = instance.imageUpdatePolicy.id,
         status = instance.status.name
     )
-
 }

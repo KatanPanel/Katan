@@ -19,6 +19,7 @@ javaJwt = "4.0.0"
 yoki = "0.0.1-SNAPSHOT"
 bcprov = "1.71"
 jedis = "4.2.0"
+hibernate-validator = "8.0.0.CR3"
 plugin-protobuf = "0.8.18"
 plugin-shadowjar = "7.1.2"
 plugin-ktlint = "0.46.1"
@@ -211,6 +212,10 @@ version.ref = "bcprov"
 [libraries.jedis]
 module = "redis.clients:jedis"
 version.ref = "jedis"
+
+[libraries.hibernate-validator]
+module = "org.hibernate.validator:hibernate-validator"
+version.ref = "hibernate-validator"
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "plugin-protobuf" }

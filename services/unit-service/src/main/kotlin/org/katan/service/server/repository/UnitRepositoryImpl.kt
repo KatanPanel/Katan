@@ -9,7 +9,6 @@ import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.auditlog.AuditLog
-import org.katan.model.unit.auditlog.AuditLogChange
 import org.katan.model.unit.auditlog.AuditLogEntry
 import org.katan.service.server.model.AuditLogEntryImpl
 import org.katan.service.server.model.AuditLogImpl
@@ -62,12 +61,14 @@ internal class UnitRepositoryImpl(
         }
     }
 
-    override suspend fun findAuditLogs(unitId: Long): AuditLog {
+    override suspend fun findAuditLogs(unitId: Long): AuditLog? {
         return newSuspendedTransaction(db = database) {
+            val query = UnitAuditLogEntriesTable.selectBatched {
+                UnitAuditLogEntriesTable.targetId eq unitId
+            }.singleOrNull() ?: return@newSuspendedTransaction null
+
             AuditLogImpl(
-                UnitAuditLogEntriesTable.selectBatched {
-                    UnitAuditLogEntriesTable.targetId eq unitId
-                }.singleOrNull()?.map {
+                query.map {
                     AuditLogEntryImpl(
                         id = it[UnitAuditLogEntriesTable.id].value,
                         targetId = it[UnitAuditLogEntriesTable.targetId],
@@ -78,7 +79,7 @@ internal class UnitRepositoryImpl(
                         additionalData = it[UnitAuditLogEntriesTable.additionalData],
                         createdAt = it[UnitAuditLogEntriesTable.createdAt]
                     )
-                } ?: emptyList()
+                }
             )
         }
     }
@@ -105,5 +106,4 @@ internal class UnitRepositoryImpl(
                 }
         }
     }
-
 }

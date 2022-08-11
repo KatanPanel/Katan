@@ -13,11 +13,11 @@ internal class UnitRoutes {
         @Suppress("UNUSED") val parent: UnitRoutes = UnitRoutes(),
         val id: String
     )
+
     @Serializable
     @Resource("{unitId}/audit-logs")
     internal class GetUnitAuditLogs(
         @Suppress("UNUSED") val parent: UnitRoutes = UnitRoutes(),
         val unitId: String
     )
-
 }
