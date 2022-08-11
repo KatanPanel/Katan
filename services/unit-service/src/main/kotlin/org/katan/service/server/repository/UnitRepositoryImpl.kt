@@ -3,13 +3,13 @@ package org.katan.service.server.repository
 import kotlinx.coroutines.Dispatchers.IO
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.selectBatched
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogEntry
+import org.katan.service.server.model.AuditLogChangeImpl
 import org.katan.service.server.model.AuditLogEntryImpl
 import org.katan.service.server.model.AuditLogImpl
 import org.katan.service.server.model.UnitImpl
@@ -63,24 +63,28 @@ internal class UnitRepositoryImpl(
 
     override suspend fun findAuditLogs(unitId: Long): AuditLog? {
         return newSuspendedTransaction(db = database) {
-            val query = UnitAuditLogEntriesTable.selectBatched {
+            val mappedEntries = UnitAuditLogEntryEntity.find {
                 UnitAuditLogEntriesTable.targetId eq unitId
-            }.singleOrNull() ?: return@newSuspendedTransaction null
+            }.notForUpdate().map { entry ->
+                AuditLogEntryImpl(
+                    id = entry.id.value,
+                    targetId = entry.targetId,
+                    actorId = entry.actorId,
+                    event = entry.event,
+                    reason = entry.reason,
+                    additionalData = entry.additionalData,
+                    createdAt = entry.createdAt,
+                    changes = entry.changes.map { change ->
+                        AuditLogChangeImpl(
+                            key = change.key,
+                            oldValue = change.oldValue,
+                            newValue = change.newValue
+                        )
+                    }
+                )
+            }
 
-            AuditLogImpl(
-                query.map {
-                    AuditLogEntryImpl(
-                        id = it[UnitAuditLogEntriesTable.id].value,
-                        targetId = it[UnitAuditLogEntriesTable.targetId],
-                        actorId = it[UnitAuditLogEntriesTable.actorId],
-                        event = it[UnitAuditLogEntriesTable.event],
-                        reason = it[UnitAuditLogEntriesTable.reason],
-                        changes = emptyList(),
-                        additionalData = it[UnitAuditLogEntriesTable.additionalData],
-                        createdAt = it[UnitAuditLogEntriesTable.createdAt]
-                    )
-                }
-            )
+            AuditLogImpl(mappedEntries)
         }
     }
 
