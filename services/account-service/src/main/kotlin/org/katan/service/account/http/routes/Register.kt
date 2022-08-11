@@ -13,8 +13,6 @@ import org.katan.service.account.AccountService
 import org.katan.service.account.http.AccountRoutes
 import org.katan.service.account.http.dto.AccountResponse
 import org.katan.service.account.http.dto.RegisterRequest
-import org.katan.service.account.http.dto.RegisterRequest.Companion.MAX_USERNAME_LENGTH
-import org.katan.service.account.http.dto.RegisterRequest.Companion.MIN_USERNAME_LENGTH
 import org.katan.service.account.http.dto.RegisterResponse
 import org.koin.ktor.ext.inject
 
@@ -23,7 +21,6 @@ internal fun Route.register() {
 
     post<AccountRoutes.Register> {
         val req = call.receive<RegisterRequest>()
-//        checkUsernameLength(req.username)
 
         val account = try {
             accountService.createAccount(req.username, req.password)
@@ -32,16 +29,5 @@ internal fun Route.register() {
         }
 
         respond(RegisterResponse(AccountResponse(account)))
-    }
-}
-
-internal fun checkUsernameLength(username: String) {
-    if (username.length < MIN_USERNAME_LENGTH || username.length > MAX_USERNAME_LENGTH) {
-        respondError(
-            HttpError.AccountUsernameLengthConstraints(
-                MIN_USERNAME_LENGTH,
-                MAX_USERNAME_LENGTH
-            )
-        )
     }
 }
