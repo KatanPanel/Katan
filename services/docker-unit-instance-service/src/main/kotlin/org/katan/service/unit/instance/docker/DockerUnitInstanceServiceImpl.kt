@@ -175,9 +175,11 @@ internal class DockerUnitInstanceServiceImpl(
 
         logger.info("Generating a unit instance: $spec")
         return coroutineScope {
+            val instanceId = idService.generate()
+
             // TODO better context switch
             val generatedContainerId = withContext(Dispatchers.IO) {
-                tryCreateContainer(spec.image)
+                tryCreateContainer(spec.image, "katan-${instanceId}")
             }
 
             logger.info("Unit instance generated successfully: $generatedContainerId")
@@ -189,7 +191,6 @@ internal class DockerUnitInstanceServiceImpl(
 //            val connection =
 //                networkService.createUnitConnection(container.networkSettings.ipAddress, 8080)
 
-            val instanceId = idService.generate()
             val instance = DockerUnitInstanceImpl(
                 id = instanceId,
                 status = UnitInstanceStatus.Created,
@@ -222,12 +223,12 @@ internal class DockerUnitInstanceServiceImpl(
      * container again suspending the current coroutine for both jobs.
      * @return The created container id.
      */
-    private suspend fun tryCreateContainer(image: String): String {
+    private suspend fun tryCreateContainer(image: String, name: String): String {
         return try {
-            createContainer(image)
+            createContainer(image, name)
         } catch (e: NotFoundException) {
             pullContainerImage(image).collect()
-            createContainer(image)
+            createContainer(image, name)
         }
     }
 
@@ -235,11 +236,12 @@ internal class DockerUnitInstanceServiceImpl(
      * Creates a Docker container using the given [image] suspending the coroutine until the
      * container creation workflow is completed.
      */
-    private suspend fun createContainer(image: String): String =
+    private suspend fun createContainer(image: String, name: String): String =
         suspendCoroutine<CreateContainerResponse> { cont ->
             cont.resumeWith(
                 runCatching {
                     dockerClient.createContainerCmd(image)
+                        .withName(name)
                         .buildContainerBasedOnConfiguration()
                         .exec()
                 }
