@@ -14,7 +14,7 @@ repositories {
 
 subprojects {
     group = "org.katan"
-    version = "0.1.0"
+    version = "0.1.0-SNAPSHOT"
 
     apply(plugin = rootProject.libs.plugins.kotlin.jvm.get().pluginId)
     apply(plugin = rootProject.libs.plugins.kotlin.serialization.get().pluginId)
