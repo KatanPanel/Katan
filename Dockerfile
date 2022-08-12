@@ -9,7 +9,7 @@ RUN ./gradlew application:shadowJar
 
 # Production build
 FROM openjdk:8-jdk-alpine
-ENV ARTIFACT_NAME=Katan.jar
+ENV ARTIFACT_NAME=katan-*.jar
 ENV BUILD_HOME=/usr/katan-build/
 
 WORKDIR $BUILD_HOME

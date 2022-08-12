@@ -1,6 +1,7 @@
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
     application
-    @Suppress("DSL_SCOPE_VIOLATION")
     alias(libs.plugins.shadowjar)
 }
 
@@ -30,5 +31,9 @@ tasks {
             attributes["Main-Class"] = application.mainClass.get()
             attributes["Implementation-Version"] = project.version
         }
+    }
+
+    shadowJar {
+        archiveBaseName.set("katan")
     }
 }
