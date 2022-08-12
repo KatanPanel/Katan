@@ -16,7 +16,7 @@ interface KatanConfig {
 
     interface DatabaseConfig {
 
-        val connectionString: String
+        val host: String
 
         val username: String
 

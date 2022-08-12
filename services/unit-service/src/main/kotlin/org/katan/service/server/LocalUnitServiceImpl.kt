@@ -29,6 +29,10 @@ public class LocalUnitServiceImpl(
     private val registered: MutableList<KUnit> = mutableListOf()
     private val mutex = Mutex()
 
+    override suspend fun getUnits(): List<KUnit> {
+        return mutex.withLock { registered }
+    }
+
     override suspend fun getUnit(id: Long): KUnit {
         return mutex.withLock {
             registered.firstOrNull {

@@ -8,6 +8,12 @@ import kotlinx.serialization.Serializable
 internal class UnitRoutes {
 
     @Serializable
+    @Resource("")
+    internal class All(
+        @Suppress("UNUSED") val parent: UnitRoutes = UnitRoutes()
+    )
+
+    @Serializable
     @Resource("{id}")
     internal class FindById(
         @Suppress("UNUSED") val parent: UnitRoutes = UnitRoutes(),

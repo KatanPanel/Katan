@@ -30,5 +30,6 @@ include(
     "services:account-service",
     "services:database-service",
     "services:network-service",
-    "services:cache-service"
+    "services:cache-service",
+    "services:user-service"
 )

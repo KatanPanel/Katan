@@ -5,6 +5,8 @@ import org.katan.model.unit.auditlog.AuditLog
 
 public interface UnitService {
 
+    public suspend fun getUnits(): List<KUnit>
+
     @Throws(UnitNotFoundException::class)
     public suspend fun getUnit(id: Long): KUnit
 

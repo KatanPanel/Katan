@@ -12,7 +12,7 @@ internal data class ConfigImpl(
 ) : KatanConfig {
 
     data class DatabaseConfigImpl(
-        @ConfigAlias("url") override val connectionString: String,
+        override val host: String,
         @ConfigAlias("user") override val username: String,
         @ConfigAlias("pass") override val password: String
     ) : KatanConfig.DatabaseConfig
