@@ -27,7 +27,5 @@ data class HttpError internal constructor(
         fun createError(code: Int, message: String): HttpError {
             return HttpError(code, message)
         }
-
     }
-
 }

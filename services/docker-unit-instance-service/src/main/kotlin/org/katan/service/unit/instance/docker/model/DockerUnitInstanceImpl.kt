@@ -1,8 +1,8 @@
 package org.katan.service.unit.instance.docker.model
 
-import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.model.instance.UnitInstance
 import org.katan.model.instance.UnitInstanceStatus
+import org.katan.model.unit.ImageUpdatePolicy
 
 internal data class DockerUnitInstanceImpl(
     override val id: Long,

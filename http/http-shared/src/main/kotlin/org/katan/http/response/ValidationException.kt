@@ -23,8 +23,9 @@ internal data class ValidationException(
 
 fun Validator.validateOrThrow(value: Any) {
     val violations = validate(value)
-    if (violations.isEmpty())
+    if (violations.isEmpty()) {
         return
+    }
 
     val mappedViolations = violations.groupBy {
         it.propertyPath

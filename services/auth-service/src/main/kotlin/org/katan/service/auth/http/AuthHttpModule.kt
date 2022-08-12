@@ -9,9 +9,9 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
-import org.katan.http.response.HttpError
 import org.katan.http.di.HttpModule
 import org.katan.http.di.HttpModuleRegistry
+import org.katan.http.response.HttpError
 import org.katan.http.response.respondError
 import org.katan.service.account.AccountService
 import org.katan.service.auth.AuthService

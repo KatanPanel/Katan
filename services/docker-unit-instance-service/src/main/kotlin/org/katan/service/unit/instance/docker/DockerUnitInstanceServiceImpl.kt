@@ -20,10 +20,10 @@ import kotlinx.coroutines.withContext
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
-import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.model.instance.UnitInstance
 import org.katan.model.instance.UnitInstanceStatus
 import org.katan.model.instance.UnitInstanceUpdateStatusCode
+import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.service.id.IdService
 import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
@@ -179,7 +179,7 @@ internal class DockerUnitInstanceServiceImpl(
 
             // TODO better context switch
             val generatedContainerId = withContext(Dispatchers.IO) {
-                tryCreateContainer(spec.image, "katan-${instanceId}")
+                tryCreateContainer(spec.image, "katan-$instanceId")
             }
 
             logger.info("Unit instance generated successfully: $generatedContainerId")
@@ -242,7 +242,7 @@ internal class DockerUnitInstanceServiceImpl(
                 runCatching {
                     dockerClient.createContainerCmd(image)
                         .withName(name)
-                        .withEnv(mapOf("EULA" to "true").map { (k, v) -> "$k=$v"})
+                        .withEnv(mapOf("EULA" to "true").map { (k, v) -> "$k=$v" })
                         .buildContainerBasedOnConfiguration()
                         .exec()
                 }
