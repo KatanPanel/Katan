@@ -2,7 +2,7 @@ package org.katan.service.unit.instance.http.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.katan.model.unit.UnitInstance
+import org.katan.model.instance.UnitInstance
 
 @Serializable
 public data class InstanceResponse(

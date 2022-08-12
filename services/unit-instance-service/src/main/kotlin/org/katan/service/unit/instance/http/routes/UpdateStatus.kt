@@ -6,9 +6,9 @@ import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import org.katan.http.HttpError
-import org.katan.http.respondError
-import org.katan.model.unit.UnitInstanceUpdateStatusCode
+import org.katan.http.response.HttpError
+import org.katan.http.response.respondError
+import org.katan.model.instance.UnitInstanceUpdateStatusCode
 import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.http.UnitInstanceRoutes

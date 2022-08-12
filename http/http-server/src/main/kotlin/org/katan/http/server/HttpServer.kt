@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.katan.http.HttpModuleRegistry
+import org.katan.http.di.HttpModuleRegistry
 import org.katan.http.installDefaultFeatures
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject

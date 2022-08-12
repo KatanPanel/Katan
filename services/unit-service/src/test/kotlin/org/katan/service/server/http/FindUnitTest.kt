@@ -4,7 +4,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
-import org.katan.http.HttpError
+import org.katan.http.response.HttpError
 import org.katan.http.createTestClient
 import org.katan.http.test.VALID_SNOWFLAKE_ID
 import org.katan.http.withTestApplication

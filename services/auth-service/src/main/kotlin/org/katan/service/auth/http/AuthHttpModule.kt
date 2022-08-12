@@ -7,11 +7,12 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
+import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
-import org.katan.http.HttpError
-import org.katan.http.HttpModule
-import org.katan.http.HttpModuleRegistry
-import org.katan.http.respondError
+import org.katan.http.response.HttpError
+import org.katan.http.di.HttpModule
+import org.katan.http.di.HttpModuleRegistry
+import org.katan.http.response.respondError
 import org.katan.service.account.AccountService
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.http.routes.login
@@ -40,15 +41,13 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
     private fun Application.installAuthentication() {
         val authService by inject<AuthService>()
         val accountService by inject<AccountService>()
+
         install(Authentication) {
             jwt {
                 realm = "Katan"
 
                 challenge { _, _ ->
-                    respondError(
-                        HttpError.InvalidAccessToken,
-                        HttpStatusCode.Unauthorized
-                    )
+                    call.respond(HttpStatusCode.Unauthorized, HttpError.InvalidAccessToken)
                 }
 
                 verifier(
@@ -58,6 +57,7 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
                 )
 
                 validate { credentials ->
+                    println("validate")
                     handleAuthentication(
                         credentials.payload.subject,
                         accountService

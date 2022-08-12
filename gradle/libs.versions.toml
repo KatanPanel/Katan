@@ -20,6 +20,7 @@ yoki = "0.0.1-SNAPSHOT"
 bcprov = "1.71"
 jedis = "4.2.0"
 hibernate-validator = "8.0.0.CR3"
+expressly = "5.0.0"
 plugin-protobuf = "0.8.18"
 plugin-shadowjar = "7.1.2"
 plugin-ktlint = "0.46.1"
@@ -213,9 +214,17 @@ version.ref = "bcprov"
 module = "redis.clients:jedis"
 version.ref = "jedis"
 
-[libraries.hibernate-validator]
+[libraries.hibernateValidator]
 module = "org.hibernate.validator:hibernate-validator"
 version.ref = "hibernate-validator"
+
+[libraries.hibernateValidator-cdi]
+module = "org.hibernate.validator:hibernate-validator-cdi"
+version.ref = "hibernate-validator"
+
+[libraries.expressly]
+module = "org.glassfish.expressly:expressly"
+version.ref = "expressly"
 
 [plugins]
 protobuf = { id = "com.google.protobuf", version.ref = "plugin-protobuf" }

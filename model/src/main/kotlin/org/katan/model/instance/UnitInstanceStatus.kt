@@ -1,4 +1,4 @@
-package org.katan.model.unit
+package org.katan.model.instance
 
 sealed class UnitInstanceStatus(val name: String) {
 

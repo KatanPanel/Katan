@@ -1,7 +1,7 @@
 package org.katan.service.network
 
 import org.katan.model.net.Connection
-import org.katan.model.unit.UnitInstance
+import org.katan.model.instance.UnitInstance
 
 public interface NetworkService {
 

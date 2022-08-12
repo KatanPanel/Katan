@@ -2,9 +2,9 @@ package org.katan.service.server.http.routes
 
 import io.ktor.server.resources.get
 import io.ktor.server.routing.Route
-import org.katan.http.HttpError
-import org.katan.http.respond
-import org.katan.http.respondError
+import org.katan.http.response.HttpError
+import org.katan.http.response.respond
+import org.katan.http.response.respondError
 import org.katan.service.server.UnitNotFoundException
 import org.katan.service.server.UnitService
 import org.katan.service.server.http.UnitRoutes

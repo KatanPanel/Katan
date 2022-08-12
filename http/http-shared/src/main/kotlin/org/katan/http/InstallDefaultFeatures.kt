@@ -17,6 +17,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import org.katan.http.response.HttpError
+import org.katan.http.response.ValidationException
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 
@@ -40,9 +42,13 @@ fun Application.installDefaultFeatures() {
         )
     }
     install(StatusPages) {
-        exception<KatanHttpException> { call, exception ->
+        exception<HttpException> { call, exception ->
             exception.cause?.printStackTrace()
             call.respond(exception.httpStatus, HttpError(exception.code, exception.message))
+        }
+
+        exception<ValidationException> { call, exception ->
+            call.respond(HttpStatusCode.UnprocessableEntity, exception.data)
         }
 
         exception<SerializationException> { call, exception ->
@@ -60,6 +66,7 @@ fun Application.installDefaultFeatures() {
             )
         }
     }
+
     install(CORS) {
         allowCredentials = true
         allowNonSimpleContentTypes = true

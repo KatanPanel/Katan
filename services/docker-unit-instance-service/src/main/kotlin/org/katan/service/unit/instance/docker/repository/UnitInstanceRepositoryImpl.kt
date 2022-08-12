@@ -9,8 +9,8 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.unit.ImageUpdatePolicy
-import org.katan.model.unit.UnitInstance
-import org.katan.model.unit.UnitInstanceStatus
+import org.katan.model.instance.UnitInstance
+import org.katan.model.instance.UnitInstanceStatus
 import org.katan.service.unit.instance.docker.model.DockerUnitInstanceImpl
 import org.katan.service.unit.instance.repository.UnitInstanceRepository
 

@@ -5,7 +5,7 @@ import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
-import org.katan.http.HttpError
+import org.katan.http.response.HttpError
 import org.katan.http.createTestClient
 import org.katan.http.withTestApplication
 import org.katan.service.server.http.dto.CreateUnitRequest

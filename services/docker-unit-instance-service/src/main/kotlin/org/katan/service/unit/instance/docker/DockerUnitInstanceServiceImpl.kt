@@ -21,9 +21,9 @@ import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
 import org.katan.model.unit.ImageUpdatePolicy
-import org.katan.model.unit.UnitInstance
-import org.katan.model.unit.UnitInstanceStatus
-import org.katan.model.unit.UnitInstanceUpdateStatusCode
+import org.katan.model.instance.UnitInstance
+import org.katan.model.instance.UnitInstanceStatus
+import org.katan.model.instance.UnitInstanceUpdateStatusCode
 import org.katan.service.id.IdService
 import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
@@ -242,6 +242,7 @@ internal class DockerUnitInstanceServiceImpl(
                 runCatching {
                     dockerClient.createContainerCmd(image)
                         .withName(name)
+                        .withEnv(mapOf("EULA" to "true").map { (k, v) -> "$k=$v"})
                         .buildContainerBasedOnConfiguration()
                         .exec()
                 }
@@ -272,6 +273,6 @@ internal class DockerUnitInstanceServiceImpl(
     }
 
     private fun isRunning(status: UnitInstanceStatus): Boolean {
-        return true
+        return false
     }
 }

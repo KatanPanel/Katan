@@ -1,6 +1,7 @@
-package org.katan.http
+package org.katan.http.di
 
 import io.ktor.server.application.Application
+import org.katan.http.di.HttpModuleRegistry
 
 abstract class HttpModule(registry: HttpModuleRegistry) {
 

@@ -1,7 +1,7 @@
 package org.katan.service.unit.instance
 
-import org.katan.model.unit.UnitInstance
-import org.katan.model.unit.UnitInstanceUpdateStatusCode
+import org.katan.model.instance.UnitInstance
+import org.katan.model.instance.UnitInstanceUpdateStatusCode
 import kotlin.jvm.Throws
 
 public interface UnitInstanceService {

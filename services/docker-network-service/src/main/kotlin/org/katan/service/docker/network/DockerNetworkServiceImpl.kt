@@ -2,7 +2,7 @@ package org.katan.service.docker.network
 
 import org.katan.config.KatanConfig
 import org.katan.model.net.Connection
-import org.katan.model.unit.UnitInstance
+import org.katan.model.instance.UnitInstance
 import org.katan.service.network.NetworkService
 
 internal class DockerNetworkServiceImpl(

@@ -5,9 +5,11 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.routing.Route
-import org.katan.http.HttpError
-import org.katan.http.respond
-import org.katan.http.respondError
+import jakarta.validation.Validator
+import org.katan.http.response.HttpError
+import org.katan.http.response.respond
+import org.katan.http.response.respondError
+import org.katan.http.response.validateOrThrow
 import org.katan.service.account.AccountConflictException
 import org.katan.service.account.AccountService
 import org.katan.service.account.http.AccountRoutes
@@ -18,9 +20,11 @@ import org.koin.ktor.ext.inject
 
 internal fun Route.register() {
     val accountService by inject<AccountService>()
+    val validator by inject<Validator>()
 
     post<AccountRoutes.Register> {
         val req = call.receive<RegisterRequest>()
+        validator.validateOrThrow(req)
 
         val account = try {
             accountService.createAccount(req.username, req.password)

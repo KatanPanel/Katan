@@ -1,6 +1,6 @@
 package org.katan.service.unit.instance.repository
 
-import org.katan.model.unit.UnitInstance
+import org.katan.model.instance.UnitInstance
 
 public interface UnitInstanceRepository {
 

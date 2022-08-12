@@ -7,5 +7,5 @@ dependencies {
     implementation(libs.ktor.server.feature.statuspages)
     implementation(libs.ktor.server.feature.cors)
     implementation(libs.ktor.serialization.kotlinx.json)
-    api(libs.hibernate.validator)
+    implementation(libs.hibernateValidator)
 }
