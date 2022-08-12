@@ -5,7 +5,7 @@ COPY . $BUILD_HOME
 
 WORKDIR $BUILD_HOME
 USER root
-RUN ./gradlew katan-bootstrap:shadowJar
+RUN ./gradlew application:shadowJar
 
 # Production build
 FROM openjdk:8-jdk-alpine
@@ -13,7 +13,7 @@ ENV ARTIFACT_NAME=Katan.jar
 ENV BUILD_HOME=/usr/katan-build/
 
 WORKDIR $BUILD_HOME
-COPY --from=TEMP_BUILD_IMAGE $BUILD_HOME/katan-bootstrap/build/libs/$ARTIFACT_NAME .
+COPY --from=TEMP_BUILD_IMAGE $BUILD_HOME/application/build/libs/$ARTIFACT_NAME .
 
 EXPOSE 80
 EXPOSE 433
