@@ -6,6 +6,8 @@ import org.katan.model.unit.auditlog.AuditLogEntry
 
 public interface UnitRepository {
 
+    public suspend fun listUnits(): List<KUnit>
+
     public suspend fun findUnitById(id: Long): KUnit?
 
     public suspend fun createUnit(unit: KUnit)

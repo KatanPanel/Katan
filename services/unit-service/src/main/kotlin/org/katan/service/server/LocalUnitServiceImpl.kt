@@ -30,7 +30,7 @@ public class LocalUnitServiceImpl(
     private val mutex = Mutex()
 
     override suspend fun getUnits(): List<KUnit> {
-        return mutex.withLock { registered }
+        return unitRepository.listUnits()
     }
 
     override suspend fun getUnit(id: Long): KUnit {

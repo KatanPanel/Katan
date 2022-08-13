@@ -7,7 +7,7 @@ import org.katan.model.unit.KUnit
 
 @Serializable
 internal data class UnitResponse(
-    val id: Long,
+    val id: String,
     @SerialName("external-id") val externalId: String?,
     @SerialName("node-id") val nodeId: Int,
     val name: String,
@@ -19,7 +19,7 @@ internal data class UnitResponse(
 ) {
 
     constructor(value: KUnit) : this(
-        id = value.id,
+        id = value.id.toString(),
         externalId = value.externalId,
         nodeId = value.nodeId,
         name = value.name,

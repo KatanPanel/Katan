@@ -7,7 +7,7 @@ import org.katan.model.account.Account
 
 @Serializable
 public data class AccountResponse internal constructor(
-    val id: Long,
+    val id: String,
     val username: String,
     @SerialName("created_at") val createdAt: Instant,
     @SerialName("updated_at") val updatedAt: Instant,
@@ -15,7 +15,7 @@ public data class AccountResponse internal constructor(
 ) {
 
     public constructor(account: Account) : this(
-        id = account.id,
+        id = account.id.toString(),
         username = account.username,
         createdAt = account.createdAt,
         updatedAt = account.createdAt,

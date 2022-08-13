@@ -30,20 +30,15 @@ internal class UnitRepositoryImpl(
         }
     }
 
+    override suspend fun listUnits(): List<KUnit> {
+        return newSuspendedTransaction(db = database) {
+            UnitEntity.all().notForUpdate().map { entity -> entity.toDomain() }
+        }
+    }
+
     override suspend fun findUnitById(id: Long): KUnit? {
         return newSuspendedTransaction(db = database) {
-            UnitEntity.findById(id)?.let { entity ->
-                UnitImpl(
-                    id,
-                    entity.externalId,
-                    entity.instanceId,
-                    entity.nodeId,
-                    entity.name,
-                    entity.createdAt,
-                    entity.updatedAt,
-                    entity.deletedAt
-                )
-            }
+            UnitEntity.findById(id)?.toDomain()
         }
     }
 
@@ -109,5 +104,18 @@ internal class UnitRepositoryImpl(
                     }
                 }
         }
+    }
+
+    private fun UnitEntity.toDomain(): KUnit {
+        return UnitImpl(
+            id.value,
+            externalId,
+            instanceId,
+            nodeId,
+            name,
+            createdAt,
+            updatedAt,
+            deletedAt
+        )
     }
 }
