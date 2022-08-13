@@ -8,4 +8,10 @@ import org.katan.service.id.validation.MustBeSnowflake
 internal data class ModifyUnitRequest(
     val name: String? = null,
     @SerialName("external-id") val externalId: String? = null
-)
+) {
+
+    fun isEmpty(): Boolean {
+        return name == null
+    }
+
+}

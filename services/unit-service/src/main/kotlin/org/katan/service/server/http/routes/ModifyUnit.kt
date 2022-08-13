@@ -1,5 +1,6 @@
 package org.katan.service.server.http.routes
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.resources.patch
@@ -24,10 +25,12 @@ internal fun Route.modifyUnit() {
         validator.validateOrThrow(parameters)
 
         val request = call.receive<ModifyUnitRequest>()
+        if (request.isEmpty())
+            respondError(HttpError.InvalidRequestBody, HttpStatusCode.NotAcceptable)
 
         val unit = try {
             unitService.updateUnit(
-                parameters.id.toLong(),
+                parameters.unitId.toLong(),
                 UnitUpdateOptions(name = request.name)
             )
         } catch (e: Throwable) {

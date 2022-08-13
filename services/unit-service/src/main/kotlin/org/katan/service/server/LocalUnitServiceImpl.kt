@@ -36,11 +36,7 @@ public class LocalUnitServiceImpl(
     }
 
     override suspend fun getUnit(id: Long): KUnit {
-        return mutex.withLock {
-            registered.firstOrNull {
-                it.id == id
-            } ?: throw UnitNotFoundException()
-        }
+        return unitRepository.findUnitById(id) ?: throw UnitNotFoundException()
     }
 
     override suspend fun createUnit(options: UnitCreateOptions): KUnit = mutex.withLock {

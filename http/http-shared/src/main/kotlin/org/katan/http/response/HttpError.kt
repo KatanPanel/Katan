@@ -22,6 +22,7 @@ data class HttpError internal constructor(
         )
         val InvalidInstanceUpdateCode = createError(3001, "Invalid instance update code")
         val FailedToParseRequestBody = createError(3002, "Failed to handle request")
+        val InvalidRequestBody = createError(3003, "Invalid request body")
 
         @JvmStatic
         fun createError(code: Int, message: String): HttpError {

@@ -1,6 +1,7 @@
 package org.katan.service.server.http
 
 import io.ktor.resources.Resource
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.service.id.validation.MustBeSnowflake
 
@@ -15,16 +16,16 @@ internal class UnitRoutes {
     )
 
     @Serializable
-    @Resource("{id}")
+    @Resource("{unit-id}")
     internal class ById(
         @Suppress("UNUSED") val parent: UnitRoutes = UnitRoutes(),
-        @field:MustBeSnowflake val id: String
+        @field:MustBeSnowflake @SerialName("unit-id") val unitId: String
     )
 
     @Serializable
-    @Resource("{unitId}/audit-logs")
+    @Resource("{unit-id}/audit-logs")
     internal class GetUnitAuditLogs(
         @Suppress("UNUSED") val parent: UnitRoutes = UnitRoutes(),
-        val unitId: String
+        @field:MustBeSnowflake @SerialName("unit-id")  val unitId: String
     )
 }
