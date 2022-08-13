@@ -21,7 +21,7 @@ data class HttpError internal constructor(
             "An account with that username already exists"
         )
         val InvalidInstanceUpdateCode = createError(3001, "Invalid instance update code")
-        val FailedToParseRequestBody = createError(3002, "Failed to parse request body")
+        val FailedToParseRequestBody = createError(3002, "Failed to handle request")
 
         @JvmStatic
         fun createError(code: Int, message: String): HttpError {

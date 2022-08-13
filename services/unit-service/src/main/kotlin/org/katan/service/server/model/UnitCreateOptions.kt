@@ -1,4 +1,4 @@
-package org.katan.service.server
+package org.katan.service.server.model
 
 import kotlinx.serialization.Serializable
 

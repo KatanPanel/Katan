@@ -22,7 +22,7 @@ class FindUnitTest : KoinTest {
         }
     }) {
         val testClient = createTestClient()
-        val request = testClient.get(UnitRoutes.FindById(id = VALID_SNOWFLAKE_ID))
+        val request = testClient.get(UnitRoutes.ById(id = VALID_SNOWFLAKE_ID))
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)
@@ -36,7 +36,7 @@ class FindUnitTest : KoinTest {
         }
     }) {
         val testClient = createTestClient()
-        val request = testClient.get(UnitRoutes.FindById(id = "abcdefgh"))
+        val request = testClient.get(UnitRoutes.ById(id = "abcdefgh"))
         val body = request.body<HttpError>()
 
         assertEquals(HttpStatusCode.BadRequest, request.status)

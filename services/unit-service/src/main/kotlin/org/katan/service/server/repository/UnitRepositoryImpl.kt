@@ -9,10 +9,12 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogEntry
+import org.katan.service.server.UnitNotFoundException
 import org.katan.service.server.model.AuditLogChangeImpl
 import org.katan.service.server.model.AuditLogEntryImpl
 import org.katan.service.server.model.AuditLogImpl
 import org.katan.service.server.model.UnitImpl
+import org.katan.service.server.model.UnitUpdateOptions
 import org.katan.service.server.repository.entity.UnitAuditLogChangeEntity
 import org.katan.service.server.repository.entity.UnitAuditLogChangesTable
 import org.katan.service.server.repository.entity.UnitAuditLogEntriesTable
@@ -56,11 +58,25 @@ internal class UnitRepositoryImpl(
         }
     }
 
+    override suspend fun updateUnit(id: Long, update: UnitUpdateOptions): KUnit? {
+        return newSuspendedTransaction(db = database) {
+            val entity = UnitEntity.findById(id) ?: return@newSuspendedTransaction null
+            update.name?.let { entity.name = it }
+
+            entity.toDomain()
+        }
+    }
+
     override suspend fun findAuditLogs(unitId: Long): AuditLog? {
         return newSuspendedTransaction(db = database) {
-            val mappedEntries = UnitAuditLogEntryEntity.find {
+            val entity = UnitAuditLogEntryEntity.find {
                 UnitAuditLogEntriesTable.targetId eq unitId
-            }.notForUpdate().map { entry ->
+            }.notForUpdate()
+
+            if (entity.empty())
+                return@newSuspendedTransaction null
+
+            val entries = entity.map { entry ->
                 AuditLogEntryImpl(
                     id = entry.id.value,
                     targetId = entry.targetId,
@@ -79,7 +95,7 @@ internal class UnitRepositoryImpl(
                 )
             }
 
-            AuditLogImpl(mappedEntries)
+            AuditLogImpl(entries)
         }
     }
 

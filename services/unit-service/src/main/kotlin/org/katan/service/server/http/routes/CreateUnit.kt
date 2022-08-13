@@ -6,7 +6,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.routing.Route
 import org.katan.http.response.respond
-import org.katan.service.server.UnitCreateOptions
+import org.katan.service.server.model.UnitCreateOptions
 import org.katan.service.server.UnitService
 import org.katan.service.server.http.UnitRoutes
 import org.katan.service.server.http.dto.CreateUnitRequest

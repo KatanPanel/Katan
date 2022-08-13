@@ -4,8 +4,8 @@ dependencies {
     implementation(libs.exposed.dao)
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.jedis)
-    implementation(projects.services.idService)
     implementation(libs.hibernateValidator)
+    implementation(projects.services.idService)
     implementation(projects.http.httpShared)
     testImplementation(projects.http.httpTest)
 }

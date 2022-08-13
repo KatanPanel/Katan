@@ -11,7 +11,9 @@ import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogEvents
 import org.katan.service.id.IdService
 import org.katan.service.server.model.AuditLogEntryImpl
+import org.katan.service.server.model.UnitCreateOptions
 import org.katan.service.server.model.UnitImpl
+import org.katan.service.server.model.UnitUpdateOptions
 import org.katan.service.server.repository.UnitRepository
 import org.katan.service.unit.instance.UnitInstanceService
 
@@ -81,6 +83,10 @@ public class LocalUnitServiceImpl(
 
         registered.add(unit)
         return unit
+    }
+
+    override suspend fun updateUnit(id: Long, options: UnitUpdateOptions): KUnit {
+        return unitRepository.updateUnit(id, options) ?: throw UnitNotFoundException()
     }
 
     override suspend fun getAuditLogs(unitId: Long): AuditLog {

@@ -2,9 +2,9 @@ package org.katan.http
 
 import io.ktor.http.HttpStatusCode
 
-open class HttpException(
+class HttpException(
     val code: Int,
-    override val message: String,
-    val httpStatus: HttpStatusCode,
-    override val cause: Throwable?
-) : RuntimeException(cause)
+    message: String?,
+    val status: HttpStatusCode,
+    cause: Throwable?
+) : RuntimeException(message, cause)

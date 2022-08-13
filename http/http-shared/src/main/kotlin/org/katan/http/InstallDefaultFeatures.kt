@@ -43,8 +43,12 @@ fun Application.installDefaultFeatures() {
     }
     install(StatusPages) {
         exception<HttpException> { call, exception ->
-            exception.cause?.printStackTrace()
-            call.respond(exception.httpStatus, HttpError(exception.code, exception.message))
+            try {
+                exception.cause?.printStackTrace()
+                call.respond(exception.status, HttpError(exception.code, exception.message.orEmpty()))
+            } catch (e: Throwable) {
+                println("PUTA Q PARIU IRMAO DEU ERRO AQ FI: $e")
+            }
         }
 
         exception<ValidationException> { call, exception ->

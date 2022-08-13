@@ -14,7 +14,7 @@ import org.koin.ktor.ext.inject
 internal fun Route.findUnit() {
     val unitService by inject<UnitService>()
 
-    get<UnitRoutes.FindById> { parameters ->
+    get<UnitRoutes.ById> { parameters ->
         val id = parameters.id.toLong()
 
         val unit = try {
