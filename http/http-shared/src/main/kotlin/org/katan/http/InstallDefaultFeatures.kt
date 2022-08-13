@@ -76,6 +76,8 @@ fun Application.installDefaultFeatures() {
         allowNonSimpleContentTypes = true
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Patch)
+        allowMethod(HttpMethod.Put)
         allowXHttpMethodOverride()
         allowHeader(HttpHeaders.Authorization)
         anyHost()
