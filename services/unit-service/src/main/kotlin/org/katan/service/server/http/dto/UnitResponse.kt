@@ -14,7 +14,7 @@ internal data class UnitResponse(
     @SerialName("created-at") val createdAt: Instant,
     @SerialName("updated-at") val updatedAt: Instant,
     @SerialName("deleted-at") val deletedAt: Instant?,
-    @SerialName("instance-id") val instanceId: Long
+    @SerialName("instance-id") val instanceId: String
 //    val status: String
 ) {
 
@@ -26,7 +26,7 @@ internal data class UnitResponse(
         createdAt = value.createdAt,
         updatedAt = value.updatedAt,
         deletedAt = value.deletedAt,
-        instanceId = value.instanceId
+        instanceId = value.instanceId.toString()
 //        status = value.status.value
     )
 }
