@@ -90,6 +90,10 @@ version.ref = "grpc"
 module = "org.apache.logging.log4j:log4j-core"
 version.ref = "log4j"
 
+[libraries.log4j-slf4jImpl]
+module = "org.apache.logging.log4j:log4j-slf4j-impl"
+version.ref = "log4j"
+
 [libraries.dockerJava]
 module = "com.github.docker-java:docker-java"
 version.ref = "docker-java"
