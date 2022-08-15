@@ -1,4 +1,4 @@
-package org.katan.model.security
+package org.katan.crypto
 
 /**
  * Represents an unsalted hashing algorithm.

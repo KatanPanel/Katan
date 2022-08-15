@@ -11,6 +11,7 @@ application {
 
 dependencies {
     implementation(libs.jedis)
+    implementation(projects.crypto)
     implementation(projects.configuration)
     implementation(projects.eventsDispatcher)
     implementation(projects.http.httpServer)

@@ -12,5 +12,6 @@ internal data class AccountImpl(
     override val displayName: String?,
     override val createdAt: Instant,
     override val updatedAt: Instant,
-    override val lastLoggedInAt: Instant? = null
+    override val lastLoggedInAt: Instant?,
+    override val avatar: Long?
 ) : Account

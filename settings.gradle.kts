@@ -31,5 +31,6 @@ include(
     "services:database-service",
     "services:network-service",
     "services:cache-service",
-    "services:user-service"
+    "services:user-service",
+    "crypto"
 )

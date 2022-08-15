@@ -1,8 +1,8 @@
 package org.katan.service.account
 
 import kotlinx.datetime.Clock
+import org.katan.crypto.SaltedHash
 import org.katan.model.account.Account
-import org.katan.model.security.Hash
 import org.katan.service.account.repository.AccountEntity
 import org.katan.service.account.repository.AccountsRepository
 import org.katan.service.id.IdService
@@ -10,7 +10,7 @@ import org.katan.service.id.IdService
 internal class AccountServiceImpl(
     private val idService: IdService,
     private val accountsRepository: AccountsRepository,
-    private val hash: Hash
+    private val saltedHash: SaltedHash
 ) : AccountService {
 
     override suspend fun getAccount(id: Long): Account? {
@@ -45,10 +45,12 @@ internal class AccountServiceImpl(
             username = username,
             email = email,
             createdAt = now,
-            updatedAt = now
+            updatedAt = now,
+            lastLoggedInAt = null,
+            avatar = null
         )
 
-        val hash = hash.hash(password.toCharArray())
+        val hash = saltedHash.hash(password.toCharArray())
 
         accountsRepository.addAccount(impl, hash)
         return impl
@@ -66,7 +68,8 @@ internal class AccountServiceImpl(
             username = username,
             createdAt = createdAt,
             updatedAt = updatedAt,
-            lastLoggedInAt = lastLoggedInAt
+            lastLoggedInAt = lastLoggedInAt,
+            avatar = avatar
         )
     }
 

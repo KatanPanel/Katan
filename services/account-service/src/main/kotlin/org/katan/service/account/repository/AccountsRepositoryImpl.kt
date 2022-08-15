@@ -20,6 +20,7 @@ internal object AccountsTable : LongIdTable("accounts") {
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
     val lastLoggedInAt = timestamp("last_logged_in_at").nullable()
+    val avatar = long("avatar").nullable()
 }
 
 internal class AccountEntity(id: EntityID<Long>) : LongEntity(id) {
@@ -32,6 +33,7 @@ internal class AccountEntity(id: EntityID<Long>) : LongEntity(id) {
     var createdAt by AccountsTable.createdAt
     var updatedAt by AccountsTable.updatedAt
     var lastLoggedInAt by AccountsTable.lastLoggedInAt
+    val avatar by AccountsTable.avatar
 }
 
 internal class AccountsRepositoryImpl(

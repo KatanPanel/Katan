@@ -5,6 +5,7 @@ dependencies {
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.jedis)
     implementation(libs.hibernateValidator)
+    implementation(projects.crypto)
     implementation(projects.services.idService)
     implementation(projects.http.httpShared)
     testImplementation(projects.http.httpTest)

@@ -3,7 +3,7 @@ package org.katan.service.auth.di
 import org.katan.model.security.Hash
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.JWTAuthServiceImpl
-import org.katan.service.auth.crypto.BcryptHash
+import org.katan.crypto.BcryptHash
 import org.katan.service.auth.http.AuthHttpModule
 import org.koin.dsl.module
 

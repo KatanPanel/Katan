@@ -13,10 +13,10 @@ import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.AuthenticationException
 import org.katan.model.security.InvalidAccessTokenException
 import org.katan.model.security.InvalidCredentialsException
-import org.katan.model.security.SaltedHash
+import org.katan.crypto.SaltedHash
 import org.katan.model.security.SecurityException
 import org.katan.service.account.AccountService
-import org.katan.service.auth.crypto.BcryptHash
+import org.katan.crypto.BcryptHash
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 

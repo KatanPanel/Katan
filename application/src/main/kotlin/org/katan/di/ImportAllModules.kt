@@ -1,6 +1,7 @@
 package org.katan.di
 
 import org.katan.config.di.configDI
+import org.katan.crypto.di.cryptoDI
 import org.katan.event.di.eventsDispatcherDI
 import org.katan.http.server.di.httpServerDI
 import org.katan.service.account.di.accountServiceDI
@@ -16,6 +17,7 @@ import org.koin.core.KoinApplication
 internal fun KoinApplication.importAllModules() {
     modules(
         configDI,
+        cryptoDI,
         httpServerDI,
         eventsDispatcherDI,
         idServiceDI,

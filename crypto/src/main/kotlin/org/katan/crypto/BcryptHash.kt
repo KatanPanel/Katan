@@ -1,7 +1,6 @@
-package org.katan.service.auth.crypto
+package org.katan.crypto
 
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt
-import org.katan.model.security.SaltedHash
 import java.security.SecureRandom
 import java.util.Random
 
