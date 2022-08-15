@@ -1,5 +1,6 @@
 package org.katan.service.server.http.dto
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.model.unit.auditlog.AuditLog
@@ -23,6 +24,7 @@ internal data class AuditLogEntryResponse(
     val event: AuditLogEvent,
     val reason: String?,
     val additionalData: String?,
+    @SerialName("created-at") val createdAt: Instant,
     val changes: List<AuditLogEntryChangesResponse>
 ) {
 
@@ -33,6 +35,7 @@ internal data class AuditLogEntryResponse(
         event = entry.event,
         reason = entry.reason,
         additionalData = entry.additionalData,
+        createdAt = entry.createdAt,
         changes = entry.changes.map(::AuditLogEntryChangesResponse)
     )
 }
