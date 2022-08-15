@@ -2,7 +2,6 @@ package org.katan.service.server.http.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.katan.service.id.validation.MustBeSnowflake
 
 @Serializable
 internal data class ModifyUnitRequest(

@@ -5,6 +5,7 @@ dependencies {
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.hibernateValidator)
     implementation(projects.configuration)
+    implementation(projects.services.authService)
     implementation(projects.services.idService)
     implementation(projects.services.unitInstanceService)
     implementation(projects.services.idService)

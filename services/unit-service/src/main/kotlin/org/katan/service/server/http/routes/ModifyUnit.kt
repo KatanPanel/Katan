@@ -10,6 +10,7 @@ import org.katan.http.response.HttpError
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
+import org.katan.service.auth.http.shared.AccountKey
 import org.katan.service.server.UnitService
 import org.katan.service.server.http.UnitRoutes
 import org.katan.service.server.http.dto.ModifyUnitRequest
@@ -24,19 +25,25 @@ internal fun Route.modifyUnit() {
     patch<UnitRoutes.ById> { parameters ->
         validator.validateOrThrow(parameters)
 
-        val request = call.receive<ModifyUnitRequest>()
-        if (request.isEmpty())
+        val req = call.receive<ModifyUnitRequest>()
+        if (req.isEmpty())
             respondError(HttpError.InvalidRequestBody, HttpStatusCode.NotAcceptable)
 
-        val unit = try {
+        val unitId = parameters.unitId.toLong()
+        val updateOptions = UnitUpdateOptions(
+            name = req.name,
+            actorId = call.attributes.getOrNull(AccountKey)?.id
+        )
+
+        val result = try {
             unitService.updateUnit(
-                parameters.unitId.toLong(),
-                UnitUpdateOptions(name = request.name)
+                unitId,
+                updateOptions
             )
         } catch (e: Throwable) {
             respondError(HttpError.UnknownUnit)
         }
 
-        respond(UnitResponse(unit))
+        respond(UnitResponse(result))
     }
 }

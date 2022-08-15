@@ -1,7 +1,7 @@
 package org.katan.service.server
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -10,6 +10,7 @@ import org.katan.model.unit.KUnit
 import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogEvents
 import org.katan.service.id.IdService
+import org.katan.service.server.model.AuditLogChangeImpl
 import org.katan.service.server.model.AuditLogEntryImpl
 import org.katan.service.server.model.UnitCreateOptions
 import org.katan.service.server.model.UnitImpl
@@ -28,9 +29,6 @@ public class LocalUnitServiceImpl(
         private val logger: Logger = LogManager.getLogger(LocalUnitServiceImpl::class.java)
     }
 
-    private val registered: MutableList<KUnit> = mutableListOf()
-    private val mutex = Mutex()
-
     override suspend fun getUnits(): List<KUnit> {
         return unitRepository.listUnits()
     }
@@ -39,18 +37,14 @@ public class LocalUnitServiceImpl(
         return unitRepository.findUnitById(id) ?: throw UnitNotFoundException()
     }
 
-    override suspend fun createUnit(options: UnitCreateOptions): KUnit = mutex.withLock {
+    override suspend fun createUnit(options: UnitCreateOptions): KUnit {
         val currentInstant = Clock.System.now()
-        val spec = unitInstanceService.fromSpec(mapOf("image" to options.dockerImage))
-
-        logger.info("Options: $options")
         val instance = runCatching {
-            unitInstanceService.createInstanceFor(spec)
+            unitInstanceService.createInstanceFor(options.dockerImage)
         }.onFailure { error ->
             logger.error("Failed to create unit instance.", error)
         }.getOrThrow()
 
-        logger.info("Created")
         val generatedId = idService.generate()
 
         val unit = UnitImpl(
@@ -63,26 +57,54 @@ public class LocalUnitServiceImpl(
             instanceId = instance.id
 //            status = if (instance == null) UnitStatus.MissingInstance else UnitStatus.Created
         )
-        unitRepository.createUnit(unit)
-        unitRepository.createAuditLog(
-            AuditLogEntryImpl(
-                id = idService.generate(),
-                targetId = generatedId,
-                actorId = null, // TODO determine actor id
-                event = AuditLogEvents.UnitCreate,
-                reason = null,
-                changes = emptyList(),
-                additionalData = null,
-                createdAt = currentInstant
-            )
-        )
 
-        registered.add(unit)
+        unitRepository.createUnit(unit)
+
+        withContext(Dispatchers.IO) {
+            unitRepository.createAuditLog(
+                AuditLogEntryImpl(
+                    id = idService.generate(),
+                    targetId = generatedId,
+                    actorId = options.actorId,
+                    event = AuditLogEvents.UnitCreate,
+                    reason = null,
+                    changes = emptyList(),
+                    additionalData = null,
+                    createdAt = currentInstant
+                )
+            )
+        }
+
         return unit
     }
 
     override suspend fun updateUnit(id: Long, options: UnitUpdateOptions): KUnit {
-        return unitRepository.updateUnit(id, options) ?: throw UnitNotFoundException()
+        val actualUnit = getUnit(id)
+        val updatedUnit = unitRepository.updateUnit(id, options)
+            ?: throw UnitNotFoundException() // possible de-synchronization guarantee
+
+        withContext(Dispatchers.IO) {
+            unitRepository.createAuditLog(
+                AuditLogEntryImpl(
+                    id = idService.generate(),
+                    targetId = actualUnit.id,
+                    actorId = options.actorId,
+                    event = AuditLogEvents.UnitUpdate,
+                    reason = null,
+                    changes = listOf(
+                        AuditLogChangeImpl(
+                            key = "name",
+                            oldValue = actualUnit.name,
+                            newValue = updatedUnit.name
+                        )
+                    ),
+                    additionalData = null,
+                    createdAt = Clock.System.now()
+                )
+            )
+        }
+
+        return updatedUnit
     }
 
     override suspend fun getAuditLogs(unitId: Long): AuditLog {

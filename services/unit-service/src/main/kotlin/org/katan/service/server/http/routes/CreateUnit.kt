@@ -6,12 +6,13 @@ import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.routing.Route
 import org.katan.http.response.respond
-import org.katan.service.server.model.UnitCreateOptions
+import org.katan.service.auth.http.shared.AccountKey
 import org.katan.service.server.UnitService
 import org.katan.service.server.http.UnitRoutes
 import org.katan.service.server.http.dto.CreateUnitRequest
 import org.katan.service.server.http.dto.CreateUnitResponse
 import org.katan.service.server.http.dto.UnitResponse
+import org.katan.service.server.model.UnitCreateOptions
 import org.koin.ktor.ext.inject
 
 internal fun Route.createUnit() {
@@ -23,7 +24,8 @@ internal fun Route.createUnit() {
             UnitCreateOptions(
                 name = request.name,
                 externalId = request.externalId,
-                dockerImage = request.dockerImage
+                dockerImage = request.dockerImage,
+                actorId = call.attributes.getOrNull(AccountKey)?.id
             )
         )
 
