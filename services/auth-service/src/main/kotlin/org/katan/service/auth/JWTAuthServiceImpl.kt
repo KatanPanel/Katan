@@ -9,19 +9,19 @@ import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.DecodedJWT
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
+import org.katan.crypto.SaltedHash
 import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.AuthenticationException
 import org.katan.model.security.InvalidAccessTokenException
 import org.katan.model.security.InvalidCredentialsException
-import org.katan.crypto.SaltedHash
 import org.katan.model.security.SecurityException
 import org.katan.service.account.AccountService
-import org.katan.crypto.BcryptHash
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
 internal class JWTAuthServiceImpl(
-    private val accountService: AccountService
+    private val accountService: AccountService,
+    private val saltedHash: SaltedHash
 ) : AuthService, com.auth0.jwt.interfaces.JWTVerifier {
 
     companion object {
@@ -34,8 +34,6 @@ internal class JWTAuthServiceImpl(
         .withIssuer(JWT_ISSUER)
         .build()
 
-    private val hash: SaltedHash = BcryptHash()
-
     private fun validate(
         input: CharArray,
         hash: String
@@ -46,7 +44,7 @@ internal class JWTAuthServiceImpl(
 
         // Catch any exception here to omit sensitive data
         return try {
-            this.hash.compare(input, hash)
+            this.saltedHash.compare(input, hash)
         } catch (e: Throwable) {
             throw SecurityException("Could not decrypt data.", e)
         }
