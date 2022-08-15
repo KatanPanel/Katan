@@ -9,9 +9,9 @@ import org.katan.model.account.Account
 public data class AccountResponse internal constructor(
     val id: String,
     val username: String,
-    @SerialName("created_at") val createdAt: Instant,
-    @SerialName("updated_at") val updatedAt: Instant,
-    @SerialName("last_logged_in_at") val lastLoggedInAt: Instant?
+    @SerialName("created-at") val createdAt: Instant,
+    @SerialName("updated-at") val updatedAt: Instant,
+    @SerialName("last-logged-in-at") val lastLoggedInAt: Instant?
 ) {
 
     public constructor(account: Account) : this(

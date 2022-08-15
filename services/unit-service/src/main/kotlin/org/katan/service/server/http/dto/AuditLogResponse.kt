@@ -18,8 +18,8 @@ internal data class AuditLogResponse(
 @Serializable
 internal data class AuditLogEntryResponse(
     val id: String,
-    @SerialName("target_id") val targetId: Long,
-    @SerialName("actor_id") val actorId: Long?,
+    @SerialName("target-id") val targetId: Long,
+    @SerialName("actor-id") val actorId: Long?,
     val event: AuditLogEvent,
     val reason: String?,
     val additionalData: String?,
@@ -40,8 +40,8 @@ internal data class AuditLogEntryResponse(
 @Serializable
 internal data class AuditLogEntryChangesResponse(
     val key: String,
-    @SerialName("old_value") val oldValue: String?,
-    @SerialName("new_value") val newValue: String?
+    @SerialName("old-value") val oldValue: String?,
+    @SerialName("new-value") val newValue: String?
 ) {
 
     constructor(change: AuditLogChange) : this(
