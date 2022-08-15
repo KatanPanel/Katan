@@ -6,7 +6,7 @@ import io.ktor.server.resources.get
 import io.ktor.server.routing.Route
 import org.katan.http.response.respond
 import org.katan.service.account.http.dto.AccountResponse
-import org.katan.service.auth.http.AccountPrincipal
+import org.katan.service.auth.http.shared.AccountPrincipal
 import org.katan.service.auth.http.AuthResource
 import org.katan.service.auth.http.dto.VerifyResponse
 

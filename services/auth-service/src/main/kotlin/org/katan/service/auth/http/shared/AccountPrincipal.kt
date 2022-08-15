@@ -1,4 +1,4 @@
-package org.katan.service.auth.http
+package org.katan.service.auth.http.shared
 
 import io.ktor.server.auth.Principal
 import org.katan.model.account.Account

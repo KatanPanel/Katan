@@ -3,6 +3,7 @@ package org.katan.service.auth.http
 import com.auth0.jwt.interfaces.JWTVerifier
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
@@ -17,6 +18,8 @@ import org.katan.service.account.AccountService
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.http.routes.login
 import org.katan.service.auth.http.routes.verify
+import org.katan.service.auth.http.shared.AccountKey
+import org.katan.service.auth.http.shared.AccountPrincipal
 import org.koin.ktor.ext.inject
 
 internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registry) {
@@ -67,7 +70,7 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
         }
     }
 
-    private suspend fun handleAuthentication(
+    private suspend fun ApplicationCall.handleAuthentication(
         jwtSubject: String,
         accountService: AccountService
     ): AccountPrincipal {
@@ -76,6 +79,7 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
             accountService.getAccount(id)
         }.getOrNull() ?: respondError(HttpError.UnknownAccount)
 
+        attributes.put(AccountKey, account)
         return AccountPrincipal(account)
     }
 }
