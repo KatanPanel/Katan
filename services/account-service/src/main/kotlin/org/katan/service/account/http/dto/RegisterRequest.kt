@@ -10,7 +10,7 @@ internal data class RegisterRequest(
     @field:NotBlank(message = "Username cannot be blank")
     @field:Size(
         min = 2,
-        max = 48,
+        max = 32,
         message = "Username must have a minimum length of {min} and at least {max} characters"
     )
     val username: String,
