@@ -27,7 +27,6 @@ import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.service.id.IdService
 import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
-import org.katan.service.unit.instance.UnitInstanceSpec
 import org.katan.service.unit.instance.docker.model.DockerUnitInstanceImpl
 import org.katan.service.unit.instance.docker.util.attachResultCallback
 import org.katan.service.unit.instance.repository.UnitInstanceRepository
@@ -46,7 +45,7 @@ internal class DockerUnitInstanceServiceImpl(
 ) : UnitInstanceService,
     CoroutineScope by CoroutineScope(
         SupervisorJob() +
-            CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
+                CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
     ) {
 
     private companion object {
@@ -165,29 +164,20 @@ internal class DockerUnitInstanceServiceImpl(
         }
     }
 
-    override fun fromSpec(data: Map<String, Any>): UnitInstanceSpec {
-        check(data.containsKey(IMAGE_PROPERTY)) { "Missing required property \"$IMAGE_PROPERTY\"." }
-        return DockerUnitInstanceSpec(data.getValue(IMAGE_PROPERTY) as String)
-    }
-
-    override suspend fun createInstanceFor(spec: UnitInstanceSpec): UnitInstance {
-        require(spec is DockerUnitInstanceSpec) { "Instance spec must be a DockerUnitInstanceSpec" }
-
-        logger.info("Generating a unit instance: $spec")
+    override suspend fun createInstanceFor(image: String): UnitInstance {
         return coroutineScope {
             val instanceId = idService.generate()
 
             // TODO better context switch
             val generatedContainerId = withContext(Dispatchers.IO) {
-                tryCreateContainer(spec.image, "katan-$instanceId")
+                tryCreateContainer(image, "katan-$instanceId")
             }
 
-            logger.info("Unit instance generated successfully: $generatedContainerId")
             val createdContainer = withContext(Dispatchers.IO) {
                 dockerClient.inspectContainerCmd(generatedContainerId).exec()
             }
 
-            logger.info("Generated instance name: ${createdContainer.name}")
+            // TODO assign network service connection
 //            val connection =
 //                networkService.createUnitConnection(container.networkSettings.ipAddress, 8080)
 

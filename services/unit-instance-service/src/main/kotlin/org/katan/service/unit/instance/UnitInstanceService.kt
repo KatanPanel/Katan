@@ -11,9 +11,7 @@ public interface UnitInstanceService {
 
     public suspend fun deleteInstance(instance: UnitInstance)
 
-    public fun fromSpec(data: Map<String, Any>): UnitInstanceSpec
-
-    public suspend fun createInstanceFor(spec: UnitInstanceSpec): UnitInstance
+    public suspend fun createInstanceFor(image: String): UnitInstance
 
     public suspend fun updateInstanceStatus(
         instance: UnitInstance,
