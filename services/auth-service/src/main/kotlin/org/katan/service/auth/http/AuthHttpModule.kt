@@ -60,7 +60,6 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
                 )
 
                 validate { credentials ->
-                    println("validate")
                     handleAuthentication(
                         credentials.payload.subject,
                         accountService
