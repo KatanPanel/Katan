@@ -16,9 +16,9 @@ data class HttpError internal constructor(
         val UnknownInstance = createError(1003, "Unknown instance")
         val InvalidAccessToken = createError(2001, "Invalid access token")
         val AccountInvalidCredentials = createError(2002, "Invalid account credentials")
-        val AccountUsernameConflict = createError(
+        val AccountLoginConflict = createError(
             2003,
-            "An account with that username already exists"
+            "An account with that username or email already exists"
         )
         val InvalidInstanceUpdateCode = createError(3001, "Invalid instance update code")
         val FailedToParseRequestBody = createError(3002, "Failed to handle request")

@@ -8,7 +8,9 @@ import org.katan.model.account.Account
 internal data class AccountImpl(
     override val id: Long,
     override val username: String,
+    override val email: String,
+    override val displayName: String?,
     override val createdAt: Instant,
-    override val updatedAt: Instant = createdAt,
+    override val updatedAt: Instant,
     override val lastLoggedInAt: Instant? = null
 ) : Account

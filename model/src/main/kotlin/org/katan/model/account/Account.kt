@@ -14,6 +14,10 @@ interface Account {
      */
     val username: String
 
+    val email: String
+
+    val displayName: String?
+
     /**
      * The instant this account was registered.
      */

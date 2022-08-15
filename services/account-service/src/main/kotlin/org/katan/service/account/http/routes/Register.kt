@@ -27,9 +27,9 @@ internal fun Route.register() {
         validator.validateOrThrow(req)
 
         val account = try {
-            accountService.createAccount(req.username, req.password)
+            accountService.createAccount(req.username, req.email, req.password)
         } catch (e: AccountConflictException) {
-            respondError(HttpError.AccountUsernameConflict, HttpStatusCode.Conflict)
+            respondError(HttpError.AccountLoginConflict, HttpStatusCode.Conflict)
         }
 
         respond(RegisterResponse(AccountResponse(account)))

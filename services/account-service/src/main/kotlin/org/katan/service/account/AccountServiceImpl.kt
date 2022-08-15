@@ -3,26 +3,27 @@ package org.katan.service.account
 import kotlinx.datetime.Clock
 import org.katan.model.account.Account
 import org.katan.model.security.Hash
+import org.katan.service.account.repository.AccountEntity
 import org.katan.service.account.repository.AccountsRepository
 import org.katan.service.id.IdService
 
-internal class AccountServerImpl(
+internal class AccountServiceImpl(
     private val idService: IdService,
     private val accountsRepository: AccountsRepository,
     private val hash: Hash
 ) : AccountService {
 
     override suspend fun getAccount(id: Long): Account? {
-        return accountsRepository.findById(id)
+        return accountsRepository.findById(id)?.toDomain()
     }
 
     override suspend fun getAccount(username: String): Account? {
-        return accountsRepository.findByUsername(username)
+        return accountsRepository.findByUsername(username)?.toDomain()
     }
 
     override suspend fun getAccountAndHash(username: String): Pair<Account, String>? {
         // TODO optimize it
-        val account = accountsRepository.findByUsername(username) ?: return null
+        val account = accountsRepository.findByUsername(username)?.toDomain() ?: return null
         val hash = accountsRepository.findHashByUsername(username) ?: return null
 
         return account to hash
@@ -30,16 +31,21 @@ internal class AccountServerImpl(
 
     override suspend fun createAccount(
         username: String,
+        email: String,
         password: String
     ): Account {
         if (accountsRepository.existsByUsername(username)) {
             throw AccountConflictException()
         }
 
+        val now = Clock.System.now()
         val impl = AccountImpl(
             id = idService.generate(),
+            displayName = null,
             username = username,
-            createdAt = Clock.System.now()
+            email = email,
+            createdAt = now,
+            updatedAt = now
         )
 
         val hash = hash.hash(password.toCharArray())
@@ -51,4 +57,17 @@ internal class AccountServerImpl(
     override suspend fun deleteAccount(id: Long) {
         return accountsRepository.deleteAccount(id)
     }
+
+    private fun AccountEntity.toDomain(): Account {
+        return AccountImpl(
+            id = id.value,
+            email = email,
+            displayName = displayName,
+            username = username,
+            createdAt = createdAt,
+            updatedAt = updatedAt,
+            lastLoggedInAt = lastLoggedInAt
+        )
+    }
+
 }
