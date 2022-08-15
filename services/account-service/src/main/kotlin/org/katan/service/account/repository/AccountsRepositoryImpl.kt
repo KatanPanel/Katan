@@ -72,6 +72,7 @@ internal class AccountsRepositoryImpl(
         newSuspendedTransaction(db = database) {
             AccountEntity.new(account.id) {
                 this.username = account.username
+                this.email = account.email
                 this.hash = hash
                 this.createdAt = account.createdAt
                 this.updatedAt = account.updatedAt
