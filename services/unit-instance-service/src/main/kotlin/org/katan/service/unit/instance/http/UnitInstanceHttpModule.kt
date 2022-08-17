@@ -1,6 +1,7 @@
 package org.katan.service.unit.instance.http
 
 import io.ktor.server.application.Application
+import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 import org.katan.http.di.HttpModule
 import org.katan.http.di.HttpModuleRegistry
@@ -10,7 +11,9 @@ internal class UnitInstanceHttpModule(registry: HttpModuleRegistry) : HttpModule
 
     override fun install(app: Application) {
         app.routing {
-            updateStatus()
+            authenticate {
+                updateStatus()
+            }
         }
     }
 }
