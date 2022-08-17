@@ -7,13 +7,18 @@ import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogChange
 import org.katan.model.unit.auditlog.AuditLogEntry
 import org.katan.model.unit.auditlog.AuditLogEvent
+import org.katan.service.account.http.dto.AccountResponse
 
 @Serializable
 internal data class AuditLogResponse(
-    val entries: List<AuditLogEntryResponse>
+    val entries: List<AuditLogEntryResponse>,
+    val actors: List<AccountResponse>
 ) {
 
-    constructor(auditLog: AuditLog) : this(auditLog.entries.map(::AuditLogEntryResponse))
+    constructor(auditLog: AuditLog) : this(
+        entries = auditLog.entries.map(::AuditLogEntryResponse),
+        actors = auditLog.actors.map(::AccountResponse)
+    )
 }
 
 @Serializable

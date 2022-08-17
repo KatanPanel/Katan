@@ -9,6 +9,7 @@ dependencies {
     implementation(projects.services.idService)
     implementation(projects.services.unitInstanceService)
     implementation(projects.services.idService)
+    implementation(projects.services.accountService)
     implementation(projects.http.httpShared)
     testImplementation(projects.http.httpTest)
 }

@@ -1,13 +1,15 @@
 package org.katan.service.server.model
 
 import kotlinx.datetime.Instant
+import org.katan.model.account.Account
 import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogChange
 import org.katan.model.unit.auditlog.AuditLogEntry
 import org.katan.model.unit.auditlog.AuditLogEvent
 
 internal data class AuditLogImpl(
-    override val entries: List<AuditLogEntry>
+    override val entries: List<AuditLogEntry>,
+    override val actors: List<Account>
 ) : AuditLog
 
 internal data class AuditLogEntryImpl(

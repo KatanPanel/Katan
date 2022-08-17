@@ -9,9 +9,11 @@ import org.katan.config.KatanConfig
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogEvents
+import org.katan.service.account.AccountService
 import org.katan.service.id.IdService
 import org.katan.service.server.model.AuditLogChangeImpl
 import org.katan.service.server.model.AuditLogEntryImpl
+import org.katan.service.server.model.AuditLogImpl
 import org.katan.service.server.model.UnitCreateOptions
 import org.katan.service.server.model.UnitImpl
 import org.katan.service.server.model.UnitUpdateOptions
@@ -21,6 +23,7 @@ import org.katan.service.unit.instance.UnitInstanceService
 public class LocalUnitServiceImpl(
     private val config: KatanConfig,
     private val idService: IdService,
+    private val accountService: AccountService,
     private val unitInstanceService: UnitInstanceService,
     private val unitRepository: UnitRepository
 ) : UnitService {
@@ -108,6 +111,16 @@ public class LocalUnitServiceImpl(
     }
 
     override suspend fun getAuditLogs(unitId: Long): AuditLog {
-        return unitRepository.findAuditLogs(unitId) ?: throw UnitNotFoundException()
+        val entries = unitRepository.findAuditLogs(unitId) ?: throw UnitNotFoundException()
+        val actors = entries.mapNotNull { it.actorId }.distinct().mapNotNull { actorId ->
+            withContext(Dispatchers.IO) {
+                accountService.getAccount(actorId)
+            }
+        }
+
+        return AuditLogImpl(
+            entries,
+            actors
+        )
     }
 }

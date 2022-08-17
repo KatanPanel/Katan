@@ -18,7 +18,8 @@ public val unitServiceDI: Module = module {
             config = get(),
             idService = get(),
             unitInstanceService = get(),
-            unitRepository = get()
+            unitRepository = get(),
+            accountService = get()
         )
     }
     single<HttpModule>(createdAtStart = true) {
