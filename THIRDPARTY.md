@@ -19,3 +19,4 @@ This document contains a list of third-party libraries that Katan uses.
 * [Jedis](https://github.com/redis/jedis). MIT License.
 * [hibernate-validator](https://github.com/hibernate/hibernate-validator). Apache License 2.0.
 * [java-jwt](https://github.com/auth0/java-jwt). MIT License.
+* [expressly](https://mvnrepository.com/artifact/org.glassfish.expressly/expressly). EPL-2.0.
