@@ -4,10 +4,13 @@ import com.auth0.jwt.interfaces.JWTVerifier
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
+import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
 import org.katan.http.di.HttpModule
@@ -37,6 +40,12 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
 
             authenticate {
                 verify()
+            }
+
+            intercept(ApplicationCallPipeline.Call) {
+                call.principal<AccountPrincipal>()?.account?.let {
+                    call.attributes.put(AccountKey, it)
+                }
             }
         }
     }
@@ -78,7 +87,6 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
             accountService.getAccount(id)
         }.getOrNull() ?: respondError(HttpError.UnknownAccount)
 
-        attributes.put(AccountKey, account)
         return AccountPrincipal(account)
     }
 }

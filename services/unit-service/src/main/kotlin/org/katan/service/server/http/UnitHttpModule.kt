@@ -1,6 +1,7 @@
 package org.katan.service.server.http
 
 import io.ktor.server.application.Application
+import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.routing
 import org.katan.http.di.HttpModule
 import org.katan.http.di.HttpModuleRegistry
@@ -14,11 +15,13 @@ internal class UnitHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
 
     override fun install(app: Application) {
         app.routing {
-            listUnits()
-            findUnit()
-            modifyUnit()
-            createUnit()
-            getUnitAuditLogs()
+            authenticate {
+                listUnits()
+                findUnit()
+                modifyUnit()
+                createUnit()
+                getUnitAuditLogs()
+            }
         }
     }
 }
