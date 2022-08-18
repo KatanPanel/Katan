@@ -12,7 +12,6 @@ import com.auth0.jwt.exceptions.TokenExpiredException
 import com.auth0.jwt.interfaces.DecodedJWT
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
-import org.apache.logging.log4j.LogManager
 import org.katan.crypto.SaltedHash
 import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.AuthenticationException
@@ -30,8 +29,6 @@ internal class JWTAuthServiceImpl(
     companion object {
         private val jwtTokenLifetime: Duration = 6.hours
         private const val JWT_ISSUER = "Katan"
-
-        private val logger = LogManager.getLogger(JWTAuthServiceImpl::class.java)
     }
 
     private val algorithm = Algorithm.HMAC256("michjaelJackson")
@@ -59,8 +56,9 @@ internal class JWTAuthServiceImpl(
         val (account, hash) = accountService.getAccountAndHash(username)
             ?: throw AccountNotFoundException()
 
-        if (!validate(input = password.toCharArray(), hash = hash))
+        if (!validate(input = password.toCharArray(), hash = hash)) {
             throw InvalidCredentialsException()
+        }
 
         val now = Clock.System.now()
         return try {
@@ -80,10 +78,10 @@ internal class JWTAuthServiceImpl(
             jwtVerifier.verify(token)
         } catch (e: JWTVerificationException) {
             val message = when (e) {
-                is TokenExpiredException -> "Access token has expired"
-                is SignatureVerificationException -> "Invalid access token signature"
-                is AlgorithmMismatchException -> "Access token signature doesn't match"
-                is MissingClaimException -> "Missing JWT claim on access token"
+                is TokenExpiredException -> "Token has expired"
+                is SignatureVerificationException -> "Invalid signature"
+                is AlgorithmMismatchException -> "Signature algorithm doesn't match"
+                is MissingClaimException -> "Missing JWT claim"
                 else -> null
             }
             throw AuthenticationException(message, e)
