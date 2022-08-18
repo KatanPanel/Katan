@@ -1,9 +1,10 @@
 package org.katan.service.auth.http.dto
 
+import jakarta.validation.constraints.NotBlank
 import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class LoginRequest(
-    val username: String,
-    val password: String
+    @field:NotBlank(message = "Username must be provided.") val username: String? = null,
+    @field:NotBlank(message = "Password must be provided.") val password: String? = null
 )

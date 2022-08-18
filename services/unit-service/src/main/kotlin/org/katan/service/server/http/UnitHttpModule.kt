@@ -6,7 +6,7 @@ import io.ktor.server.routing.routing
 import org.katan.http.di.HttpModule
 import org.katan.http.di.HttpModuleRegistry
 import org.katan.service.server.http.routes.createUnit
-import org.katan.service.server.http.routes.findUnit
+import org.katan.service.server.http.routes.getUnit
 import org.katan.service.server.http.routes.getUnitAuditLogs
 import org.katan.service.server.http.routes.listUnits
 import org.katan.service.server.http.routes.modifyUnit
@@ -17,7 +17,7 @@ internal class UnitHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
         app.routing {
             authenticate {
                 listUnits()
-                findUnit()
+                getUnit()
                 modifyUnit()
                 createUnit()
                 getUnitAuditLogs()

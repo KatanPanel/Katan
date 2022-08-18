@@ -1,16 +1,16 @@
 package org.katan.service.network
 
-import org.katan.model.instance.UnitInstance
 import org.katan.model.net.Connection
 
 public interface NetworkService {
 
-    public suspend fun createConnection(host: String, port: Int): Connection
-
-    public suspend fun attachToNetwork(
+    public suspend fun connect(
         networkName: String,
-        instance: UnitInstance
-    )
+        networkDriver: String?,
+        containerId: String,
+        host: String?,
+        port: Int?
+    ): Connection
 
-    public suspend fun attachToDefaultNetwork(instance: UnitInstance)
+    public suspend fun createConnection(host: String?, port: Int?): Connection
 }

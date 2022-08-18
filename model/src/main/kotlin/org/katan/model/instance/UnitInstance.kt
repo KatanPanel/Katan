@@ -1,15 +1,16 @@
 package org.katan.model.instance
 
+import org.katan.model.net.Connection
 import org.katan.model.unit.ImageUpdatePolicy
 
 interface UnitInstance {
     val id: Long
 
-    val status: UnitInstanceStatus
+    val status: InstanceStatus
 
-    val containerId: String
+    val containerId: String?
 
-    val imageId: String
+    val updatePolicy: ImageUpdatePolicy
 
-    val imageUpdatePolicy: ImageUpdatePolicy
+    val connection: Connection?
 }

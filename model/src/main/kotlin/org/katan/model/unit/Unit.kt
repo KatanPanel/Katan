@@ -108,8 +108,7 @@ interface Unit {
      * separated from the main object of the unit because it is an object of extremely mutable
      * object, that is, its data changes constantly.
      */
-    val instanceId: Long
-//    val instance: UnitInstance
+    val instanceId: Long?
 
     /**
      * Current status of this unit.
@@ -117,12 +116,23 @@ interface Unit {
      * The drive's status is not its internal status, the internal status is described by the unit's
      * internal information that is accessed through its instance.
      */
-//    val status: UnitStatus
+    val status: UnitStatus
 }
 
 @Serializable
 enum class UnitStatus(val value: String) {
     Unknown("unknown"),
     Created("created"),
-    MissingInstance("missing-instance")
+    MissingInstance("missing-instance"),
+    CreatingInstance("creating-instance"),
+    Ready("ready");
+
+    companion object {
+        @JvmStatic
+        fun getByValue(value: String): UnitStatus {
+            return values().firstOrNull {
+                it.value.equals(value, ignoreCase = false)
+            } ?: Unknown
+        }
+    }
 }

@@ -32,5 +32,6 @@ include(
     "services:network-service",
     "services:cache-service",
     "services:user-service",
-    "crypto"
+    "crypto",
+    "docker-client"
 )

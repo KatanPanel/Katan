@@ -6,5 +6,5 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 public val dockerNetworkServiceDI: Module = module {
-    single<NetworkService> { DockerNetworkServiceImpl(get()) }
+    single<NetworkService> { DockerNetworkServiceImpl(get(), get()) }
 }

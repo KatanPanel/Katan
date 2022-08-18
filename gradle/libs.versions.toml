@@ -98,6 +98,14 @@ version.ref = "log4j"
 module = "com.github.docker-java:docker-java"
 version.ref = "docker-java"
 
+[libraries.dockerJava-core]
+module = "com.github.docker-java:docker-java-core"
+version.ref = "docker-java"
+
+[libraries.dockerJava-api]
+module = "com.github.docker-java:docker-java-api"
+version.ref = "docker-java"
+
 [libraries.dockerJava-transport-okhttp]
 module = "com.github.docker-java:docker-java-transport-okhttp"
 version.ref = "docker-java"

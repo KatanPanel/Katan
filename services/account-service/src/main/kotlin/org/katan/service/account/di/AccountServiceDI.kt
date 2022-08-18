@@ -1,8 +1,8 @@
 package org.katan.service.account.di
 
 import org.katan.http.di.HttpModule
-import org.katan.service.account.AccountServiceImpl
 import org.katan.service.account.AccountService
+import org.katan.service.account.AccountServiceImpl
 import org.katan.service.account.http.AccountHttpModule
 import org.katan.service.account.repository.AccountsRepository
 import org.katan.service.account.repository.AccountsRepositoryImpl

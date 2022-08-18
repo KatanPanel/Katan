@@ -13,7 +13,7 @@ import org.katan.service.server.http.UnitRoutes
 import org.katan.service.server.http.dto.UnitResponse
 import org.koin.ktor.ext.inject
 
-internal fun Route.findUnit() {
+internal fun Route.getUnit() {
     val unitService by inject<UnitService>()
     val validator by inject<Validator>()
 

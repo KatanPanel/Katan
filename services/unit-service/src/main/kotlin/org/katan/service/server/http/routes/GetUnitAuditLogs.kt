@@ -6,6 +6,7 @@ import jakarta.validation.Validator
 import org.katan.http.response.HttpError
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
+import org.katan.http.response.validateOrThrow
 import org.katan.service.server.UnitNotFoundException
 import org.katan.service.server.UnitService
 import org.katan.service.server.http.UnitRoutes
@@ -17,7 +18,7 @@ internal fun Route.getUnitAuditLogs() {
     val validator by inject<Validator>()
 
     get<UnitRoutes.GetUnitAuditLogs> { parameters ->
-        validator.validate(parameters)
+        validator.validateOrThrow(parameters)
 
         val auditLogs = try {
             unitService.getAuditLogs(parameters.unitId.toLong())

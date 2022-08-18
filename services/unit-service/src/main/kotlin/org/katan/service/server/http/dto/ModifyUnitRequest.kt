@@ -12,5 +12,4 @@ internal data class ModifyUnitRequest(
     fun isEmpty(): Boolean {
         return name == null
     }
-
 }

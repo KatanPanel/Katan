@@ -21,7 +21,7 @@ import kotlin.reflect.jvm.jvmName
 
 // TODO use it
 internal class DockerEventScope(
-    private inline val client: () -> DockerClient,
+    private val client: DockerClient,
     private val eventsDispatcher: EventScope,
     parentCoroutineContext: CoroutineContext
 ) : CoroutineScope by CoroutineScope(parentCoroutineContext + CoroutineName(DockerEventScope::class.jvmName)) {
@@ -48,7 +48,7 @@ internal class DockerEventScope(
      * Listens for Docker events.
      */
     private fun listen(cont: Continuation<Unit>) {
-        client().eventsCmd()
+        client.eventsCmd()
             .exec(object : ResultCallback.Adapter<Event>() {
                 override fun onStart(stream: Closeable?) {
                     cont.resume(Unit)

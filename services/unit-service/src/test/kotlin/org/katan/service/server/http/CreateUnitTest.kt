@@ -29,7 +29,7 @@ class CreateUnitTest : KoinTest {
             setBody(
                 CreateUnitRequest(
                     name = propName,
-                    dockerImage = propName
+                    image = propName
                 )
             )
         }

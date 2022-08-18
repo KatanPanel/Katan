@@ -14,7 +14,7 @@ data class HttpError internal constructor(
         val UnknownAccount = createError(1001, "Unknown account")
         val UnknownUnit = createError(1002, "Unknown unit")
         val UnknownInstance = createError(1003, "Unknown instance")
-        val InvalidAccessToken = createError(2001, "Invalid access token")
+        val InvalidAccessToken = createError(2001, "Invalid or missing access token")
         val AccountInvalidCredentials = createError(2002, "Invalid account credentials")
         val AccountLoginConflict = createError(
             2003,

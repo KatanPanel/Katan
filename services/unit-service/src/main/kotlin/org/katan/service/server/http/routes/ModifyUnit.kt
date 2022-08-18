@@ -26,8 +26,9 @@ internal fun Route.modifyUnit() {
         validator.validateOrThrow(parameters)
 
         val req = call.receive<ModifyUnitRequest>()
-        if (req.isEmpty())
+        if (req.isEmpty()) {
             respondError(HttpError.InvalidRequestBody, HttpStatusCode.NotAcceptable)
+        }
 
         val unitId = parameters.unitId.toLong()
         val updateOptions = UnitUpdateOptions(

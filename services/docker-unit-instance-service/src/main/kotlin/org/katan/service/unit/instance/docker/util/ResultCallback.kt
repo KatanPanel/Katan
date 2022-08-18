@@ -53,13 +53,18 @@ internal abstract class AbstractResultCallback<T> : ResultCallback<T> {
     abstract fun finalize(error: Throwable?)
 }
 
-private class FlowResultCallback<T, R>(private val scope: ProducerScope<R>, inline val transform: (T) -> R) : AbstractResultCallback<T>() {
+private class FlowResultCallback<T, R>(
+    private val scope: ProducerScope<R>,
+    inline val transform: (T) -> R
+) : AbstractResultCallback<T>() {
 
     override fun handle(value: T) {
-        scope.trySendBlocking(transform(value)).getOrThrow()
+        scope.trySendBlocking(transform(value))
     }
 
     override fun finalize(error: Throwable?) {
+        error?.printStackTrace()
+
         scope.cancel(
             error?.let { cause ->
                 if (cause !is CancellationException) {
@@ -83,7 +88,9 @@ internal class DeferredResultCallback<T, R>(
     }
 }
 
-internal fun <T, R> ProducerScope<R>.attachResultCallback(transform: (T) -> R): AbstractResultCallback<T> {
+internal fun <T, R> ProducerScope<R>.attachResultCallback(
+    transform: (T) -> R
+): AbstractResultCallback<T> {
     return FlowResultCallback(this, transform)
 }
 

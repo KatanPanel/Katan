@@ -72,5 +72,4 @@ internal class AccountServiceImpl(
             avatar = avatar
         )
     }
-
 }

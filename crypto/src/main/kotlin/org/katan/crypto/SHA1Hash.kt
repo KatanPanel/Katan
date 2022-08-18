@@ -15,5 +15,4 @@ internal class SHA1Hash : Hash {
     override fun compare(value: CharArray, hash: String): Boolean {
         error("$name hash comparison is not supported")
     }
-
 }

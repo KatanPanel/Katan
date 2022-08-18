@@ -91,6 +91,5 @@ internal class AccountsRepositoryImpl(
         return newSuspendedTransaction(db = database) {
             !AccountEntity.find { AccountsTable.username eq username }.empty()
         }
-
     }
 }

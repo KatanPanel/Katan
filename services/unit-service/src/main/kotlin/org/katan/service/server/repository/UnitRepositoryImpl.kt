@@ -6,17 +6,17 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import org.katan.model.unit.KUnit
+import org.katan.model.unit.UnitStatus
 import org.katan.model.unit.auditlog.AuditLogEntry
 import org.katan.service.server.model.AuditLogChangeImpl
 import org.katan.service.server.model.AuditLogEntryImpl
-import org.katan.service.server.model.UnitImpl
-import org.katan.service.server.model.UnitUpdateOptions
 import org.katan.service.server.repository.entity.UnitAuditLogChangeEntity
 import org.katan.service.server.repository.entity.UnitAuditLogChangesTable
 import org.katan.service.server.repository.entity.UnitAuditLogEntriesTable
 import org.katan.service.server.repository.entity.UnitAuditLogEntryEntity
-import org.katan.service.server.repository.entity.UnitEntity
+import org.katan.service.server.repository.entity.UnitEntityImpl
 import org.katan.service.server.repository.entity.UnitTable
 
 internal class UnitRepositoryImpl(
@@ -29,21 +29,21 @@ internal class UnitRepositoryImpl(
         }
     }
 
-    override suspend fun listUnits(): List<KUnit> {
+    override suspend fun listUnits(): List<UnitEntityImpl> {
         return newSuspendedTransaction(db = database) {
-            UnitEntity.all().notForUpdate().map { entity -> entity.toDomain() }
+            UnitEntityImpl.all().notForUpdate().toList()
         }
     }
 
-    override suspend fun findUnitById(id: Long): KUnit? {
+    override suspend fun findUnitById(id: Long): UnitEntityImpl? {
         return newSuspendedTransaction(db = database) {
-            UnitEntity.findById(id)?.toDomain()
+            UnitEntityImpl.findById(id)
         }
     }
 
     override suspend fun createUnit(unit: KUnit) {
         return newSuspendedTransaction(db = database) {
-            UnitEntity.new(unit.id) {
+            UnitEntityImpl.new(unit.id) {
                 this.name = unit.name
                 this.externalId = unit.externalId
                 this.instanceId = unit.instanceId
@@ -51,16 +51,23 @@ internal class UnitRepositoryImpl(
                 this.createdAt = unit.createdAt
                 this.updatedAt = unit.updatedAt
                 this.deletedAt = unit.deletedAt
+                this.status = unit.status.value
             }
         }
     }
 
-    override suspend fun updateUnit(id: Long, update: UnitUpdateOptions): KUnit? {
+    override suspend fun updateUnit(
+        id: Long,
+        externalId: String?,
+        instanceId: Long?,
+        status: UnitStatus?
+    ) {
         return newSuspendedTransaction(db = database) {
-            val entity = UnitEntity.findById(id) ?: return@newSuspendedTransaction null
-            update.name?.let { entity.name = it }
-
-            entity.toDomain()
+            UnitTable.update({ UnitTable.id eq id }) {
+                it[UnitTable.externalId] = externalId
+                it[UnitTable.instanceId] = instanceId
+                status?.let { value -> it[UnitTable.status] = value.value }
+            }
         }
     }
 
@@ -70,8 +77,9 @@ internal class UnitRepositoryImpl(
                 UnitAuditLogEntriesTable.targetId eq unitId
             }.notForUpdate()
 
-            if (entity.empty())
+            if (entity.empty()) {
                 return@newSuspendedTransaction null
+            }
 
             entity.map { entry ->
                 AuditLogEntryImpl(
@@ -115,18 +123,5 @@ internal class UnitRepositoryImpl(
                     }
                 }
         }
-    }
-
-    private fun UnitEntity.toDomain(): KUnit {
-        return UnitImpl(
-            id.value,
-            externalId,
-            instanceId,
-            nodeId,
-            name,
-            createdAt,
-            updatedAt,
-            deletedAt
-        )
     }
 }

@@ -1,4 +1,5 @@
 dependencies {
-    implementation(projects.services.networkService)
     implementation(projects.configuration)
+    implementation(projects.dockerClient)
+    implementation(projects.services.networkService)
 }

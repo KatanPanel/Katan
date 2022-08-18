@@ -2,7 +2,14 @@ package org.katan.service.server.model
 
 public data class UnitCreateOptions(
     val name: String,
-    val externalId: String? = null,
+    val network: Network,
+    val externalId: String?,
     val dockerImage: String,
     val actorId: Long?
-)
+) {
+
+    public data class Network(
+        val host: String?,
+        val port: Int?
+    )
+}

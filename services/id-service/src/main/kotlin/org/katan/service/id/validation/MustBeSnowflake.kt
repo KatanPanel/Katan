@@ -19,7 +19,7 @@ private const val TEMPLATE = "Must be a valid snowflake id"
 public annotation class MustBeSnowflake(
     val message: String = TEMPLATE,
     val groups: Array<KClass<*>> = [],
-    val payload: Array<KClass<out Payload>> = [],
+    val payload: Array<KClass<out Payload>> = []
 )
 
 public class MustBeSnowflakeValidator : ConstraintValidator<MustBeSnowflake, String> {
@@ -35,5 +35,4 @@ public class MustBeSnowflakeValidator : ConstraintValidator<MustBeSnowflake, Str
 
         return isLongValue
     }
-
 }

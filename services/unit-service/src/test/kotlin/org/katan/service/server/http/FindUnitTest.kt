@@ -8,7 +8,7 @@ import org.katan.http.createTestClient
 import org.katan.http.response.HttpError
 import org.katan.http.test.VALID_SNOWFLAKE_ID
 import org.katan.http.withTestApplication
-import org.katan.service.server.http.routes.findUnit
+import org.katan.service.server.http.routes.getUnit
 import org.koin.test.KoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -18,7 +18,7 @@ class FindUnitTest : KoinTest {
     @Test
     fun `when unit is not found expect HTTP 400`() = withTestApplication({
         routing {
-            findUnit()
+            getUnit()
         }
     }) {
         val testClient = createTestClient()
@@ -32,7 +32,7 @@ class FindUnitTest : KoinTest {
     @Test
     fun `given incorrect unit id expect HTTP 400`() = withTestApplication({
         routing {
-            findUnit()
+            getUnit()
         }
     }) {
         val testClient = createTestClient()
