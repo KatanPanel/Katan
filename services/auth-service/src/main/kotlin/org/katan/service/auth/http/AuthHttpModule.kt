@@ -29,23 +29,23 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
 
     override fun install(app: Application) {
         app.apply {
-            installRouter()
             installAuthentication()
+            installRouter()
         }
     }
 
     private fun Application.installRouter() {
         routing {
-            login()
-
-            authenticate {
-                verify()
-            }
-
             intercept(ApplicationCallPipeline.Call) {
                 call.principal<AccountPrincipal>()?.account?.let {
                     call.attributes.put(AccountKey, it)
                 }
+            }
+
+            login()
+
+            authenticate {
+                verify()
             }
         }
     }
@@ -83,6 +83,7 @@ internal class AuthHttpModule(registry: HttpModuleRegistry) : HttpModule(registr
         accountService: AccountService
     ): AccountPrincipal {
         val id = jwtSubject.toLong()
+
         val account = runCatching {
             accountService.getAccount(id)
         }.getOrNull() ?: respondError(HttpError.UnknownAccount)

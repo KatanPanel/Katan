@@ -8,7 +8,7 @@ open class SecurityException(
 ) : KatanException(message, cause)
 
 open class AuthenticationException(
-    message: String,
+    message: String?,
     cause: Throwable? = null
 ) : SecurityException(message, cause)
 
