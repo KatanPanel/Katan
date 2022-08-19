@@ -126,6 +126,10 @@ version.ref = "ktor"
 module = "io.ktor:ktor-server-core"
 version.ref = "ktor"
 
+[libraries.ktor-server-websockets]
+module = "io.ktor:ktor-server-websockets"
+version.ref = "ktor"
+
 [libraries.ktor-server-host-common]
 module = "io.ktor:ktor-server-host-common"
 version.ref = "ktor"

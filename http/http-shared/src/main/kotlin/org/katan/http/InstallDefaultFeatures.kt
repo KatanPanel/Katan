@@ -15,12 +15,16 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
+import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.pingPeriod
+import io.ktor.server.websocket.timeout
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.katan.http.response.HttpError
 import org.katan.http.response.ValidationException
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.time.Duration
 
 fun Application.installDefaultFeatures() {
     install(Routing)
@@ -70,7 +74,6 @@ fun Application.installDefaultFeatures() {
             )
         }
     }
-
     install(CORS) {
         allowCredentials = true
         allowNonSimpleContentTypes = true
@@ -81,5 +84,10 @@ fun Application.installDefaultFeatures() {
         allowXHttpMethodOverride()
         allowHeader(HttpHeaders.Authorization)
         anyHost()
+    }
+    install(WebSockets) {
+        pingPeriod = Duration.ofSeconds(15)
+        timeout = Duration.ofSeconds(15)
+        maxFrameSize = Long.MAX_VALUE
     }
 }

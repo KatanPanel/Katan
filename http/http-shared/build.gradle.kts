@@ -1,4 +1,5 @@
 dependencies {
+    implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.server.feature.defaultheaders)
     implementation(libs.ktor.server.feature.autoheadresponse)
     implementation(libs.ktor.server.feature.calllogging)
