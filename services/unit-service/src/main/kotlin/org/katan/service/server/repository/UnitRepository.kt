@@ -3,6 +3,7 @@ package org.katan.service.server.repository
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.UnitStatus
 import org.katan.model.unit.auditlog.AuditLogEntry
+import org.katan.service.server.model.UnitUpdateOptions
 
 public interface UnitRepository {
 
@@ -14,9 +15,7 @@ public interface UnitRepository {
 
     public suspend fun updateUnit(
         id: Long,
-        externalId: String?,
-        instanceId: Long?,
-        status: UnitStatus?
+        options: UnitUpdateOptions
     )
 
     public suspend fun findAuditLogs(unitId: Long): List<AuditLogEntry>?

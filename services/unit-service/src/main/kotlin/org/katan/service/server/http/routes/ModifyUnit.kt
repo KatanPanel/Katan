@@ -10,6 +10,7 @@ import org.katan.http.response.HttpError
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
+import org.katan.model.internal.wrap
 import org.katan.service.auth.http.shared.AccountKey
 import org.katan.service.server.UnitService
 import org.katan.service.server.http.UnitRoutes
@@ -32,8 +33,8 @@ internal fun Route.modifyUnit() {
 
         val unitId = parameters.unitId.toLong()
         val updateOptions = UnitUpdateOptions(
-            name = req.name,
-            actorId = call.attributes.getOrNull(AccountKey)?.id
+            name = req.name.wrap(),
+            actorId = call.attributes.getOrNull(AccountKey)?.id.wrap()
         )
 
         val result = try {

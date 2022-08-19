@@ -5,17 +5,14 @@ sealed class InstanceStatus(
     val isInitialStatus: Boolean = false,
     val isRuntimeStatus: Boolean = false
 ) {
-
     object Created : InstanceStatus("created")
     object NetworkAssignmentFailed : InstanceStatus("network-assignment-failed")
     object Unavailable : InstanceStatus("unavailable")
     object Unknown : InstanceStatus("unknown")
-
     object ImagePullInProgress : InstanceStatus("image-pull", isInitialStatus = true)
     object ImagePullNeeded : InstanceStatus("image-pull-needed", isInitialStatus = true)
     object ImagePullFailed : InstanceStatus("image-pull-failed", isInitialStatus = true)
     object ImagePullCompleted : InstanceStatus("image-pull-completed", isInitialStatus = true)
-
     object Dead : InstanceStatus("dead", isRuntimeStatus = true)
     object Paused : InstanceStatus("paused", isRuntimeStatus = true)
     object Exited : InstanceStatus("exited", isRuntimeStatus = true)

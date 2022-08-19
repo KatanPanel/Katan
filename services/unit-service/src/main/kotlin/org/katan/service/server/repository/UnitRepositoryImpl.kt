@@ -7,17 +7,20 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import org.katan.model.internal.Wrapper
+import org.katan.model.internal.ifNotEmpty
 import org.katan.model.unit.KUnit
-import org.katan.model.unit.UnitStatus
 import org.katan.model.unit.auditlog.AuditLogEntry
 import org.katan.service.server.model.AuditLogChangeImpl
 import org.katan.service.server.model.AuditLogEntryImpl
+import org.katan.service.server.model.UnitUpdateOptions
 import org.katan.service.server.repository.entity.UnitAuditLogChangeEntity
 import org.katan.service.server.repository.entity.UnitAuditLogChangesTable
 import org.katan.service.server.repository.entity.UnitAuditLogEntriesTable
 import org.katan.service.server.repository.entity.UnitAuditLogEntryEntity
 import org.katan.service.server.repository.entity.UnitEntityImpl
 import org.katan.service.server.repository.entity.UnitTable
+import kotlin.properties.ReadWriteProperty
 
 internal class UnitRepositoryImpl(
     private val database: Database
@@ -58,15 +61,13 @@ internal class UnitRepositoryImpl(
 
     override suspend fun updateUnit(
         id: Long,
-        externalId: String?,
-        instanceId: Long?,
-        status: UnitStatus?
+        options: UnitUpdateOptions
     ) {
         return newSuspendedTransaction(db = database) {
-            UnitTable.update({ UnitTable.id eq id }) {
-                it[UnitTable.externalId] = externalId
-                it[UnitTable.instanceId] = instanceId
-                status?.let { value -> it[UnitTable.status] = value.value }
+            UnitTable.update({ UnitTable.id eq id }) { update ->
+                options.instanceId.ifNotEmpty { update[instanceId] = it }
+                options.status.ifNotEmpty { update[status] = it.value }
+                options.name.ifNotEmpty { update[name] = it }
             }
         }
     }

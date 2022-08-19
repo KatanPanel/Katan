@@ -8,7 +8,7 @@ import org.katan.model.net.Connection
 @Serializable
 public data class InstanceResponse(
     val id: String,
-    @SerialName("update_policy") val updatePolicy: String,
+    @SerialName("update-policy") val updatePolicy: String,
     val status: String,
     @SerialName("container-id") val containerId: String?,
     val connection: InstanceConnectionResponse?

@@ -18,6 +18,8 @@ import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.instance.UnitInstance
+import org.katan.model.internal.unwrap
+import org.katan.model.internal.wrap
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.UnitStatus
 import org.katan.model.unit.auditlog.AuditLog
@@ -89,8 +91,8 @@ public class LocalUnitServiceImpl(
                         updateUnit(
                             id = id,
                             options = UnitUpdateOptions(
-                                instanceId = instance!!.id,
-                                status = statusBasedOnInstance(instance!!.status)
+                                instanceId = instance!!.id.wrap(),
+                                status = statusBasedOnInstance(instance!!.status).wrap()
                             ),
                             audit = false
                         )
@@ -181,7 +183,7 @@ public class LocalUnitServiceImpl(
     private suspend fun updateUnit(id: Long, options: UnitUpdateOptions, audit: Boolean): KUnit {
         // TODO use single query to fetch and update
         val actualUnit = getUnit(id)
-        unitRepository.updateUnit(id, null, options.instanceId, options.status)
+        unitRepository.updateUnit(id, options)
 
         val updatedUnit = getUnit(id)
         if (!audit) {
@@ -195,7 +197,7 @@ public class LocalUnitServiceImpl(
                     AuditLogEntryImpl(
                         id = idService.generate(),
                         targetId = actualUnit.id,
-                        actorId = options.actorId,
+                        actorId = options.actorId.unwrap(),
                         event = AuditLogEvents.UnitUpdate,
                         reason = null,
                         changes = buildAuditLogChangesBasedOnUpdate(
