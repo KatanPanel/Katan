@@ -49,7 +49,7 @@ internal class EventScopeImpl : EventScope {
         if (!publisher.tryEmit(event)) {
             logger.warn("Failed to emit event: $event")
         } else {
-            logger.debug(event.toString())
+            logger.trace(event.toString())
         }
     }
 }

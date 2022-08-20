@@ -6,6 +6,8 @@ import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.EngineConnectorBuilder
 import io.ktor.server.engine.addShutdownHook
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.routing.routing
+import io.ktor.server.websocket.webSocket
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +15,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.http.di.HttpModuleRegistry
 import org.katan.http.installDefaultFeatures
+import org.katan.http.websocket.WebSocketManager
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -21,6 +24,7 @@ class HttpServer(
 ) : CoroutineScope by CoroutineScope(CoroutineName("HttpServer")), KoinComponent {
 
     private val httpModuleRegistry by inject<HttpModuleRegistry>()
+    private val webSocketManager by inject<WebSocketManager>()
 
     private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
 
@@ -60,9 +64,19 @@ class HttpServer(
 
     private fun setupEngine(app: Application) {
         app.installDefaultFeatures()
+        app.setupWebsocket()
         for (module in httpModuleRegistry) {
             module.install(app)
+            for ((op, handler) in module.webSocketHandlers())
+                webSocketManager.register(op, handler)
+
             logger.info("Module {} installed", module::class.simpleName)
+        }
+    }
+
+    private fun Application.setupWebsocket() = routing {
+        webSocket {
+            webSocketManager.connect(this)
         }
     }
 

@@ -1,5 +1,6 @@
 package org.katan.service.unit.instance
 
+import kotlinx.coroutines.flow.Flow
 import org.katan.model.instance.InstanceUpdateCode
 import org.katan.model.instance.UnitInstance
 
@@ -15,4 +16,9 @@ public interface UnitInstanceService {
         instance: UnitInstance,
         code: InstanceUpdateCode
     )
+
+    public suspend fun fetchInstanceLogs(id: Long): Flow<String>
+
+    public suspend fun executeInstanceCommand(id: Long, command: String)
+
 }

@@ -52,7 +52,7 @@ internal class DockerEventScope(
             .exec(object : ResultCallback.Adapter<Event>() {
                 override fun onStart(stream: Closeable?) {
                     cont.resume(Unit)
-                    logger.info("Docker events listener operation started.")
+                    logger.debug("Docker events listener operation started.")
                 }
 
                 override fun onNext(event: Event) {
@@ -65,7 +65,7 @@ internal class DockerEventScope(
                 }
 
                 override fun onComplete() {
-                    logger.info("Docker events listener operation completed.")
+                    logger.debug("Docker events listener operation completed.")
                 }
             })
     }
@@ -77,7 +77,7 @@ internal class DockerEventScope(
         try {
             suspendCoroutine<Unit> { listen(it) }
         } catch (e: Throwable) {
-            logger.info(
+            logger.error(
                 "Failed to listen Docker events (%d of %d).".format(
                     currRetryCount,
                     MAX_LISTEN_RETRY_ATTEMPTS
@@ -97,9 +97,9 @@ internal class DockerEventScope(
         if (event.type == null) return
 
         launch(Dispatchers.IO) {
-            event.type?.let {
-                logger.info(event.toString())
-                eventsDispatcher.dispatch(DockerEvent(it.value))
+            event.type?.let { eventType ->
+                logger.debug(event.toString())
+                eventsDispatcher.dispatch(DockerEvent(eventType.value))
             }
         }
     }

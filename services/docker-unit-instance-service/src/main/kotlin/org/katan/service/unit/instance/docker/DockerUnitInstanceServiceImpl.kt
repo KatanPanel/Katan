@@ -3,6 +3,7 @@ package org.katan.service.unit.instance.docker
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
+import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.api.model.PullResponseItem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
@@ -29,11 +30,13 @@ import org.katan.model.net.NetworkException
 import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.service.id.IdService
 import org.katan.service.network.NetworkService
+import org.katan.service.unit.instance.InstanceNotAvailableException
 import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.docker.model.DockerUnitInstanceImpl
 import org.katan.service.unit.instance.repository.InstanceEntity
 import org.katan.service.unit.instance.repository.UnitInstanceRepository
+import java.io.Closeable
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -50,7 +53,7 @@ internal class DockerUnitInstanceServiceImpl(
 ) : UnitInstanceService,
     CoroutineScope by CoroutineScope(
         SupervisorJob() +
-            CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
+                CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
     ) {
 
     private companion object {
@@ -66,6 +69,68 @@ internal class DockerUnitInstanceServiceImpl(
     override suspend fun getInstance(id: Long): UnitInstance {
         // TODO cache service
         return unitInstanceRepository.findById(id)?.toDomain() ?: throw InstanceNotFoundException()
+    }
+
+    override suspend fun fetchInstanceLogs(id: Long): Flow<String> {
+        val instance = getInstance(id)
+
+        if (instance.containerId == null)
+            throw InstanceNotAvailableException()
+
+        logger.info("fetch instance lolgs @ ${instance.containerId}")
+        return callbackFlow {
+            dockerClient.logContainerCmd(instance.containerId!!)
+                .withStdOut(true)
+                .withFollowStream(true)
+                .withTimestamps(true)
+                .exec(object : ResultCallback.Adapter<Frame>() {
+                    override fun onStart(stream: Closeable?) {
+                        logger.info("started logs streaming")
+                    }
+
+                    override fun onNext(value: Frame) {
+                        trySendBlocking("${value.streamType} ${value.payload.decodeToString()}")
+                            .onFailure {
+                                // TODO handle downstream unavailability properly
+                                logger.error("Downstream closed", it)
+                            }
+                    }
+
+                    override fun onError(error: Throwable) {
+                        cancel(CancellationException("Docker API error", error))
+                    }
+
+                    override fun onComplete() {
+                        logger.info("completed logs streaming")
+                        channel.close()
+                    }
+                })
+
+            awaitClose()
+        }
+    }
+
+    override suspend fun executeInstanceCommand(id: Long, command: String) {
+        val instance = getInstance(id)
+
+        if (instance.containerId == null)
+            throw InstanceNotAvailableException()
+
+        val cmd = command.split(" ")
+        val execId = withContext(IO) {
+            dockerClient.execCreateCmd(instance.containerId!!)
+                .withCmd(*cmd.toTypedArray())
+                .withTty(false)
+                .withAttachStdin(false)
+                .withAttachStdout(false)
+                .withAttachStderr(false)
+                .withTty(true)
+                .exec()
+                .id
+        }
+
+        dockerClient.execStartCmd(execId).withDetach(true)
+            .exec(object : ResultCallback.Adapter<Frame>() {})
     }
 
     override suspend fun deleteInstance(instance: UnitInstance) {
@@ -298,6 +363,7 @@ internal class DockerUnitInstanceServiceImpl(
         logger.info("Creating container with ($image) to $instanceId...")
         return dockerClient.createContainerCmd(image)
             .withName(name)
+            .withTty(false)
             .withEnv(mapOf("EULA" to "true").map { (k, v) -> "$k=$v" })
             .withLabels(createDefaultContainerLabels(instanceId))
             .exec().id
@@ -339,9 +405,9 @@ internal class DockerUnitInstanceServiceImpl(
 
     private fun isRunning(status: InstanceStatus): Boolean {
         return status == InstanceStatus.Running ||
-            status == InstanceStatus.Restarting ||
-            status == InstanceStatus.Stopping ||
-            status == InstanceStatus.Paused
+                status == InstanceStatus.Restarting ||
+                status == InstanceStatus.Stopping ||
+                status == InstanceStatus.Paused
     }
 
     private suspend fun InstanceEntity.toDomain(): UnitInstance {
