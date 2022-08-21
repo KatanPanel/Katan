@@ -18,7 +18,7 @@ public data class AccountResponse internal constructor(
     public constructor(account: Account) : this(
         id = account.id.toString(),
         username = account.username,
-        email = account.username,
+        email = account.email,
         createdAt = account.createdAt,
         updatedAt = account.createdAt,
         lastLoggedInAt = account.lastLoggedInAt
