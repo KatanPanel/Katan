@@ -31,7 +31,8 @@ include(
     "services:database-service",
     "services:network-service",
     "services:cache-service",
-    "services:user-service",
     "crypto",
-    "docker-client"
+    "docker-client",
+    "services:fs-service",
+    "services:host-fs-service"
 )

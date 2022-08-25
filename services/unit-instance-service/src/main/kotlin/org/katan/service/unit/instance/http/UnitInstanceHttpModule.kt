@@ -6,11 +6,11 @@ import io.ktor.server.routing.routing
 import org.katan.http.di.HttpModule
 import org.katan.http.di.HttpModuleRegistry
 import org.katan.http.websocket.WebSocketOp
-import org.katan.http.websocket.WebSocketOpCodes
 import org.katan.http.websocket.WebSocketOpCodes.EXECUTE_INSTANCE_COMMAND
 import org.katan.http.websocket.WebSocketOpCodes.FETCH_INSTANCE_LOGS
 import org.katan.http.websocket.WebSocketPacketEventHandler
 import org.katan.service.unit.instance.http.routes.getInstance
+import org.katan.service.unit.instance.http.routes.getInstanceFile
 import org.katan.service.unit.instance.http.routes.updateStatus
 import org.katan.service.unit.instance.http.websocket.ExecuteCommandHandler
 import org.katan.service.unit.instance.http.websocket.FetchLogsHandler
@@ -31,6 +31,7 @@ internal class UnitInstanceHttpModule(
             authenticate {
                 getInstance()
                 updateStatus()
+                getInstanceFile()
             }
 
 //            webSocket {

@@ -7,5 +7,6 @@ dependencies {
     implementation(projects.configuration)
     implementation(projects.http.httpShared)
     implementation(projects.services.idService)
+    implementation(projects.services.fsService)
     testImplementation(projects.http.httpTest)
 }

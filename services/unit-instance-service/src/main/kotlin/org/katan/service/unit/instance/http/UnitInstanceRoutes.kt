@@ -1,6 +1,7 @@
 package org.katan.service.unit.instance.http
 
 import io.ktor.resources.Resource
+import jakarta.validation.constraints.NotBlank
 import kotlinx.serialization.Serializable
 import org.katan.service.id.validation.MustBeSnowflake
 
@@ -20,5 +21,14 @@ internal class UnitInstanceRoutes {
     internal class UpdateStatus(
         @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
         @field:MustBeSnowflake val instanceId: String
+    )
+
+    @Serializable
+    @Resource("{instanceId}/fs/{bucket}")
+    internal class FSGetFile(
+        @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
+        @field:MustBeSnowflake val instanceId: String,
+        @field:NotBlank val bucket: String,
+        val path: String? = ""
     )
 }

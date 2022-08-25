@@ -26,6 +26,7 @@ dependencies {
     implementation(projects.services.dockerUnitInstanceService)
     implementation(projects.services.cacheService)
     implementation(projects.services.databaseService)
+    implementation(projects.services.hostFsService)
 }
 
 tasks {
