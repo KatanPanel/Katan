@@ -13,4 +13,6 @@ interface UnitInstance {
     val updatePolicy: ImageUpdatePolicy
 
     val connection: Connection?
+
+    val runtime: InstanceRuntime?
 }

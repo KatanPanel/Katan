@@ -19,9 +19,11 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Instant
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
+import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.instance.InstanceUpdateCode
 import org.katan.model.instance.UnitInstance
@@ -34,6 +36,9 @@ import org.katan.service.unit.instance.InstanceNotAvailableException
 import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.docker.model.DockerUnitInstanceImpl
+import org.katan.service.unit.instance.docker.model.InstanceRuntimeImpl
+import org.katan.service.unit.instance.docker.model.InstanceRuntimeNetworkImpl
+import org.katan.service.unit.instance.docker.model.InstanceRuntimeSingleNetworkImpl
 import org.katan.service.unit.instance.repository.InstanceEntity
 import org.katan.service.unit.instance.repository.UnitInstanceRepository
 import java.io.Closeable
@@ -68,7 +73,8 @@ internal class DockerUnitInstanceServiceImpl(
 
     override suspend fun getInstance(id: Long): UnitInstance {
         // TODO cache service
-        return unitInstanceRepository.findById(id)?.toDomain() ?: throw InstanceNotFoundException()
+        return unitInstanceRepository.findById(id)?.toDomain()
+            ?: throw InstanceNotFoundException()
     }
 
     override suspend fun fetchInstanceLogs(id: Long): Flow<String> {
@@ -314,7 +320,8 @@ internal class DockerUnitInstanceServiceImpl(
             status = status,
             updatePolicy = ImageUpdatePolicy.Always,
             containerId = containerId,
-            connection = connection
+            connection = connection,
+            runtime = containerId?.let { buildRuntime(it) }
         )
 
         unitInstanceRepository.create(instance)
@@ -403,6 +410,37 @@ internal class DockerUnitInstanceServiceImpl(
         }
     }
 
+    private suspend fun buildRuntime(containerId: String): InstanceRuntime? {
+        val inspect = withContext(IO) {
+            dockerClient.inspectContainerCmd(containerId).exec()
+        } ?: return null
+
+        val networkSettings = inspect.networkSettings
+        val state = inspect.state
+        return InstanceRuntimeImpl(
+            network = InstanceRuntimeNetworkImpl(
+                ipV4Address = networkSettings.ipAddress,
+                hostname = inspect.config.hostName,
+                networks = networkSettings.networks.map { (name, settings) ->
+                    InstanceRuntimeSingleNetworkImpl(
+                        id = settings.networkID ?: "",
+                        name = name,
+                        ipv4Address = settings.ipamConfig?.ipv4Address?.ifBlank { null },
+                        ipv6Address = settings.ipamConfig?.ipv6Address?.ifBlank { null }
+                    )
+                }
+            ),
+            platform = inspect.platform?.ifBlank { null },
+            exitCode = state.exitCodeLong ?: 0,
+            pid = state.pidLong ?: 0,
+            startedAt = state.startedAt?.let { Instant.parse(it) },
+            finishedAt = state.finishedAt?.let { Instant.parse(it) },
+            error = state.error?.ifBlank { null },
+            status = state.status!!,
+            outOfMemory = state.oomKilled ?: false
+        )
+    }
+
     private fun isRunning(status: InstanceStatus): Boolean {
         return status == InstanceStatus.Running ||
                 status == InstanceStatus.Restarting ||
@@ -416,7 +454,8 @@ internal class DockerUnitInstanceServiceImpl(
             updatePolicy = ImageUpdatePolicy.getById(updatePolicy),
             containerId = containerId,
             status = toStatus(status),
-            connection = networkService.createConnection(host, port?.toInt())
+            connection = networkService.createConnection(host, port?.toInt()),
+            runtime = containerId?.let { buildRuntime(it) }
         )
     }
 
