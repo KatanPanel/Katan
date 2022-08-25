@@ -5,6 +5,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
+import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.plugins.callloging.CallLogging
@@ -14,7 +15,10 @@ import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.Routing
+import io.ktor.server.routing.get
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
@@ -22,6 +26,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.katan.http.response.HttpError
 import org.katan.http.response.ValidationException
+import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.time.Duration
@@ -49,7 +54,10 @@ fun Application.installDefaultFeatures() {
         exception<HttpException> { call, exception ->
             try {
                 exception.cause?.printStackTrace()
-                call.respond(exception.status, HttpError(exception.code, exception.message.orEmpty()))
+                call.respond(
+                    exception.status,
+                    HttpError(exception.code, exception.message.orEmpty())
+                )
             } catch (e: Throwable) {
                 println("PUTA Q PARIU IRMAO DEU ERRO AQ FI: $e")
             }

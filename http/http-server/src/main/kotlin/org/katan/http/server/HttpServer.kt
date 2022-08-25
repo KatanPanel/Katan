@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.http.di.HttpModuleRegistry
 import org.katan.http.installDefaultFeatures
+import org.katan.http.server.routes.serverInfo
 import org.katan.http.websocket.WebSocketManager
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -65,12 +66,13 @@ class HttpServer(
     private fun setupEngine(app: Application) {
         app.installDefaultFeatures()
         app.setupWebsocket()
+        app.routing { serverInfo() }
         for (module in httpModuleRegistry) {
             module.install(app)
             for ((op, handler) in module.webSocketHandlers())
                 webSocketManager.register(op, handler)
 
-            logger.info("Module {} installed", module::class.simpleName)
+            logger.debug("Http module {} installed", module::class.simpleName)
         }
     }
 
