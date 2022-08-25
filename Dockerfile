@@ -1,5 +1,5 @@
 # Compiling Katan
-FROM openjdk:8-jdk-alpine AS TEMP_BUILD_IMAGE
+FROM openjdk:11-jre-slim-buster AS TEMP_BUILD_IMAGE
 ENV BUILD_HOME=/usr/katan-build/
 COPY . $BUILD_HOME
 
@@ -8,7 +8,7 @@ USER root
 RUN ./gradlew application:shadowJar
 
 # Production build
-FROM openjdk:8-jdk-alpine
+FROM openjdk:11-jre-slim-buster
 ENV ARTIFACT_NAME=katan-*.jar
 ENV BUILD_HOME=/usr/katan-build/
 
