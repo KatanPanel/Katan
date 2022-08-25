@@ -48,5 +48,4 @@ private object Application {
     private fun setProperty(key: String, value: String) {
         System.setProperty("org.katan.$key", value)
     }
-
 }

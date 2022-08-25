@@ -23,5 +23,4 @@ public data class FSFileResponse(
         createdAt = file.createdAt,
         modifiedAt = file.modifiedAt
     )
-
 }

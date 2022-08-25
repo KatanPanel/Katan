@@ -13,8 +13,6 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
 import org.apache.logging.log4j.LogManager
 import java.nio.channels.ClosedChannelException
 import java.util.Collections
@@ -125,5 +123,4 @@ class WebSocketManager : CoroutineScope by CoroutineScope(
         handlers.computeIfAbsent(op) { mutableListOf() }.add(handler)
         logger.debug("WebSocket handler registered: $name")
     }
-
 }

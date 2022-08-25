@@ -7,7 +7,6 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
-import org.katan.model.internal.Wrapper
 import org.katan.model.internal.ifNotEmpty
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.auditlog.AuditLogEntry
@@ -20,7 +19,6 @@ import org.katan.service.server.repository.entity.UnitAuditLogEntriesTable
 import org.katan.service.server.repository.entity.UnitAuditLogEntryEntity
 import org.katan.service.server.repository.entity.UnitEntityImpl
 import org.katan.service.server.repository.entity.UnitTable
-import kotlin.properties.ReadWriteProperty
 
 internal class UnitRepositoryImpl(
     private val database: Database

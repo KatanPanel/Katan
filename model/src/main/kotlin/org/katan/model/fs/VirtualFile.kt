@@ -15,5 +15,4 @@ interface VirtualFile {
     val createdAt: Instant?
 
     val modifiedAt: Instant?
-
 }

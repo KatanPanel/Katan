@@ -8,5 +8,4 @@ public interface FSService {
     public suspend fun getBucket(path: String): Bucket?
 
     public suspend fun getFile(path: String): VirtualFile?
-
 }

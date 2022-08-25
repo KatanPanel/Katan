@@ -11,5 +11,4 @@ interface Bucket {
     val isLocal: Boolean
 
     val createdAt: Instant?
-
 }

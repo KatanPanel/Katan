@@ -24,5 +24,4 @@ internal class ExecuteCommandHandler :
             instanceService.executeInstanceCommand(target, input)
         }
     }
-
 }

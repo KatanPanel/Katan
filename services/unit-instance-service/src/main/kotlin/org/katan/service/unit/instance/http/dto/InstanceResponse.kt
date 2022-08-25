@@ -38,7 +38,7 @@ public data class InstanceRuntimeResponse internal constructor(
     val pid: Long,
     @SerialName("started-at") val startedAt: Instant? = null,
     @SerialName("finished-at") val finishedAt: Instant? = null,
-    val network: InstanceRuntimeNetworkResponse,
+    val network: InstanceRuntimeNetworkResponse
 ) {
 
     internal constructor(runtime: InstanceRuntime) : this(
@@ -56,7 +56,6 @@ public data class InstanceRuntimeResponse internal constructor(
             networks = runtime.network.networks.map(::InstanceRuntimeSingleNetworkResponse)
         )
     )
-
 }
 
 @Serializable
@@ -92,5 +91,4 @@ public data class InstanceRuntimeSingleNetworkResponse internal constructor(
         ipv4Address = network.ipv4Address,
         ipv6Address = network.ipv6Address
     )
-
 }

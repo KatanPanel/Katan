@@ -58,7 +58,7 @@ internal class DockerUnitInstanceServiceImpl(
 ) : UnitInstanceService,
     CoroutineScope by CoroutineScope(
         SupervisorJob() +
-                CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
+            CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
     ) {
 
     private companion object {
@@ -80,8 +80,9 @@ internal class DockerUnitInstanceServiceImpl(
     override suspend fun fetchInstanceLogs(id: Long): Flow<String> {
         val instance = getInstance(id)
 
-        if (instance.containerId == null)
+        if (instance.containerId == null) {
             throw InstanceNotAvailableException()
+        }
 
         logger.info("fetch instance lolgs @ ${instance.containerId}")
         return callbackFlow {
@@ -119,8 +120,9 @@ internal class DockerUnitInstanceServiceImpl(
     override suspend fun executeInstanceCommand(id: Long, command: String) {
         val instance = getInstance(id)
 
-        if (instance.containerId == null)
+        if (instance.containerId == null) {
             throw InstanceNotAvailableException()
+        }
 
         val cmd = command.split(" ")
         val execId = withContext(IO) {
@@ -443,9 +445,9 @@ internal class DockerUnitInstanceServiceImpl(
 
     private fun isRunning(status: InstanceStatus): Boolean {
         return status == InstanceStatus.Running ||
-                status == InstanceStatus.Restarting ||
-                status == InstanceStatus.Stopping ||
-                status == InstanceStatus.Paused
+            status == InstanceStatus.Restarting ||
+            status == InstanceStatus.Stopping ||
+            status == InstanceStatus.Paused
     }
 
     private suspend fun InstanceEntity.toDomain(): UnitInstance {

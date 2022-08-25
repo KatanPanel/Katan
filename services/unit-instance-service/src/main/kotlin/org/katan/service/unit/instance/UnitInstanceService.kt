@@ -20,5 +20,4 @@ public interface UnitInstanceService {
     public suspend fun fetchInstanceLogs(id: Long): Flow<String>
 
     public suspend fun executeInstanceCommand(id: Long, command: String)
-
 }

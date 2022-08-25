@@ -10,9 +10,10 @@ class WebSocketSession internal constructor(
 ) {
 
     suspend fun send(message: WebSocketPacket) {
-        connection.outgoing.send(Frame.Text(
-            WebSocketManager.json.encodeToString(message)
-        ))
+        connection.outgoing.send(
+            Frame.Text(
+                WebSocketManager.json.encodeToString(message)
+            )
+        )
     }
-
 }

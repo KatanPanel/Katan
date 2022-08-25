@@ -21,7 +21,6 @@ interface InstanceRuntime {
     val platform: String?
 
     val network: InstanceRuntimeNetwork
-
 }
 
 interface InstanceRuntimeNetwork {
@@ -31,7 +30,6 @@ interface InstanceRuntimeNetwork {
     val hostname: String?
 
     val networks: List<InstanceRuntimeSingleNetwork>
-
 }
 
 interface InstanceRuntimeSingleNetwork {
@@ -43,5 +41,4 @@ interface InstanceRuntimeSingleNetwork {
     val ipv4Address: String?
 
     val ipv6Address: String?
-
 }

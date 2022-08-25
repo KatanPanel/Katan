@@ -52,8 +52,9 @@ internal class HostFSService(
         val file = File(volume.mountpoint, fileName)
         logger.info("file: $file, ${file.exists()}")
 
-        if (!file.exists())
+        if (!file.exists()) {
             return null
+        }
 
         val absPath = file.toPath()
         val modifiedAt = runCatching {
@@ -81,5 +82,4 @@ internal class HostFSService(
     private fun retrieveFile(path: String): String? {
         return path.substringAfterLast("/").ifEmpty { null }
     }
-
 }

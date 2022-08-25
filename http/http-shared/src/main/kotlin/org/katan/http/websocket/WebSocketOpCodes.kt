@@ -7,5 +7,4 @@ object WebSocketOpCodes {
     const val FETCH_INSTANCE_LOGS: WebSocketOp = 0
 
     const val EXECUTE_INSTANCE_COMMAND: WebSocketOp = 1
-
 }

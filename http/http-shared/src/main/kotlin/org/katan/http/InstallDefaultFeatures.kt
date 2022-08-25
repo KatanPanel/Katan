@@ -15,8 +15,6 @@ import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.Route
 import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.websocket.WebSockets
@@ -26,7 +24,6 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.katan.http.response.HttpError
 import org.katan.http.response.ValidationException
-import org.koin.ktor.ext.inject
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import java.time.Duration

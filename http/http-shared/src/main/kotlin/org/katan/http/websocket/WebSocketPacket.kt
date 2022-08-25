@@ -23,9 +23,7 @@ data class WebSocketPacket internal constructor(
 
         const val TARGET_ID = "tid"
         const val VALUE = "v"
-
     }
-
 }
 
 data class WebSocketPacketContext(
@@ -45,7 +43,7 @@ data class WebSocketResponse<T>(
 
 suspend inline fun <reified T> WebSocketPacketContext.respond(
     data: T,
-    code: Int = packet.op,
+    code: Int = packet.op
 ) {
     session.connection.outgoing.send(
         Frame.Text(WebSocketManager.json.encodeToString(WebSocketResponse(code, data)))

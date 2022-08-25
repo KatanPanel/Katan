@@ -8,5 +8,4 @@ abstract class WebSocketPacketEventHandler : CoroutineScope {
     override lateinit var coroutineContext: CoroutineContext internal set
 
     abstract suspend fun WebSocketPacketContext.handle()
-
 }

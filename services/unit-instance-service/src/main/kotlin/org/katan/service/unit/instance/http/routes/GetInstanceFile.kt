@@ -21,8 +21,9 @@ internal fun Route.getInstanceFile() {
     val validator by inject<Validator>()
 
     get<UnitInstanceRoutes.FSGetFile> { parameters ->
-        if (parameters.path.isNullOrBlank())
+        if (parameters.path.isNullOrBlank()) {
             return@get
+        }
 
         validator.validateOrThrow(parameters)
 
@@ -33,11 +34,13 @@ internal fun Route.getInstanceFile() {
         }
 
         val file = try {
-            fsService.getFile(buildString {
-                append(parameters.bucket)
-                append("/")
-                append(parameters.path)
-            })
+            fsService.getFile(
+                buildString {
+                    append(parameters.bucket)
+                    append("/")
+                    append(parameters.path)
+                }
+            )
         } catch (e: BucketNotFoundException) {
             respondError(HttpError.UnknownFSBucket)
         } ?: respondError(HttpError.UnknownFSFile)

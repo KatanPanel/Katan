@@ -10,7 +10,7 @@ internal data class ModifyUnitRequest(
 ) {
 
     fun isEmpty(): Boolean {
-        return name?.isEmpty() == true
-                && externalId?.isEmpty() == true
+        return name?.isEmpty() == true &&
+            externalId?.isEmpty() == true
     }
 }
