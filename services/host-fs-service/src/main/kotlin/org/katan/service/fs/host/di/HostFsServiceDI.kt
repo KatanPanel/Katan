@@ -6,5 +6,5 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 public val hostFsServiceDI: Module = module {
-    single<FSService> { HostFSService(get()) }
+    single<FSService> { HostFSService(get(), get()) }
 }

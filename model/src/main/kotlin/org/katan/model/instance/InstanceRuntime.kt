@@ -20,7 +20,11 @@ interface InstanceRuntime {
 
     val platform: String?
 
+    val fsPath: String?
+
     val network: InstanceRuntimeNetwork
+
+    val mounts: List<InstanceRuntimeMount>
 }
 
 interface InstanceRuntimeNetwork {
@@ -41,4 +45,16 @@ interface InstanceRuntimeSingleNetwork {
     val ipv4Address: String?
 
     val ipv6Address: String?
+}
+
+interface InstanceRuntimeMount {
+
+    val type: String
+
+    val target: String
+
+    val destination: String
+
+    val readonly: Boolean
+
 }

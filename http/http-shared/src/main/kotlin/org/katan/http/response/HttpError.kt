@@ -16,6 +16,10 @@ data class HttpError internal constructor(
         val UnknownInstance = createError(1003, "Unknown instance")
         val UnknownFSBucket = createError(1004, "Unknown file system bucket")
         val UnknownFSFile = createError(1005, "Unknown file")
+        val InstanceRuntimeNotAvailable = createError(1006, "Instance runtime not available")
+        val InaccessibleInstanceFile = createError(1007, "This file is not accessible")
+        val FileIsNotDirectory = createError(1008, "File is not a directory")
+        val RequestedResourceIsNotAFile = createError(1009, "The requested resource is not a file")
         val InvalidAccessToken = createError(2001, "Invalid or missing access token")
         val AccountInvalidCredentials = createError(2002, "Invalid account credentials")
         val AccountLoginConflict = createError(

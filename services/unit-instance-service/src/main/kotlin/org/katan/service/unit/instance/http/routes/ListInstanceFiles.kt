@@ -1,5 +1,6 @@
 package org.katan.service.unit.instance.http.routes
 
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.resources.get
 import io.ktor.server.routing.Route
 import jakarta.validation.Validator
@@ -7,12 +8,14 @@ import org.katan.http.response.HttpError
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
+import org.katan.model.fs.BucketNotFoundException
+import org.katan.model.fs.FileNotDirectoryException
 import org.katan.service.fs.FSService
 import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.http.UnitInstanceRoutes
-import org.katan.service.unit.instance.http.dto.FSFileListResponse
-import org.katan.service.unit.instance.http.dto.FSFileResponse
+import org.katan.service.unit.instance.http.dto.FSDirectoryResponse
+import org.katan.service.unit.instance.http.dto.FSSingleFileResponse
 import org.koin.ktor.ext.inject
 
 internal fun Route.listInstanceFiles() {
@@ -29,19 +32,33 @@ internal fun Route.listInstanceFiles() {
             respondError(HttpError.UnknownInstance)
         }
 
-        val files = fsService.listFiles(
-            buildString {
-                append(parameters.bucket)
-                parameters.path?.let { path ->
-                    append("/")
-                    append(path)
-                }
-            }
+        val runtime = instance.runtime ?: respondError(
+            HttpError.InstanceRuntimeNotAvailable,
+            HttpStatusCode.ServiceUnavailable
         )
 
+        val matchingBind = runtime.mounts.firstOrNull {
+            it.target == parameters.bucket
+        } ?: respondError(
+            HttpError.InaccessibleInstanceFile,
+            HttpStatusCode.Unauthorized
+        )
+
+        val files = try {
+            fsService.listFiles(
+                matchingBind.target,
+                matchingBind.destination,
+                parameters.path.orEmpty()
+            ) ?: respondError(HttpError.UnknownFSFile)
+        } catch (e: BucketNotFoundException) {
+            respondError(HttpError.UnknownFSBucket)
+        } catch (e: FileNotDirectoryException) {
+            respondError(HttpError.FileIsNotDirectory)
+        }
+
         respond(
-            FSFileListResponse(
-                files = files.map(::FSFileResponse)
+            FSDirectoryResponse(
+                files = files.map(::FSSingleFileResponse)
             )
         )
     }

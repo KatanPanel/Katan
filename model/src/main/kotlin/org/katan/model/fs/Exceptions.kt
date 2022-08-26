@@ -2,10 +2,16 @@ package org.katan.model.fs
 
 import org.katan.model.KatanException
 
-open class FileSystemException : KatanException()
+open class FSException : KatanException()
 
-class BucketReadonlyException : FileSystemException()
+class BucketReadonlyException : FSException()
 
-class BucketNotFoundException : FileSystemException()
+class BucketNotFoundException : FSException()
 
-class FileNotFoundException : FileSystemException()
+class FileNotFoundException : FSException()
+
+class NotAFileException : FSException()
+
+class FileNotDirectoryException : FSException()
+
+class FileNotAccessibleException : FSException()

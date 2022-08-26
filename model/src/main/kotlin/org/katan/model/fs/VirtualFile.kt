@@ -6,11 +6,15 @@ interface VirtualFile {
 
     val name: String
 
+    val relativePath: String
+
     val absolutePath: String
 
     val size: Long
 
     val isDirectory: Boolean
+
+    val isHidden: Boolean
 
     val createdAt: Instant?
 

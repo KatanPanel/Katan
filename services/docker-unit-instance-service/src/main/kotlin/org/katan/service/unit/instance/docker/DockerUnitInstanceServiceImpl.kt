@@ -37,6 +37,7 @@ import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.docker.model.DockerUnitInstanceImpl
 import org.katan.service.unit.instance.docker.model.InstanceRuntimeImpl
+import org.katan.service.unit.instance.docker.model.InstanceRuntimeMountImpl
 import org.katan.service.unit.instance.docker.model.InstanceRuntimeNetworkImpl
 import org.katan.service.unit.instance.docker.model.InstanceRuntimeSingleNetworkImpl
 import org.katan.service.unit.instance.repository.InstanceEntity
@@ -58,7 +59,7 @@ internal class DockerUnitInstanceServiceImpl(
 ) : UnitInstanceService,
     CoroutineScope by CoroutineScope(
         SupervisorJob() +
-            CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
+                CoroutineName(DockerUnitInstanceServiceImpl::class.jvmName)
     ) {
 
     private companion object {
@@ -419,6 +420,7 @@ internal class DockerUnitInstanceServiceImpl(
 
         val networkSettings = inspect.networkSettings
         val state = inspect.state
+
         return InstanceRuntimeImpl(
             network = InstanceRuntimeNetworkImpl(
                 ipV4Address = networkSettings.ipAddress,
@@ -439,15 +441,24 @@ internal class DockerUnitInstanceServiceImpl(
             finishedAt = state.finishedAt?.let { Instant.parse(it) },
             error = state.error?.ifBlank { null },
             status = state.status!!,
-            outOfMemory = state.oomKilled ?: false
+            fsPath = inspect.config.volumes?.keys?.firstOrNull(),
+            outOfMemory = state.oomKilled ?: false,
+            mounts = inspect.mounts?.map { mount ->
+                InstanceRuntimeMountImpl(
+                    type = (mount.rawValues["Type"] as? String) ?: "volume",
+                    target = mount.name.orEmpty(),
+                    destination = mount.destination?.path.orEmpty(),
+                    readonly = !(mount.rw ?: false)
+                )
+            }.orEmpty()
         )
     }
 
     private fun isRunning(status: InstanceStatus): Boolean {
         return status == InstanceStatus.Running ||
-            status == InstanceStatus.Restarting ||
-            status == InstanceStatus.Stopping ||
-            status == InstanceStatus.Paused
+                status == InstanceStatus.Restarting ||
+                status == InstanceStatus.Stopping ||
+                status == InstanceStatus.Paused
     }
 
     private suspend fun InstanceEntity.toDomain(): UnitInstance {

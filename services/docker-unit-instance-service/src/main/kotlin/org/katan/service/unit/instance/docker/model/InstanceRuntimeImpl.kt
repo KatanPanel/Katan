@@ -2,6 +2,7 @@ package org.katan.service.unit.instance.docker.model
 
 import kotlinx.datetime.Instant
 import org.katan.model.instance.InstanceRuntime
+import org.katan.model.instance.InstanceRuntimeMount
 import org.katan.model.instance.InstanceRuntimeNetwork
 import org.katan.model.instance.InstanceRuntimeSingleNetwork
 
@@ -13,8 +14,10 @@ internal data class InstanceRuntimeImpl(
     override val error: String?,
     override val status: String,
     override val pid: Long,
+    override val fsPath: String?,
     override val startedAt: Instant?,
-    override val finishedAt: Instant?
+    override val finishedAt: Instant?,
+    override val mounts: List<InstanceRuntimeMount>
 ) : InstanceRuntime
 
 internal data class InstanceRuntimeNetworkImpl(
@@ -29,3 +32,10 @@ internal data class InstanceRuntimeSingleNetworkImpl(
     override val ipv4Address: String?,
     override val ipv6Address: String?
 ) : InstanceRuntimeSingleNetwork
+
+internal data class InstanceRuntimeMountImpl(
+    override val type: String,
+    override val target: String,
+    override val destination: String,
+    override val readonly: Boolean
+) : InstanceRuntimeMount

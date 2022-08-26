@@ -1,14 +1,19 @@
 package org.katan.service.fs.host
 
 import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.api.command.InspectVolumeResponse
+import com.github.dockerjava.api.exception.DockerException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toKotlinInstant
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.katan.config.KatanConfig
 import org.katan.model.fs.Bucket
 import org.katan.model.fs.BucketNotFoundException
+import org.katan.model.fs.FileNotDirectoryException
+import org.katan.model.fs.NotAFileException
 import org.katan.model.fs.VirtualFile
 import org.katan.service.fs.FSService
 import org.katan.service.fs.impl.BucketImpl
@@ -17,52 +22,90 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.attribute.FileTime
+import kotlin.streams.asSequence
+import kotlin.system.exitProcess
 
 internal class HostFSService(
-    private val dockerClient: DockerClient
+    private val dockerClient: DockerClient,
+    private val config: KatanConfig
 ) : FSService {
 
     companion object {
         private val logger: Logger = LogManager.getLogger(HostFSService::class.java)
     }
 
-    override suspend fun listFiles(path: String): List<VirtualFile> {
-        val dir = retrieveDir(path) ?: throw BucketNotFoundException()
-        val fileName = retrieveFile(path)
+    private val fsRoot: String
 
-        val volume = withContext(IO) {
-            dockerClient.inspectVolumeCmd(dir).exec()
-        } ?: throw BucketNotFoundException()
+    init {
+        val value: String? = findFsRoot()
 
-        val file = File(volume.mountpoint, fileName.orEmpty())
+        if (value == null) {
+            // TODO provide better error message
+            logger.error("Unable to determine file system root.")
+            exitProcess(1)
+        }
 
-        return file.listFiles()?.map { it.toDomain() } ?: emptyList()
+        fsRoot = value
     }
 
-    override suspend fun getFile(path: String): VirtualFile? {
-        val dir = retrieveDir(path) ?: return null
-        val fileName = retrieveFile(path) ?: return null
+    private fun findFsRoot(): String? {
+        return if (config.altFsRoot == null) {
+            val info = try {
+                dockerClient.infoCmd().exec()
+            } catch (e: DockerException) {
+                logger.error("Failed to execute Docker info command to fetch file system root", e)
+                exitProcess(1)
+            }
 
-        logger.info("dir: $dir, fileName: $fileName")
-        val volume = withContext(IO) {
-            dockerClient.inspectVolumeCmd(dir).exec()
-        } ?: throw BucketNotFoundException()
+            info.dockerRootDir?.let {
+                buildString {
+                    append(it)
+                    append(File.separatorChar)
+                    append("volumes")
+                }
+            }
+        } else
+            config.altFsRoot?.also {
+                logger.info("Using alternative file system root: $it")
+            }
+    }
 
-        val file = File(volume.mountpoint, fileName)
-        logger.info("file: $file, ${file.exists()}")
+    override suspend fun listFiles(
+        bucket: String,
+        destination: String,
+        path: String
+    ): List<VirtualFile>? {
+        val volume = getVolumeOrNull(bucket) ?: throw BucketNotFoundException()
+        val base = File(buildFile(volume.name, volume.mountpoint))
 
+        val file = File(base, File.separator + retrieveFile(path).orEmpty())
         if (!file.exists()) {
+            logger.debug("File not found: $file")
             return null
         }
+        if (!file.isDirectory) throw FileNotDirectoryException()
 
-        return file.toDomain()
+        return file.listFiles()?.map { it.toDomain(base) } ?: emptyList()
     }
 
-    override suspend fun getBucket(path: String): Bucket? {
-        val id = retrieveDir(path) ?: return null
-        val volume = withContext(IO) {
-            dockerClient.inspectVolumeCmd(id).exec()
+    override suspend fun getFile(bucket: String, destination: String, path: String): VirtualFile? {
+        val fileName = retrieveFile(path) ?: return null
+        val volume = getVolumeOrNull(bucket) ?: throw BucketNotFoundException()
+
+        val base = File(buildFile(volume.name, volume.mountpoint))
+        val file = File(base, File.separator + fileName)
+
+        if (!file.exists()) {
+            logger.debug("File not found: $file")
+            return null
         }
+        if (!file.isFile) throw NotAFileException()
+
+        return file.toDomain(base)
+    }
+
+    override suspend fun getBucket(bucket: String, destination: String, path: String): Bucket? {
+        val volume = getVolumeOrNull(bucket) ?: return null
 
         return BucketImpl(
             path = volume.mountpoint,
@@ -70,6 +113,14 @@ internal class HostFSService(
             isLocal = volume.driver == "local",
             createdAt = (volume.rawValues["CreatedAt"] as? String)?.let { Instant.parse(it) }
         )
+    }
+
+    private suspend fun getVolumeOrNull(name: String): InspectVolumeResponse? {
+        return withContext(IO) {
+            runCatching {
+                dockerClient.inspectVolumeCmd(name).exec()
+            }.getOrNull()
+        }
     }
 
     private fun retrieveDir(path: String): String? {
@@ -80,7 +131,17 @@ internal class HostFSService(
         return path.substringAfterLast("/").ifEmpty { null }
     }
 
-    private fun File.toDomain(): VirtualFile {
+    private fun buildFile(volumeName: String, mountpoint: String): String {
+        return buildString {
+            append(fsRoot)
+            append(File.separatorChar)
+            append(volumeName)
+            append(File.separatorChar)
+            append(mountpoint.substringAfterLast("/"))
+        }
+    }
+
+    private fun File.toDomain(base: File): VirtualFile {
         val absPath = toPath()
         val modifiedAt = runCatching {
             Files.getLastModifiedTime(absPath, LinkOption.NOFOLLOW_LINKS)
@@ -90,13 +151,33 @@ internal class HostFSService(
             Files.getAttribute(absPath, "creationTime") as? FileTime
         }.getOrNull()?.toInstant()?.toKotlinInstant() ?: modifiedAt
 
+        val size = if (!isDirectory)
+            length()
+        else Files.walk(absPath).asSequence()
+            .map { it.toFile() }
+            .filter { it.isFile }
+            .map { it.length() }
+            .sum()
+
         return FileImpl(
             name = name,
+            relativePath = toRelativeStringOrEmpty(base),
             absolutePath = absolutePath,
-            size = length(),
+            size = size,
             isDirectory = isDirectory,
+            isHidden = isHidden,
             createdAt = createdAt ?: modifiedAt,
             modifiedAt = modifiedAt
         )
     }
+
+    private fun File.toRelativeStringOrEmpty(base: File): String {
+        return toRelativeString(base).let {
+            if (it.equals(name, ignoreCase = false))
+                ""
+            else
+                it.substringBeforeLast(File.separatorChar)
+        }
+    }
+
 }
