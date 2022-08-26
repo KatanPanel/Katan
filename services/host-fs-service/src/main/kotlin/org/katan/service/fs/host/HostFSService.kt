@@ -78,7 +78,7 @@ internal class HostFSService(
         val volume = getVolumeOrNull(bucket) ?: throw BucketNotFoundException()
         val base = File(buildFile(volume.name, volume.mountpoint))
 
-        val file = File(base, File.separator + retrieveFile(path).orEmpty())
+        val file = File(base, File.separator + path)
         if (!file.exists()) {
             logger.debug("File not found: $file")
             return null
@@ -89,11 +89,10 @@ internal class HostFSService(
     }
 
     override suspend fun getFile(bucket: String, destination: String, path: String): VirtualFile? {
-        val fileName = retrieveFile(path) ?: return null
         val volume = getVolumeOrNull(bucket) ?: throw BucketNotFoundException()
 
         val base = File(buildFile(volume.name, volume.mountpoint))
-        val file = File(base, File.separator + fileName)
+        val file = File(base, File.separator + path)
 
         if (!file.exists()) {
             logger.debug("File not found: $file")
@@ -125,10 +124,6 @@ internal class HostFSService(
 
     private fun retrieveDir(path: String): String? {
         return path.substringBefore("/", "").ifEmpty { null }
-    }
-
-    private fun retrieveFile(path: String): String? {
-        return path.substringAfterLast("/").ifEmpty { null }
     }
 
     private fun buildFile(volumeName: String, mountpoint: String): String {
