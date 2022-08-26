@@ -8,23 +8,19 @@ import org.katan.http.response.HttpError
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
-import org.katan.model.fs.BucketNotFoundException
-import org.katan.model.fs.Directory
-import org.katan.model.fs.NotAFileException
 import org.katan.service.fs.FSService
 import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.http.UnitInstanceRoutes
-import org.katan.service.unit.instance.http.dto.FSDirectoryResponse
-import org.katan.service.unit.instance.http.dto.FSFileResponse
+import org.katan.service.unit.instance.http.dto.FSBucketResponse
 import org.koin.ktor.ext.inject
 
-internal fun Route.getInstanceFsFile() {
+internal fun Route.getInstanceFsBucket() {
     val instanceService by inject<UnitInstanceService>()
     val fsService by inject<FSService>()
     val validator by inject<Validator>()
 
-    get<UnitInstanceRoutes.FSFile> { parameters ->
+    get<UnitInstanceRoutes.FSBucket> { parameters ->
         validator.validateOrThrow(parameters)
 
         val instance = try {
@@ -46,23 +42,11 @@ internal fun Route.getInstanceFsFile() {
             HttpStatusCode.Unauthorized
         )
 
-        val file = try {
-            fsService.getFile(
-                matchingBind.target,
-                matchingBind.destination,
-                parameters.path.orEmpty()
-            ) ?: respondError(HttpError.UnknownFSFile)
-        } catch (e: BucketNotFoundException) {
-            respondError(HttpError.UnknownFSBucket)
-        } catch (e: NotAFileException) {
-            respondError(HttpError.RequestedResourceIsNotAFile)
-        }
+        val bucket = fsService.getBucket(
+            matchingBind.target,
+            matchingBind.destination
+        ) ?: respondError(HttpError.UnknownFSBucket)
 
-        respond(
-            if (file is Directory)
-                FSDirectoryResponse(file)
-            else
-                FSFileResponse(file)
-        )
+        respond(FSBucketResponse(bucket))
     }
 }

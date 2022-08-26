@@ -86,7 +86,7 @@ internal class HostFSService(
         return file.toDomain(base)
     }
 
-    override suspend fun getBucket(bucket: String, destination: String, path: String): Bucket? {
+    override suspend fun getBucket(bucket: String, destination: String): Bucket? {
         val volume = getVolumeOrNull(bucket) ?: return null
 
         return BucketImpl(
@@ -129,7 +129,7 @@ internal class HostFSService(
             length()
         else Files.walk(absPath).asSequence()
             .map { it.toFile() }
-            .filter { it.isFile }
+            .filter { it.isFile && it.exists() }
             .map { it.length() }
             .sum()
 

@@ -11,7 +11,7 @@ internal data class FSSingleFileResponse(
     val name: String,
     @SerialName("relative-path") val relativePath: String,
     @SerialName("absolute-path") val absolutePath: String,
-    val size: Long,
+    val size: Long, // TODO use String to prevent overflow on JS
     @SerialName("is-directory") val isDirectory: Boolean,
     @SerialName("is-hidden") val isHidden: Boolean,
     @SerialName("created-at") val createdAt: Instant?,
@@ -40,12 +40,12 @@ internal data class FSFileResponse(
 
 @Serializable
 internal data class FSDirectoryResponse(
-    val file: FSFileResponse,
+    val file: FSSingleFileResponse,
     val children: List<FSSingleFileResponse>
 ) {
 
     internal constructor(file: Directory) : this(
-        FSFileResponse(file),
+        FSSingleFileResponse(file),
         file.children.map(::FSSingleFileResponse)
     )
 

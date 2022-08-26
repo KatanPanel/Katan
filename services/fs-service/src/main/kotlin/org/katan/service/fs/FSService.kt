@@ -7,5 +7,5 @@ public interface FSService {
 
     public suspend fun getFile(bucket: String, destination: String, path: String): VirtualFile?
 
-    public suspend fun getBucket(bucket: String, destination: String, path: String): Bucket?
+    public suspend fun getBucket(bucket: String, destination: String): Bucket?
 }
