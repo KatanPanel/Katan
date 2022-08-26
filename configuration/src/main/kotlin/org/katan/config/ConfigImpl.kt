@@ -8,7 +8,8 @@ internal data class ConfigImpl(
     override val database: DatabaseConfigImpl,
     override val server: HttpServerConfigImpl,
     override val docker: DockerClientConfigImpl,
-    override val redis: RedisConfigImpl
+    override val redis: RedisConfigImpl,
+    override val altFsRoot: String?
 ) : KatanConfig {
 
     data class DatabaseConfigImpl(

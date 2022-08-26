@@ -14,6 +14,8 @@ interface KatanConfig {
 
     val redis: RedisConfig
 
+    val altFsRoot: String?
+
     interface DatabaseConfig {
 
         val host: String
