@@ -26,18 +26,17 @@ internal class HostFSService(
         private val logger: Logger = LogManager.getLogger(HostFSService::class.java)
     }
 
-    override suspend fun getBucket(path: String): Bucket? {
-        val id = retrieveDir(path) ?: return null
-        val volume = withContext(IO) {
-            dockerClient.inspectVolumeCmd(id).exec()
-        }
+    override suspend fun listFiles(path: String): List<VirtualFile> {
+        val dir = retrieveDir(path) ?: throw BucketNotFoundException()
+        val fileName = retrieveFile(path)
 
-        return BucketImpl(
-            path = volume.mountpoint,
-            name = volume.name,
-            isLocal = volume.driver == "local",
-            createdAt = (volume.rawValues["CreatedAt"] as? String)?.let { Instant.parse(it) }
-        )
+        val volume = withContext(IO) {
+            dockerClient.inspectVolumeCmd(dir).exec()
+        } ?: throw BucketNotFoundException()
+
+        val file = File(volume.mountpoint, fileName.orEmpty())
+
+        return file.listFiles()?.map { it.toDomain() } ?: emptyList()
     }
 
     override suspend fun getFile(path: String): VirtualFile? {
@@ -56,22 +55,20 @@ internal class HostFSService(
             return null
         }
 
-        val absPath = file.toPath()
-        val modifiedAt = runCatching {
-            Files.getLastModifiedTime(absPath, LinkOption.NOFOLLOW_LINKS)
-        }.getOrNull()?.toInstant()?.toKotlinInstant()
+        return file.toDomain()
+    }
 
-        val createdAt = runCatching {
-            Files.getAttribute(absPath, "creationTime") as? FileTime
-        }.getOrNull()?.toInstant()?.toKotlinInstant() ?: modifiedAt
+    override suspend fun getBucket(path: String): Bucket? {
+        val id = retrieveDir(path) ?: return null
+        val volume = withContext(IO) {
+            dockerClient.inspectVolumeCmd(id).exec()
+        }
 
-        return FileImpl(
-            name = file.name,
-            absolutePath = file.absolutePath,
-            size = file.length(),
-            isDirectory = file.isDirectory,
-            createdAt = createdAt ?: modifiedAt,
-            modifiedAt = modifiedAt
+        return BucketImpl(
+            path = volume.mountpoint,
+            name = volume.name,
+            isLocal = volume.driver == "local",
+            createdAt = (volume.rawValues["CreatedAt"] as? String)?.let { Instant.parse(it) }
         )
     }
 
@@ -81,5 +78,25 @@ internal class HostFSService(
 
     private fun retrieveFile(path: String): String? {
         return path.substringAfterLast("/").ifEmpty { null }
+    }
+
+    private fun File.toDomain(): VirtualFile {
+        val absPath = toPath()
+        val modifiedAt = runCatching {
+            Files.getLastModifiedTime(absPath, LinkOption.NOFOLLOW_LINKS)
+        }.getOrNull()?.toInstant()?.toKotlinInstant()
+
+        val createdAt = runCatching {
+            Files.getAttribute(absPath, "creationTime") as? FileTime
+        }.getOrNull()?.toInstant()?.toKotlinInstant() ?: modifiedAt
+
+        return FileImpl(
+            name = name,
+            absolutePath = absolutePath,
+            size = length(),
+            isDirectory = isDirectory,
+            createdAt = createdAt ?: modifiedAt,
+            modifiedAt = modifiedAt
+        )
     }
 }

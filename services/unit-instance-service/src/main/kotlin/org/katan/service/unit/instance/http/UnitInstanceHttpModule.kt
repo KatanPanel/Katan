@@ -11,6 +11,7 @@ import org.katan.http.websocket.WebSocketOpCodes.FETCH_INSTANCE_LOGS
 import org.katan.http.websocket.WebSocketPacketEventHandler
 import org.katan.service.unit.instance.http.routes.getInstance
 import org.katan.service.unit.instance.http.routes.getInstanceFile
+import org.katan.service.unit.instance.http.routes.listInstanceFiles
 import org.katan.service.unit.instance.http.routes.updateStatus
 import org.katan.service.unit.instance.http.websocket.ExecuteCommandHandler
 import org.katan.service.unit.instance.http.websocket.FetchLogsHandler
@@ -32,6 +33,7 @@ internal class UnitInstanceHttpModule(
                 getInstance()
                 updateStatus()
                 getInstanceFile()
+                listInstanceFiles()
             }
 
 //            webSocket {

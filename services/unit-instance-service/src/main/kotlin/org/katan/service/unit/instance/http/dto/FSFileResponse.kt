@@ -24,3 +24,8 @@ public data class FSFileResponse(
         modifiedAt = file.modifiedAt
     )
 }
+
+@Serializable
+public data class FSFileListResponse(
+    val files: List<FSFileResponse>
+)
