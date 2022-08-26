@@ -40,7 +40,7 @@ internal fun Route.listInstanceFiles() {
         val matchingBind = runtime.mounts.firstOrNull {
             it.target == parameters.bucket
         } ?: respondError(
-            HttpError.InaccessibleInstanceFile,
+            HttpError.ResourceNotAccessible,
             HttpStatusCode.Unauthorized
         )
 
