@@ -24,8 +24,8 @@ internal data class AuditLogResponse(
 @Serializable
 internal data class AuditLogEntryResponse(
     val id: String,
-    @SerialName("target-id") val targetId: Long,
-    @SerialName("actor-id") val actorId: Long?,
+    @SerialName("target-id") val targetId: String,
+    @SerialName("actor-id") val actorId: String?,
     val event: AuditLogEvent,
     val reason: String?,
     val additionalData: String?,
@@ -35,8 +35,8 @@ internal data class AuditLogEntryResponse(
 
     constructor(entry: AuditLogEntry) : this(
         id = entry.id.toString(),
-        targetId = entry.targetId,
-        actorId = entry.actorId,
+        targetId = entry.targetId.toString(),
+        actorId = entry.actorId?.toString(),
         event = entry.event,
         reason = entry.reason,
         additionalData = entry.additionalData,
