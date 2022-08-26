@@ -29,15 +29,6 @@ internal class UnitInstanceRoutes {
         @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
         @field:MustBeSnowflake val instanceId: String,
         @field:NotBlank(message = "Bucket must be provided") val bucket: String,
-        @field:NotBlank(message = "File path must be provided") val path: String? = ""
-    )
-
-    @Serializable
-    @Resource("{instanceId}/fs/{bucket}/list")
-    internal class FSListFiles(
-        @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
-        @field:MustBeSnowflake val instanceId: String,
-        @field:NotBlank(message = "Bucket must be provided") val bucket: String,
         val path: String? = ""
     )
 

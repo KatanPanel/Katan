@@ -9,12 +9,14 @@ import org.katan.http.response.respond
 import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
 import org.katan.model.fs.BucketNotFoundException
+import org.katan.model.fs.Directory
 import org.katan.model.fs.NotAFileException
 import org.katan.service.fs.FSService
 import org.katan.service.unit.instance.InstanceNotFoundException
 import org.katan.service.unit.instance.UnitInstanceService
 import org.katan.service.unit.instance.http.UnitInstanceRoutes
-import org.katan.service.unit.instance.http.dto.FSSingleFileResponse
+import org.katan.service.unit.instance.http.dto.FSDirectoryResponse
+import org.katan.service.unit.instance.http.dto.FSFileResponse
 import org.koin.ktor.ext.inject
 
 internal fun Route.getInstanceFile() {
@@ -47,7 +49,7 @@ internal fun Route.getInstanceFile() {
             fsService.getFile(
                 matchingBind.target,
                 matchingBind.destination,
-                parameters.path!!
+                parameters.path.orEmpty()
             ) ?: respondError(HttpError.UnknownFSFile)
         } catch (e: BucketNotFoundException) {
             respondError(HttpError.UnknownFSBucket)
@@ -55,6 +57,11 @@ internal fun Route.getInstanceFile() {
             respondError(HttpError.RequestedResourceIsNotAFile)
         }
 
-        respond(FSSingleFileResponse(file))
+        respond(
+            if (file is Directory)
+                FSDirectoryResponse(file)
+            else
+                FSFileResponse(file)
+        )
     }
 }

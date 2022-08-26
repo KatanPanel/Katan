@@ -12,6 +12,4 @@ class FileNotFoundException : FSException()
 
 class NotAFileException : FSException()
 
-class FileNotDirectoryException : FSException()
-
 class FileNotAccessibleException : FSException()

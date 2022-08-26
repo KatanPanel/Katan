@@ -3,10 +3,11 @@ package org.katan.service.unit.instance.http.dto
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.katan.model.fs.Directory
 import org.katan.model.fs.VirtualFile
 
 @Serializable
-public data class FSSingleFileResponse(
+internal data class FSSingleFileResponse(
     val name: String,
     @SerialName("relative-path") val relativePath: String,
     @SerialName("absolute-path") val absolutePath: String,
@@ -29,11 +30,23 @@ public data class FSSingleFileResponse(
 }
 
 @Serializable
-public data class FSFileResponse(
+internal data class FSFileResponse(
     val file: FSSingleFileResponse
-)
+) {
+
+    internal constructor(file: VirtualFile) : this(FSSingleFileResponse(file))
+
+}
 
 @Serializable
-public data class FSDirectoryResponse(
-    val files: List<FSSingleFileResponse>
-)
+internal data class FSDirectoryResponse(
+    val file: FSFileResponse,
+    val children: List<FSSingleFileResponse>
+) {
+
+    internal constructor(file: Directory) : this(
+        FSFileResponse(file),
+        file.children.map(::FSSingleFileResponse)
+    )
+
+}

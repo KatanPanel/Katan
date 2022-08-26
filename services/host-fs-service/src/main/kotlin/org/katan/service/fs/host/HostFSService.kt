@@ -12,11 +12,10 @@ import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.model.fs.Bucket
 import org.katan.model.fs.BucketNotFoundException
-import org.katan.model.fs.FileNotDirectoryException
-import org.katan.model.fs.NotAFileException
 import org.katan.model.fs.VirtualFile
 import org.katan.service.fs.FSService
 import org.katan.service.fs.impl.BucketImpl
+import org.katan.service.fs.impl.DirectoryImpl
 import org.katan.service.fs.impl.FileImpl
 import java.io.File
 import java.nio.file.Files
@@ -70,24 +69,6 @@ internal class HostFSService(
             }
     }
 
-    override suspend fun listFiles(
-        bucket: String,
-        destination: String,
-        path: String
-    ): List<VirtualFile>? {
-        val volume = getVolumeOrNull(bucket) ?: throw BucketNotFoundException()
-        val base = File(buildFile(volume.name, volume.mountpoint))
-
-        val file = File(base, File.separator + path)
-        if (!file.exists()) {
-            logger.debug("File not found: $file")
-            return null
-        }
-        if (!file.isDirectory) throw FileNotDirectoryException()
-
-        return file.listFiles()?.map { it.toDomain(base) } ?: emptyList()
-    }
-
     override suspend fun getFile(bucket: String, destination: String, path: String): VirtualFile? {
         val volume = getVolumeOrNull(bucket) ?: throw BucketNotFoundException()
 
@@ -98,7 +79,9 @@ internal class HostFSService(
             logger.debug("File not found: $file")
             return null
         }
-        if (!file.isFile) throw NotAFileException()
+
+        if (file.isDirectory)
+            return file.toDomain(base, file.listFiles()?.map { it.toDomain(base) })
 
         return file.toDomain(base)
     }
@@ -122,10 +105,6 @@ internal class HostFSService(
         }
     }
 
-    private fun retrieveDir(path: String): String? {
-        return path.substringBefore("/", "").ifEmpty { null }
-    }
-
     private fun buildFile(volumeName: String, mountpoint: String): String {
         return buildString {
             append(fsRoot)
@@ -136,7 +115,7 @@ internal class HostFSService(
         }
     }
 
-    private fun File.toDomain(base: File): VirtualFile {
+    private fun File.toDomain(base: File, children: List<VirtualFile>? = null): VirtualFile {
         val absPath = toPath()
         val modifiedAt = runCatching {
             Files.getLastModifiedTime(absPath, LinkOption.NOFOLLOW_LINKS)
@@ -154,7 +133,7 @@ internal class HostFSService(
             .map { it.length() }
             .sum()
 
-        return FileImpl(
+        val file = FileImpl(
             name = name,
             relativePath = toRelativeStringOrEmpty(base),
             absolutePath = absolutePath,
@@ -164,6 +143,10 @@ internal class HostFSService(
             createdAt = createdAt ?: modifiedAt,
             modifiedAt = modifiedAt
         )
+        if (children == null)
+            return file
+
+        return DirectoryImpl(file, children)
     }
 
     private fun File.toRelativeStringOrEmpty(base: File): String {
