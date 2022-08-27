@@ -12,6 +12,7 @@ import org.katan.http.websocket.WebSocketPacketEventHandler
 import org.katan.service.unit.instance.http.routes.getInstance
 import org.katan.service.unit.instance.http.routes.getInstanceFsBucket
 import org.katan.service.unit.instance.http.routes.getInstanceFsFile
+import org.katan.service.unit.instance.http.routes.readFsFile
 import org.katan.service.unit.instance.http.routes.updateStatus
 import org.katan.service.unit.instance.http.websocket.ExecuteCommandHandler
 import org.katan.service.unit.instance.http.websocket.FetchLogsHandler
@@ -34,6 +35,7 @@ internal class UnitInstanceHttpModule(
                 updateStatus()
                 getInstanceFsFile()
                 getInstanceFsBucket()
+                readFsFile()
             }
         }
     }

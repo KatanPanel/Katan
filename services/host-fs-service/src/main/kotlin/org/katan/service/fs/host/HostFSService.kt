@@ -12,6 +12,8 @@ import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.model.fs.Bucket
 import org.katan.model.fs.BucketNotFoundException
+import org.katan.model.fs.FileNotFoundException
+import org.katan.model.fs.FileNotReadableException
 import org.katan.model.fs.VirtualFile
 import org.katan.service.fs.FSService
 import org.katan.service.fs.impl.BucketImpl
@@ -84,6 +86,20 @@ internal class HostFSService(
             return file.toDomain(base, file.listFiles()?.map { it.toDomain(base) })
 
         return file.toDomain(base)
+    }
+
+    override suspend fun readFile(
+        path: String,
+        startIndex: Int?,
+        endIndex: Int?
+    ): ByteArray {
+        val file = File(path)
+        if (!file.exists()) throw FileNotFoundException()
+        if (!file.canRead()) throw FileNotReadableException()
+
+        return file.inputStream().buffered().use {
+            it.readBytes()
+        }
     }
 
     override suspend fun getBucket(bucket: String, destination: String): Bucket? {
