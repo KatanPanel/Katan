@@ -92,14 +92,12 @@ internal class HostFSService(
         path: String,
         startIndex: Int?,
         endIndex: Int?
-    ): ByteArray {
+    ): File {
         val file = File(path)
         if (!file.exists()) throw FileNotFoundException()
         if (!file.canRead()) throw FileNotReadableException()
 
-        return file.inputStream().buffered().use {
-            it.readBytes()
-        }
+        return file
     }
 
     override suspend fun getBucket(bucket: String, destination: String): Bucket? {
