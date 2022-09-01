@@ -1,8 +1,11 @@
 package org.katan.service.unit.instance.http.routes
 
+import io.ktor.http.ContentDisposition
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
 import io.ktor.server.resources.get
+import io.ktor.server.response.header
 import io.ktor.server.response.respondFile
 import io.ktor.server.routing.Route
 import jakarta.validation.Validator
@@ -43,12 +46,19 @@ internal fun Route.readFsFile() {
                 HttpStatusCode.Unauthorized
             )
 
-        call.respondFile(
-            fsService.readFile(
-                parameters.path!!,
-                parameters.startIndex,
-                parameters.endIndex
-            )
+        val file = fsService.readFile(
+            parameters.path!!,
+            parameters.startIndex,
+            parameters.endIndex
         )
+
+        call.response.header(
+            HttpHeaders.ContentDisposition,
+            ContentDisposition.Mixed.withParameter(
+                ContentDisposition.Parameters.FileName,
+                file.name
+            ).toString()
+        )
+        call.respondFile(file)
     }
 }
