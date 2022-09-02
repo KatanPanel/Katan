@@ -162,6 +162,14 @@ version.ref = "ktor"
 module = "io.ktor:ktor-server-cors"
 version.ref = "ktor"
 
+[libraries.ktor-client-core]
+module = "io.ktor:ktor-client-core"
+version.ref = "ktor"
+
+[libraries.ktor-client-cio]
+module = "io.ktor:ktor-client-cio"
+version.ref = "ktor"
+
 [libraries.ktor-client-feature-resources]
 module = "io.ktor:ktor-client-resources"
 version.ref = "ktor"
