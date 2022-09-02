@@ -65,10 +65,11 @@ internal class HostFSService(
                     append("volumes")
                 }
             }
-        } else
+        } else {
             config.altFsRoot?.also {
                 logger.info("Using alternative file system root: $it")
             }
+        }
     }
 
     override suspend fun getFile(bucket: String, destination: String, path: String): VirtualFile? {
@@ -82,8 +83,9 @@ internal class HostFSService(
             return null
         }
 
-        if (file.isDirectory)
+        if (file.isDirectory) {
             return file.toDomain(base, file.listFiles()?.map { it.toDomain(base) })
+        }
 
         return file.toDomain(base)
     }
@@ -139,9 +141,9 @@ internal class HostFSService(
             Files.getAttribute(absPath, "creationTime") as? FileTime
         }.getOrNull()?.toInstant()?.toKotlinInstant() ?: modifiedAt
 
-        val size = if (!isDirectory)
+        val size = if (!isDirectory) {
             length()
-        else Files.walk(absPath).asSequence()
+        } else Files.walk(absPath).asSequence()
             .map { it.toFile() }
             .filter { it.isFile && it.exists() }
             .map { it.length() }
@@ -157,19 +159,20 @@ internal class HostFSService(
             createdAt = createdAt ?: modifiedAt,
             modifiedAt = modifiedAt
         )
-        if (children == null)
+        if (children == null) {
             return file
+        }
 
         return DirectoryImpl(file, children)
     }
 
     private fun File.toRelativeStringOrEmpty(base: File): String {
         return toRelativeString(base).let {
-            if (it.equals(name, ignoreCase = false))
+            if (it.equals(name, ignoreCase = false)) {
                 ""
-            else
+            } else {
                 it.substringBeforeLast(File.separatorChar)
+            }
         }
     }
-
 }

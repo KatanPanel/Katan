@@ -24,8 +24,8 @@ include(
     "services:auth-service",
     "services:id-service",
     "services:unit-service",
-    "services:unit-instance-service",
-    "services:docker-unit-instance-service",
+    "services:instance-service",
+    "services:docker-instance-service",
     "services:docker-network-service",
     "services:account-service",
     "services:database-service",
@@ -34,5 +34,6 @@ include(
     "crypto",
     "docker-client",
     "services:fs-service",
-    "services:host-fs-service"
+    "services:host-fs-service",
+    "services:blueprint-service"
 )

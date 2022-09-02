@@ -8,9 +8,10 @@ import io.ktor.server.routing.routing
 import org.katan.http.createTestClient
 import org.katan.http.response.HttpError
 import org.katan.http.withTestApplication
-import org.katan.service.server.http.dto.CreateUnitRequest
-import org.katan.service.server.http.dto.CreateUnitResponse
-import org.katan.service.server.http.routes.createUnit
+import org.katan.service.unit.http.UnitRoutes
+import org.katan.service.unit.http.dto.CreateUnitRequest
+import org.katan.service.unit.http.dto.CreateUnitResponse
+import org.katan.service.unit.http.routes.createUnit
 import org.koin.test.KoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

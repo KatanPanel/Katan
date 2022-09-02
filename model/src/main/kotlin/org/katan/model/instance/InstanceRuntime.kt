@@ -56,5 +56,4 @@ interface InstanceRuntimeMount {
     val destination: String
 
     val readonly: Boolean
-
 }

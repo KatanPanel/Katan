@@ -15,4 +15,6 @@ interface UnitInstance {
     val connection: Connection?
 
     val runtime: InstanceRuntime?
+
+    val blueprintId: Long?
 }

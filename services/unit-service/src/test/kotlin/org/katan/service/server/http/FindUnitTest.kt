@@ -8,7 +8,8 @@ import org.katan.http.createTestClient
 import org.katan.http.response.HttpError
 import org.katan.http.test.VALID_SNOWFLAKE_ID
 import org.katan.http.withTestApplication
-import org.katan.service.server.http.routes.getUnit
+import org.katan.service.unit.http.UnitRoutes
+import org.katan.service.unit.http.routes.getUnit
 import org.koin.test.KoinTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
