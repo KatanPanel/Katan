@@ -324,7 +324,8 @@ internal class DockerInstanceServiceImpl(
             updatePolicy = ImageUpdatePolicy.Always,
             containerId = containerId,
             connection = connection,
-            runtime = containerId?.let { buildRuntime(it) }
+            runtime = containerId?.let { buildRuntime(it) },
+            blueprintId = null
         )
 
         unitInstanceRepository.create(instance)
@@ -468,7 +469,8 @@ internal class DockerInstanceServiceImpl(
             containerId = containerId,
             status = toStatus(status),
             connection = networkService.createConnection(host, port?.toInt()),
-            runtime = containerId?.let { buildRuntime(it) }
+            runtime = containerId?.let { buildRuntime(it) },
+            blueprintId = null
         )
     }
 

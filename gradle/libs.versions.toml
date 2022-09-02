@@ -46,6 +46,10 @@ version.ref = "ktx-datetime"
 module = "org.jetbrains.kotlinx:kotlinx-serialization-json"
 version.ref = "ktx-serialization"
 
+[libraries.ktx-serialization-hocon]
+module = "org.jetbrains.kotlinx:kotlinx-serialization-hocon"
+version.ref = "ktx-serialization"
+
 [libraries.ktx-serialization-core]
 module = "org.jetbrains.kotlinx:kotlinx-serialization-core"
 version.ref = "ktx-serialization"

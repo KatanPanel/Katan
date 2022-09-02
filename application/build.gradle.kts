@@ -28,6 +28,7 @@ dependencies {
     implementation(projects.services.cacheService)
     implementation(projects.services.databaseService)
     implementation(projects.services.hostFsService)
+    implementation(projects.services.blueprintService)
 }
 
 tasks {

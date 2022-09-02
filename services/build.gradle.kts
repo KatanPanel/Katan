@@ -1,9 +1,5 @@
 subprojects {
     dependencies {
-        api(rootProject.projects.model)
-    }
-
-    kotlin {
-        explicitApi()
+        implementation(rootProject.projects.model)
     }
 }

@@ -1,16 +1,16 @@
 package org.katan.service.instance.repository
 
-public interface InstanceEntity {
+interface InstanceEntity {
 
-    public var updatePolicy: String
+    var updatePolicy: String
 
-    public var containerId: String?
+    var containerId: String?
 
-    public var host: String?
+    var host: String?
 
-    public var port: Short?
+    var port: Short?
 
-    public var status: String
+    var status: String
 
-    public fun getId(): Long
+    fun getId(): Long
 }

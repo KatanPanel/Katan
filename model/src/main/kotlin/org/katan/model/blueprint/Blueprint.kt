@@ -8,11 +8,4 @@ interface Blueprint {
 
     val image: String
 
-    val env: Map<String, String>
-
-    val remote: BlueprintRemote
-
-    val isVerified: Boolean
-
-    val isOfficial: Boolean
 }

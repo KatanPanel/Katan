@@ -21,6 +21,7 @@ data class HttpError internal constructor(
         val FileIsNotDirectory = createError(1008, "File is not a directory")
         val RequestedResourceIsNotAFile = createError(1009, "The requested resource is not a file")
         val UnavailableFileSystem = createError(1010, "Unavailable file system")
+        val UnknownBlueprint = createError(1011, "Unknown blueprint")
         val InvalidAccessToken = createError(2001, "Invalid or missing access token")
         val AccountInvalidCredentials = createError(2002, "Invalid account credentials")
         val AccountLoginConflict = createError(
