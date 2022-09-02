@@ -1,5 +1,6 @@
 dependencies {
     implementation(libs.exposed.dao)
+    implementation(libs.exposed.kotlin.datetime)
     implementation(libs.koin.ktor)
     implementation(libs.hibernateValidator)
     implementation(libs.ktor.server.feature.resources)

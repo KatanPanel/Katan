@@ -5,14 +5,14 @@ import io.ktor.server.routing.routing
 import org.katan.http.di.HttpModule
 import org.katan.http.di.HttpModuleRegistry
 import org.katan.service.blueprint.http.routes.getBlueprint
+import org.katan.service.blueprint.http.routes.listBlueprints
 
-internal class BlueprintHttpModule(
-    registry: HttpModuleRegistry
-) : HttpModule(registry) {
+internal class BlueprintHttpModule(registry: HttpModuleRegistry) : HttpModule(registry) {
 
     override fun install(app: Application) {
         app.routing {
             getBlueprint()
+            listBlueprints()
         }
     }
 

@@ -9,6 +9,12 @@ import org.katan.service.id.validation.MustBeSnowflake
 internal class BlueprintRoutes {
 
     @Serializable
+    @Resource("")
+    internal class All(
+        @Suppress("UNUSED") val parent: BlueprintRoutes = BlueprintRoutes()
+    )
+
+    @Serializable
     @Resource("{blueprintId}")
     internal class ById(
         @Suppress("UNUSED") val parent: BlueprintRoutes = BlueprintRoutes(),

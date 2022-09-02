@@ -4,6 +4,8 @@ import org.katan.model.blueprint.Blueprint
 
 interface BlueprintRepository {
 
+    suspend fun findAll(): List<BlueprintEntity>
+
     suspend fun find(id: Long): BlueprintEntity?
 
     suspend fun create(blueprint: Blueprint)
