@@ -42,6 +42,10 @@ internal class BlueprintServiceImpl(
         TODO("Not yet implemented")
     }
 
+    override suspend fun registerBlueprint(rawBlueprint: RawBlueprint) {
+
+    }
+
     private fun BlueprintEntity.toModel(): Blueprint {
         return BlueprintImpl(
             id = getId(),

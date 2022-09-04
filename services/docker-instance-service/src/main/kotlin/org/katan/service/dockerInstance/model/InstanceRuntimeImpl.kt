@@ -7,6 +7,7 @@ import org.katan.model.instance.InstanceRuntimeNetwork
 import org.katan.model.instance.InstanceRuntimeSingleNetwork
 
 internal data class InstanceRuntimeImpl(
+    override val id: String,
     override val network: InstanceRuntimeNetwork,
     override val platform: String?,
     override val exitCode: Long,

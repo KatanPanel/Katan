@@ -4,6 +4,8 @@ import kotlinx.datetime.Instant
 
 interface InstanceRuntime {
 
+    val id: String
+
     val status: String
 
     val exitCode: Long

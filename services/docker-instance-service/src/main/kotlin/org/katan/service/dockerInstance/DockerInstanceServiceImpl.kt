@@ -5,6 +5,7 @@ import com.github.dockerjava.api.async.ResultCallback
 import com.github.dockerjava.api.exception.NotFoundException
 import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.api.model.PullResponseItem
+import com.github.dockerjava.api.model.Statistics
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +24,7 @@ import kotlinx.datetime.Instant
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
+import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.instance.InstanceUpdateCode
@@ -31,14 +33,15 @@ import org.katan.model.net.Connection
 import org.katan.model.net.NetworkException
 import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.service.dockerInstance.model.DockerUnitInstanceImpl
+import org.katan.service.dockerInstance.model.InstanceInternalStatsImpl
 import org.katan.service.dockerInstance.model.InstanceRuntimeImpl
 import org.katan.service.dockerInstance.model.InstanceRuntimeMountImpl
 import org.katan.service.dockerInstance.model.InstanceRuntimeNetworkImpl
 import org.katan.service.dockerInstance.model.InstanceRuntimeSingleNetworkImpl
 import org.katan.service.id.IdService
-import org.katan.service.instance.InstanceNotAvailableException
 import org.katan.service.instance.InstanceNotFoundException
 import org.katan.service.instance.InstanceService
+import org.katan.service.instance.InstanceUnreachableRuntimeException
 import org.katan.service.instance.repository.InstanceEntity
 import org.katan.service.instance.repository.UnitInstanceRepository
 import org.katan.service.network.NetworkService
@@ -59,7 +62,7 @@ internal class DockerInstanceServiceImpl(
 ) : InstanceService,
     CoroutineScope by CoroutineScope(
         SupervisorJob() +
-            CoroutineName(DockerInstanceServiceImpl::class.jvmName)
+                CoroutineName(DockerInstanceServiceImpl::class.jvmName)
     ) {
 
     private companion object {
@@ -78,14 +81,15 @@ internal class DockerInstanceServiceImpl(
             ?: throw InstanceNotFoundException()
     }
 
-    override suspend fun fetchInstanceLogs(id: Long): Flow<String> {
+    override suspend fun getInstanceLogs(id: Long): Flow<String> {
         val instance = getInstance(id)
 
-        if (instance.containerId == null) {
-            throw InstanceNotAvailableException()
+        if (instance.runtime == null) {
+            throw InstanceUnreachableRuntimeException()
         }
 
         logger.info("fetch instance lolgs @ ${instance.containerId}")
+        // TODO handle docker client calls properly
         return callbackFlow {
             dockerClient.logContainerCmd(instance.containerId!!)
                 .withStdOut(true)
@@ -118,14 +122,16 @@ internal class DockerInstanceServiceImpl(
         }
     }
 
-    override suspend fun executeInstanceCommand(id: Long, command: String) {
+    override suspend fun runInstanceCommand(id: Long, command: String) {
         val instance = getInstance(id)
 
         if (instance.containerId == null) {
-            throw InstanceNotAvailableException()
+            throw InstanceUnreachableRuntimeException()
         }
 
         val cmd = command.split(" ")
+
+        // TODO handle docker client calls properly
         val execId = withContext(IO) {
             dockerClient.execCreateCmd(instance.containerId!!)
                 .withCmd(*cmd.toTypedArray())
@@ -140,6 +146,42 @@ internal class DockerInstanceServiceImpl(
 
         dockerClient.execStartCmd(execId).withDetach(true)
             .exec(object : ResultCallback.Adapter<Frame>() {})
+    }
+
+    override suspend fun streamInternalStats(id: Long): Flow<InstanceInternalStats> {
+        val instance = getInstance(id)
+        val runtime = instance.runtime ?: throw InstanceUnreachableRuntimeException()
+
+        // TODO handle docker client calls properly
+        return callbackFlow {
+            dockerClient.statsCmd(runtime.id).withNoStream(false)
+                .exec(object : ResultCallback.Adapter<Statistics>() {
+                    override fun onStart(stream: Closeable?) {
+                        logger.info("started stats streaming")
+                    }
+
+                    override fun onNext(value: Statistics) {
+                        val result = toInternalStats(value) ?: return
+                        trySendBlocking(result)
+                            .onFailure {
+                                // TODO handle downstream unavailability properly
+                                logger.error("Downstream closed", it)
+                            }
+                    }
+
+                    override fun onError(error: Throwable) {
+                        error.printStackTrace()
+                        cancel(CancellationException("Docker API error", error))
+                    }
+
+                    override fun onComplete() {
+                        logger.info("completed stats streaming")
+                        channel.close()
+                    }
+                })
+
+            awaitClose()
+        }
     }
 
     override suspend fun deleteInstance(instance: UnitInstance) {
@@ -232,7 +274,7 @@ internal class DockerInstanceServiceImpl(
     }
 
     // TODO check for parameters invalid property types
-    override suspend fun updateInternalStatus(
+    override suspend fun updateInstanceStatus(
         instance: UnitInstance,
         code: InstanceUpdateCode
     ) {
@@ -423,6 +465,7 @@ internal class DockerInstanceServiceImpl(
         val state = inspect.state
 
         return InstanceRuntimeImpl(
+            id = inspect.id,
             network = InstanceRuntimeNetworkImpl(
                 ipV4Address = networkSettings.ipAddress,
                 hostname = inspect.config.hostName,
@@ -457,9 +500,9 @@ internal class DockerInstanceServiceImpl(
 
     private fun isRunning(status: InstanceStatus): Boolean {
         return status == InstanceStatus.Running ||
-            status == InstanceStatus.Restarting ||
-            status == InstanceStatus.Stopping ||
-            status == InstanceStatus.Paused
+                status == InstanceStatus.Restarting ||
+                status == InstanceStatus.Stopping ||
+                status == InstanceStatus.Paused
     }
 
     private suspend fun InstanceEntity.toDomain(): UnitInstance {
@@ -493,4 +536,28 @@ internal class DockerInstanceServiceImpl(
             else -> InstanceStatus.Unknown
         }
     }
+
+    private fun toInternalStats(statistics: Statistics): InstanceInternalStats? {
+        val pid = statistics.pidsStats.current ?: return null
+        val mem = statistics.memoryStats!!
+        val cpu = statistics.cpuStats!!
+        val last = statistics.preCpuStats
+
+        return InstanceInternalStatsImpl(
+            pid,
+            mem.usage!!,
+            mem.maxUsage!!,
+            mem.limit!!,
+            mem.stats!!.cache!!,
+            cpu.cpuUsage!!.totalUsage!!,
+            cpu.cpuUsage!!.percpuUsage!!.toLongArray(),
+            cpu.systemCpuUsage!!,
+            cpu.onlineCpus!!,
+            last.cpuUsage?.totalUsage,
+            last.cpuUsage?.percpuUsage?.toLongArray(),
+            last.systemCpuUsage,
+            last.onlineCpus
+        )
+    }
+
 }

@@ -28,7 +28,7 @@ internal class FetchLogsHandler :
         val target = stringData(TARGET_ID)?.toLongOrNull() ?: return
 
         launch(IO) {
-            instanceService.fetchInstanceLogs(target).collect {
+            instanceService.getInstanceLogs(target).collect {
                 respond(FetchLogsResponse(it))
             }
         }

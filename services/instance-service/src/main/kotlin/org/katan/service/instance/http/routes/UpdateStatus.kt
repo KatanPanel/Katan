@@ -35,7 +35,7 @@ internal fun Route.updateStatus() {
             respondError(HttpError.UnknownInstance)
         }
 
-        instanceService.updateInternalStatus(instance, code)
+        instanceService.updateInstanceStatus(instance, code)
         call.respond(HttpStatusCode.NoContent)
     }
 }

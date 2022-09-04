@@ -6,8 +6,9 @@ import io.ktor.server.routing.routing
 import org.katan.http.di.HttpModule
 import org.katan.http.di.HttpModuleRegistry
 import org.katan.http.websocket.WebSocketOp
-import org.katan.http.websocket.WebSocketOpCodes.EXECUTE_INSTANCE_COMMAND
-import org.katan.http.websocket.WebSocketOpCodes.FETCH_INSTANCE_LOGS
+import org.katan.http.websocket.WebSocketOpCodes.INSTANCE_RUN_COMMAND
+import org.katan.http.websocket.WebSocketOpCodes.INSTANCE_FETCH_LOGS
+import org.katan.http.websocket.WebSocketOpCodes.INSTANCE_STATS_STREAMING
 import org.katan.http.websocket.WebSocketPacketEventHandler
 import org.katan.service.instance.http.routes.getInstance
 import org.katan.service.instance.http.routes.getInstanceFsBucket
@@ -16,6 +17,7 @@ import org.katan.service.instance.http.routes.readFsFile
 import org.katan.service.instance.http.routes.updateStatus
 import org.katan.service.instance.http.websocket.ExecuteCommandHandler
 import org.katan.service.instance.http.websocket.FetchLogsHandler
+import org.katan.service.instance.http.websocket.StatsStreamingHandler
 
 internal class UnitInstanceHttpModule(
     registry: HttpModuleRegistry
@@ -23,8 +25,9 @@ internal class UnitInstanceHttpModule(
 
     override fun webSocketHandlers(): Map<WebSocketOp, WebSocketPacketEventHandler> {
         return mapOf(
-            FETCH_INSTANCE_LOGS to FetchLogsHandler(),
-            EXECUTE_INSTANCE_COMMAND to ExecuteCommandHandler()
+            INSTANCE_FETCH_LOGS to FetchLogsHandler(),
+            INSTANCE_RUN_COMMAND to ExecuteCommandHandler(),
+            INSTANCE_STATS_STREAMING to StatsStreamingHandler()
         )
     }
 

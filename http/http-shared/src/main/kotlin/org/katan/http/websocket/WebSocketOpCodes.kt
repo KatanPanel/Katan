@@ -4,7 +4,9 @@ typealias WebSocketOp = Int
 
 object WebSocketOpCodes {
 
-    const val FETCH_INSTANCE_LOGS: WebSocketOp = 0
+    const val INSTANCE_FETCH_LOGS: WebSocketOp = 0
 
-    const val EXECUTE_INSTANCE_COMMAND: WebSocketOp = 1
+    const val INSTANCE_RUN_COMMAND: WebSocketOp = 1
+
+    const val INSTANCE_STATS_STREAMING: WebSocketOp = 2
 }

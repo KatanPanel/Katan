@@ -21,7 +21,7 @@ internal class ExecuteCommandHandler :
         val input = stringData(VALUE) ?: return
 
         launch(IO) {
-            instanceService.executeInstanceCommand(target, input)
+            instanceService.runInstanceCommand(target, input)
         }
     }
 }

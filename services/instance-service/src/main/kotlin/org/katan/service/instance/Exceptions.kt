@@ -6,4 +6,4 @@ open class InstanceException : KatanException()
 
 class InstanceNotFoundException : InstanceException()
 
-class InstanceNotAvailableException : InstanceException()
+class InstanceUnreachableRuntimeException : InstanceException()

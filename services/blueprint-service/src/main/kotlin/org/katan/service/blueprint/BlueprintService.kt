@@ -12,4 +12,7 @@ interface BlueprintService {
     suspend fun listProvided(): List<RawBlueprint>
 
     suspend fun importBlueprint(url: String): RawBlueprint
+
+    suspend fun registerBlueprint(rawBlueprint: RawBlueprint)
+
 }

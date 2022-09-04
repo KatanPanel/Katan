@@ -2,9 +2,9 @@ package org.katan.service.network
 
 import org.katan.model.net.Connection
 
-public interface NetworkService {
+interface NetworkService {
 
-    public suspend fun connect(
+    suspend fun connect(
         networkName: String,
         networkDriver: String?,
         containerId: String,
@@ -12,5 +12,5 @@ public interface NetworkService {
         port: Int?
     ): Connection
 
-    public suspend fun createConnection(host: String?, port: Int?): Connection
+    suspend fun createConnection(host: String?, port: Int?): Connection
 }
