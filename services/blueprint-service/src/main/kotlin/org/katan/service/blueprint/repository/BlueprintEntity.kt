@@ -6,9 +6,13 @@ interface BlueprintEntity {
 
     var name: String
 
-    var image: String
+    var version: String
+
+    var imageId: String
 
     var createdAt: Instant
+
+    var updatedAt: Instant?
 
     fun getId(): Long
 

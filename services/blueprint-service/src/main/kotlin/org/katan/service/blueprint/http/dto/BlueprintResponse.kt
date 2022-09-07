@@ -8,16 +8,16 @@ import org.katan.model.blueprint.Blueprint
 @Serializable
 internal data class BlueprintResponse(
     val id: String,
-    val name: String,
-    val image: String,
-    @SerialName("created-at") val createdAt: Instant
+    @SerialName("created-at") val createdAt: Instant,
+    @SerialName("updated-at") val updatedAt: Instant?,
+    val raw: RawBlueprintResponse?
 ) {
 
     constructor(blueprint: Blueprint) : this(
         id = blueprint.id.toString(),
-        name = blueprint.name,
-        image = blueprint.image,
-        createdAt = blueprint.createdAt
+        createdAt = blueprint.createdAt,
+        updatedAt = blueprint.updatedAt,
+        raw = blueprint.raw?.let(::RawBlueprintResponse)
     )
 
 }

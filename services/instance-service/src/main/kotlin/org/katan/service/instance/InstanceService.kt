@@ -1,6 +1,7 @@
 package org.katan.service.instance
 
 import kotlinx.coroutines.flow.Flow
+import org.katan.model.blueprint.RawBlueprint
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceUpdateCode
 import org.katan.model.instance.UnitInstance
@@ -11,7 +12,12 @@ interface InstanceService {
 
     suspend fun deleteInstance(instance: UnitInstance)
 
-    suspend fun createInstance(image: String, host: String?, port: Int?): UnitInstance
+    suspend fun createInstance(
+        image: String,
+        blueprint: RawBlueprint,
+        host: String?,
+        port: Int?
+    ): UnitInstance
 
     suspend fun updateInstanceStatus(
         instance: UnitInstance,

@@ -15,8 +15,10 @@ import org.katan.model.blueprint.Blueprint
 internal object BlueprintTable : LongIdTable("blueprints") {
 
     val name = varchar("name", length = 255)
-    val image = varchar("image", length = 255)
+    val version = varchar("version", length = 255)
+    val imageId = varchar("image_id", length = 255)
     val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at").nullable()
 
 }
 
@@ -24,8 +26,10 @@ internal class BlueprintEntityImpl(id: EntityID<Long>) : LongEntity(id), Bluepri
     companion object : LongEntityClass<BlueprintEntityImpl>(BlueprintTable)
 
     override var name: String by BlueprintTable.name
-    override var image: String by BlueprintTable.image
+    override var version: String by BlueprintTable.version
+    override var imageId: String by BlueprintTable.imageId
     override var createdAt: Instant by BlueprintTable.createdAt
+    override var updatedAt: Instant? by BlueprintTable.updatedAt
 
     override fun getId(): Long = id.value
 }
@@ -56,8 +60,10 @@ class BlueprintRepositoryImpl(
         return newSuspendedTransaction(db = database) {
             BlueprintEntityImpl.new(blueprint.id) {
                 name = blueprint.name
-                image = blueprint.image
+                version = blueprint.version
+                imageId = blueprint.imageId
                 createdAt = blueprint.createdAt
+                updatedAt = blueprint.updatedAt
             }
         }
     }

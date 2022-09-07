@@ -1,7 +1,8 @@
 package org.katan.service.blueprint
 
 import org.katan.model.blueprint.Blueprint
-import org.katan.model.blueprint.RawBlueprint
+import org.katan.model.fs.VirtualFile
+import org.katan.service.blueprint.model.ImportedBlueprint
 
 interface BlueprintService {
 
@@ -9,10 +10,8 @@ interface BlueprintService {
 
     suspend fun getBlueprint(id: Long): Blueprint
 
-    suspend fun listProvided(): List<RawBlueprint>
+    suspend fun importBlueprint(url: String): ImportedBlueprint
 
-    suspend fun importBlueprint(url: String): RawBlueprint
-
-    suspend fun registerBlueprint(rawBlueprint: RawBlueprint)
+    suspend fun readBlueprintAssetContents(id: Long, path: String): Pair<VirtualFile, ByteArray>
 
 }

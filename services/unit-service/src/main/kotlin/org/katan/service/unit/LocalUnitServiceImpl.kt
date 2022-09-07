@@ -26,6 +26,8 @@ import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogChange
 import org.katan.model.unit.auditlog.AuditLogEvents
 import org.katan.service.account.AccountService
+import org.katan.service.blueprint.BlueprintNotFoundException
+import org.katan.service.blueprint.BlueprintService
 import org.katan.service.id.IdService
 import org.katan.service.instance.InstanceService
 import org.katan.service.unit.model.AuditLogChangeImpl
@@ -38,12 +40,13 @@ import org.katan.service.unit.repository.UnitEntity
 import org.katan.service.unit.repository.UnitRepository
 import kotlin.time.Duration.Companion.seconds
 
-public class LocalUnitServiceImpl(
+internal class LocalUnitServiceImpl(
     private val config: KatanConfig,
+    private val unitRepository: UnitRepository,
     private val idService: IdService,
     private val accountService: AccountService,
     private val instanceService: InstanceService,
-    private val unitRepository: UnitRepository
+    private val blueprintService: BlueprintService,
 ) : UnitService,
     CoroutineScope by CoroutineScope(SupervisorJob() + CoroutineName(LocalUnitServiceImpl::class.simpleName!!)) {
 
@@ -61,6 +64,9 @@ public class LocalUnitServiceImpl(
 
     override suspend fun createUnit(options: UnitCreateOptions): KUnit {
         return supervisorScope {
+            val blueprint = blueprintService.getBlueprint(options.blueprint).raw
+                ?: throw BlueprintNotFoundException()
+
             val id = idService.generate()
             var instance: UnitInstance? = null
             var status: UnitStatus = UnitStatus.Ready
@@ -77,9 +83,10 @@ public class LocalUnitServiceImpl(
                 ) {
                     logger.info("Creating instance...")
                     instance = instanceService.createInstance(
-                        options.dockerImage,
-                        options.network.host,
-                        options.network.port
+                        image = options.dockerImage,
+                        blueprint = blueprint,
+                        host = options.network.host,
+                        port = options.network.port
                     )
 
                     logger.info("Trying to update unit ($alreadyResumed)...")

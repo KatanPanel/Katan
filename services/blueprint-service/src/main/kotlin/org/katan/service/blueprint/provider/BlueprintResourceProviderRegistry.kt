@@ -1,13 +1,21 @@
 package org.katan.service.blueprint.provider
 
-internal object BlueprintResourceProviderRegistry {
+internal class BlueprintResourceProviderRegistry {
 
     private val registrations: MutableMap<String, BlueprintResourceProvider> = hashMapOf()
     private val lock = Any()
 
-    fun register(name: String, provider: BlueprintResourceProvider) {
+    fun getProvider(id: String): BlueprintResourceProvider? {
+        return registrations[id]
+    }
+
+    suspend fun findAnyProvider(url: String): BlueprintResourceProvider? {
+        return registrations.values.firstOrNull { it.canProvideFrom(url) }
+    }
+
+    fun register(provider: BlueprintResourceProvider) {
         synchronized(lock) {
-            registrations.put(name, provider)
+            registrations.put(provider.id, provider)
         }
     }
 

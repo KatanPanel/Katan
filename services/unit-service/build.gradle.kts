@@ -11,6 +11,7 @@ dependencies {
     implementation(projects.services.idService)
     implementation(projects.services.instanceService)
     implementation(projects.services.accountService)
+    implementation(projects.services.blueprintService)
     implementation(projects.http.httpShared)
     testImplementation(projects.http.httpTest)
 }

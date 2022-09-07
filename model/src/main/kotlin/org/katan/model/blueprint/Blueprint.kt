@@ -8,8 +8,14 @@ interface Blueprint {
 
     val name: String
 
-    val image: String
+    val version: String
+
+    val imageId: String
 
     val createdAt: Instant
+
+    val updatedAt: Instant?
+
+    val raw: RawBlueprint?
 
 }

@@ -3,17 +3,14 @@ package org.katan.model.instance
 interface InstanceInternalStats {
 
     val pid: Long
-
     val memoryUsage: Long
     val memoryMaxUsage: Long
     val memoryLimit: Long
     val memoryCache: Long
-
     val cpuUsage: Long
     val perCpuUsage: LongArray
     val systemCpuUsage: Long
     val onlineCpus: Long
-
     val lastCpuUsage: Long?
     val lastPerCpuUsage: LongArray?
     val lastSystemCpuUsage: Long?

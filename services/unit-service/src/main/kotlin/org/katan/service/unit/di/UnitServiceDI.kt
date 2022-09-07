@@ -9,7 +9,7 @@ import org.katan.service.unit.repository.UnitRepositoryImpl
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-public val unitServiceDI: Module = module {
+val unitServiceDI: Module = module {
     single<UnitRepository> {
         UnitRepositoryImpl(database = get())
     }
@@ -19,7 +19,8 @@ public val unitServiceDI: Module = module {
             idService = get(),
             instanceService = get(),
             unitRepository = get(),
-            accountService = get()
+            accountService = get(),
+            blueprintService = get()
         )
     }
     single<HttpModule>(createdAtStart = true) {

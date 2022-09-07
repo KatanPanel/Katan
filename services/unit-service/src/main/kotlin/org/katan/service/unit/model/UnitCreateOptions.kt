@@ -1,14 +1,15 @@
 package org.katan.service.unit.model
 
-public data class UnitCreateOptions(
+data class UnitCreateOptions(
     val name: String,
+    val blueprint: Long,
     val network: Network,
     val externalId: String?,
     val dockerImage: String,
-    val actorId: Long?
+    val actorId: Long?,
 ) {
 
-    public data class Network(
+    data class Network(
         val host: String?,
         val port: Int?
     )

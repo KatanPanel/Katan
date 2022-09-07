@@ -1,9 +1,15 @@
 package org.katan.service.blueprint.provider
 
-import org.katan.model.blueprint.RawBlueprint
+import org.katan.service.blueprint.model.ProvidedRawBlueprint
 
 interface BlueprintResourceProvider {
 
-    suspend fun provideFrom(source: BlueprintResource): RawBlueprint
+    val id: String
+
+    suspend fun canProvideFrom(url: String): Boolean
+
+    suspend fun provideFrom(source: BlueprintResource): ProvidedRawBlueprint?
+
+    suspend fun provideFrom(url: String): ProvidedRawBlueprint?
 
 }

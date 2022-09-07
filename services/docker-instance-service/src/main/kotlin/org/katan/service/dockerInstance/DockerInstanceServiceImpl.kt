@@ -24,6 +24,8 @@ import kotlinx.datetime.Instant
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
+import org.katan.model.blueprint.Blueprint
+import org.katan.model.blueprint.RawBlueprint
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
@@ -256,13 +258,13 @@ internal class DockerInstanceServiceImpl(
             return false
         }
 
-        logger.debug("Removing image \"$currImage\"...")
+        logger.debug("Removing old image \"$currImage\"...")
         withContext(IO) {
             dockerClient.removeImageCmd(currImage).exec()
         }
 
         pullContainerImage(currImage).collect {
-            logger.info("Pulling image... $it")
+            logger.debug("Pulling image... $it")
         }
         return true
     }
@@ -294,24 +296,24 @@ internal class DockerInstanceServiceImpl(
         }
     }
 
-    override suspend fun createInstance(image: String, host: String?, port: Int?): UnitInstance {
+    override suspend fun createInstance(image: String, blueprint: RawBlueprint, host: String?, port: Int?): UnitInstance {
         val instanceId = idService.generate()
-        val name = generateContainerName(instanceId)
+        val generatedName = generateContainerName(instanceId, blueprint.instance?.name)
 
         // we'll try to create the container using the given image if the image is not available,
         // it will pull the image and then try to create the container again
         return try {
-            val containerId = createContainer(instanceId, image, name)
+            val containerId = createContainer(instanceId, image, generatedName, blueprint)
             resumeCreateInstance(instanceId, containerId, host, port, InstanceStatus.Created)
         } catch (e: NotFoundException) {
             var status: InstanceStatus = InstanceStatus.ImagePullNeeded
             val instance = registerInstance(instanceId, status)
 
-            logger.info("Preparing to pull image")
+            logger.debug("Preparing to pull image")
             pullImageAndUpdateInstance(instanceId, image) { status = it }
-            logger.info("Image pulled!")
+            logger.debug("Image pulled!")
 
-            val containerId = createContainer(instanceId, image, name)
+            val containerId = createContainer(instanceId, image, generatedName, blueprint)
             resumeCreateInstance(instanceId, containerId, host, port, status, instance)
 
             instance
@@ -400,7 +402,10 @@ internal class DockerInstanceServiceImpl(
         logger.info("Pulling ($image): $it")
     }
 
-    private fun generateContainerName(id: Long): String {
+    private fun generateContainerName(id: Long, name: String?): String {
+        if (name != null)
+            return name.replace("{id}", id.toString())
+
         return buildString {
             append("katan")
             append("-${config.nodeId}-")
@@ -412,19 +417,23 @@ internal class DockerInstanceServiceImpl(
      * Creates a Docker container using the given [image] suspending the coroutine until the
      * container creation workflow is completed.
      */
-    private fun createContainer(instanceId: Long, image: String, name: String): String {
+    private fun createContainer(instanceId: Long, image: String, name: String, blueprint: RawBlueprint): String {
         logger.info("Creating container with ($image) to $instanceId...")
         return dockerClient.createContainerCmd(image)
             .withName(name)
             .withTty(false)
             .withEnv(mapOf("EULA" to "true").map { (k, v) -> "$k=$v" })
-            .withLabels(createDefaultContainerLabels(instanceId))
+            .withLabels(createDefaultContainerLabels(instanceId, blueprint))
             .exec().id
     }
 
-    private fun createDefaultContainerLabels(instanceId: Long): Map<String, String> {
+    private fun createDefaultContainerLabels(instanceId: Long, blueprint: RawBlueprint): Map<String, String> {
         return mapOf(
-            "id" to instanceId.toString()
+            "id" to instanceId.toString(),
+            "blueprint.name" to blueprint.name,
+            "blueprint.version" to blueprint.version,
+            "blueprint.type" to blueprint.type,
+            "blueprint.remote.main" to blueprint.remote.main
         ).mapKeys { key -> BASE_LABEL + key }
     }
 

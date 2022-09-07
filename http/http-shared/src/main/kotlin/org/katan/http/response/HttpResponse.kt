@@ -16,4 +16,4 @@ fun respondError(
     error: HttpError,
     status: HttpStatusCode = HttpStatusCode.BadRequest,
     cause: Throwable? = null
-): Nothing = throw HttpException(error.code, error.message, status, cause)
+): Nothing = throw HttpException(error.code, error.message, error.details, status, cause)

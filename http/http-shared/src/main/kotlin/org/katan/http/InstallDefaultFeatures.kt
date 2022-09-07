@@ -5,7 +5,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.plugins.callloging.CallLogging
@@ -16,7 +15,6 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
@@ -52,7 +50,7 @@ fun Application.installDefaultFeatures() {
             exception.cause?.printStackTrace()
             call.respond(
                 exception.status,
-                HttpError(exception.code, exception.message.orEmpty())
+                HttpError(exception.code, exception.message.orEmpty(), exception.details)
             )
         }
 
@@ -68,6 +66,11 @@ fun Application.installDefaultFeatures() {
         }
 
         exception<Throwable> { call, exception ->
+            if (exception is WithHttpError) {
+                call.respond(exception.status, exception.httpError)
+                return@exception
+            }
+
             exception.printStackTrace()
             call.respond(
                 HttpStatusCode.InternalServerError,

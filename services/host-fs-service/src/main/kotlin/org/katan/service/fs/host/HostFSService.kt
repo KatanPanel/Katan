@@ -12,8 +12,10 @@ import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.model.fs.Bucket
 import org.katan.model.fs.BucketNotFoundException
+import org.katan.model.fs.FileNotAccessibleException
 import org.katan.model.fs.FileNotFoundException
 import org.katan.model.fs.FileNotReadableException
+import org.katan.model.fs.FileNotWritableException
 import org.katan.model.fs.VirtualFile
 import org.katan.service.fs.FSService
 import org.katan.service.fs.impl.BucketImpl
@@ -102,6 +104,22 @@ internal class HostFSService(
         return file
     }
 
+    override suspend fun readFile(bucket: String?, destination: String, name: String): Pair<VirtualFile, ByteArray> {
+        if (!bucket.isNullOrBlank())
+            throw IllegalStateException("Only local reads are supported for now")
+
+        val base = File(destination)
+        val file = File(base, name)
+        if (!file.exists()) throw FileNotFoundException()
+        if (!file.canRead()) throw FileNotReadableException()
+
+        val bytes = withContext(IO) {
+            file.readBytes()
+        }
+
+        return file.toDomain(base) to bytes
+    }
+
     override suspend fun getBucket(bucket: String, destination: String): Bucket? {
         val volume = getVolumeOrNull(bucket) ?: return null
 
@@ -111,6 +129,38 @@ internal class HostFSService(
             isLocal = volume.driver == "local",
             createdAt = (volume.rawValues["CreatedAt"] as? String)?.let { Instant.parse(it) }
         )
+    }
+
+    override suspend fun uploadFile(
+        bucket: String?,
+        destination: String,
+        name: String,
+        contents: ByteArray
+    ): VirtualFile {
+        if (!bucket.isNullOrBlank())
+            throw IllegalStateException("Only local uploads are supported for now")
+
+        val base = File(destination)
+        val file = File(base, name)
+        logger.info("File: $file")
+        base.mkdirs()
+
+        withContext(IO) {
+            if (!file.exists()) {
+                file.createNewFile()
+            }
+
+            if (!file.canWrite())
+                throw FileNotWritableException()
+
+            try {
+                file.writeBytes(contents)
+            } catch (e: SecurityException) {
+                throw FileNotAccessibleException()
+            }
+        }
+
+        return file.toDomain(base)
     }
 
     private suspend fun getVolumeOrNull(name: String): InspectVolumeResponse? {

@@ -20,3 +20,6 @@ interface VirtualFile {
 
     val modifiedAt: Instant?
 }
+
+val VirtualFile.extension: String
+    get() = name.substringAfterLast(".", "")

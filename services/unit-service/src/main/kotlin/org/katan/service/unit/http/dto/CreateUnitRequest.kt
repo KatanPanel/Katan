@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.katan.service.id.validation.MustBeSnowflake
 
 // Docker Image Specification v1.2.0
 // https://github.com/moby/moby/blob/master/image/spec/v1.2.md
@@ -20,6 +21,10 @@ internal data class CreateUnitRequest(
         message = "Name must have a minimum length of {min} and at least {max} characters."
     )
     val name: String? = null,
+
+    @field:NotBlank(message = "Blueprint must be provided.")
+    @field:MustBeSnowflake
+    val blueprint: Long? = null,
 
     @SerialName("image")
     @field:NotBlank(message = "Image must be provided.")
