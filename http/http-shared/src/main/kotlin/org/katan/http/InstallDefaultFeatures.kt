@@ -71,7 +71,7 @@ fun Application.installDefaultFeatures() {
             exception.printStackTrace()
             call.respond(
                 HttpStatusCode.InternalServerError,
-                HttpError.Generic("${exception::class.simpleName}: ${exception.localizedMessage}")
+                HttpError.Generic("Internal server error: ${exception::class.simpleName}")
             )
         }
     }
