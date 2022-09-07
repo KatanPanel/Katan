@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.6.21"
+kotlin = "1.7.10"
 ktx-serialization = "1.3.3"
 ktx-coroutines = "1.6.2"
 ktx-atomicfu = "0.17.2"
