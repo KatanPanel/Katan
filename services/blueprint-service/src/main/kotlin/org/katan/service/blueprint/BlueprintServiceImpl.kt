@@ -68,13 +68,6 @@ internal class BlueprintServiceImpl(
         val raw = provided.main.raw
         logger.debug("Importing raw ${raw.name}...")
 
-        val rawProvider = raw.remote.provider
-        if (rawProvider == null && raw.remote.origin == null)
-            logger.warn("Raw blueprint \"origin\" and \"provider\" on remote section are unset.")
-
-        if (rawProvider?.equals(provider.id, ignoreCase = false) == false)
-            logger.warn("Raw blueprint remote provider and matched provider id doesn't match ($rawProvider != ${provider.id}).")
-
         val existing = findExistingFromRaw(raw)
         if (existing != null)
             throw BlueprintConflictException()
@@ -88,14 +81,14 @@ internal class BlueprintServiceImpl(
 
         logger.debug("Registering blueprint locally...")
         registerBlueprint(id, raw)
-
-        logger.debug("Blueprint registered as $id. Creating instance...")
-        instanceService.createInstance(
-            image = raw.build.image,
-            blueprint = raw,
-            host = null,
-            port = null
-        )
+//
+//        logger.debug("Blueprint registered as $id. Creating instance...")
+//        instanceService.createInstance(
+//            image = raw.build.image,
+//            blueprint = raw,
+//            host = null,
+//            port = null
+//        )
 
         return ImportedBlueprint(id, provided)
     }

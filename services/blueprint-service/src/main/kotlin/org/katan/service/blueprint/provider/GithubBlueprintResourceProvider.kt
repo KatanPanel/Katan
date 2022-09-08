@@ -17,10 +17,12 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.model.blueprint.RawBlueprint
 import org.katan.service.blueprint.RawBlueprintParseException
+import org.katan.service.blueprint.RemoteRawBlueprintNotFound
 import org.katan.service.blueprint.model.ProvidedRawBlueprint
 import org.katan.service.blueprint.model.ProvidedRawBlueprintAsset
 import org.katan.service.blueprint.model.ProvidedRawBlueprintMain
 import org.katan.service.blueprint.model.RawBlueprintImpl
+import java.nio.channels.UnresolvedAddressException
 
 class GithubBlueprintResource(val url: String) : BlueprintResource
 
@@ -50,7 +52,12 @@ internal class GithubBlueprintResourceProvider(
 
         logger.info("Download blueprint from $source...")
 
-        val response = httpClient.get(source.url)
+        val response = try {
+            httpClient.get(source.url)
+        } catch (e: UnresolvedAddressException) {
+            throw RemoteRawBlueprintNotFound()
+        }
+
         return try {
             val main = readMain(response.body())
 
@@ -72,7 +79,7 @@ internal class GithubBlueprintResourceProvider(
 
     private suspend fun readReadme(raw: RawBlueprint): ProvidedRawBlueprintAsset? {
         val name = "README.md"
-        val origin = raw.remote.origin!!
+        val origin = raw.remote.origin
         val url = URLBuilder(origin).apply {
             appendPathSegments(name)
         }.buildString()

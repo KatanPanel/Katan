@@ -33,14 +33,12 @@ internal data class RawBlueprintResponse(
 @Serializable
 internal data class RawBlueprintRemoteResponse(
     val main: String,
-    val origin: String?,
-    val provider: String?
+    val origin: String
 ) {
 
     internal constructor(remote: RawBlueprintRemote) : this(
         main = remote.main,
         origin = remote.origin,
-        provider = remote.provider
     )
 
 }

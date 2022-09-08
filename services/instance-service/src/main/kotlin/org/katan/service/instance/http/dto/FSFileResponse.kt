@@ -7,7 +7,7 @@ import org.katan.model.fs.Directory
 import org.katan.model.fs.VirtualFile
 
 @Serializable
-internal data class FSSingleFileResponse(
+data class FSSingleFileResponse(
     val name: String,
     @SerialName("relative-path") val relativePath: String,
     @SerialName("absolute-path") val absolutePath: String,
@@ -17,7 +17,7 @@ internal data class FSSingleFileResponse(
     @SerialName("created-at") val createdAt: Instant?,
     @SerialName("modified-at") val modifiedAt: Instant?
 ) {
-    internal constructor(file: VirtualFile) : this(
+    constructor(file: VirtualFile) : this(
         name = file.name,
         relativePath = file.relativePath,
         absolutePath = file.absolutePath,
