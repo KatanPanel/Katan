@@ -12,7 +12,7 @@ import org.katan.model.instance.UnitInstance
 import org.katan.service.instance.repository.InstanceEntity
 import org.katan.service.instance.repository.UnitInstanceRepository
 
-internal object UnitInstanceTable : LongIdTable("unit_instances") {
+internal object UnitInstanceTable : LongIdTable("instances") {
 
     val imageUpdatePolicy = varchar("image_update_policy", length = 64)
     val containerId = varchar("container_id", length = 255).nullable()
