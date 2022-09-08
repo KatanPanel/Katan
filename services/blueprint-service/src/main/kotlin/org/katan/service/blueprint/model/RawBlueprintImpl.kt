@@ -20,8 +20,7 @@ internal data class RawBlueprintImpl(
 @Serializable
 internal data class RawBlueprintRemoteImpl(
     override val main: String,
-    override val origin: String? = null,
-    override val provider: String? = null
+    override val origin: String
 ) : RawBlueprintRemote
 
 @Serializable

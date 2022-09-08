@@ -27,9 +27,7 @@ interface RawBlueprintRemote {
 
     val main: String
 
-    val origin: String?
-
-    val provider: String?
+    val origin: String
 
 }
 
