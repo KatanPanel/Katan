@@ -64,9 +64,7 @@ internal class LocalUnitServiceImpl(
 
     override suspend fun createUnit(options: UnitCreateOptions): KUnit {
         return supervisorScope {
-            val blueprint = blueprintService.getBlueprint(options.blueprint).raw
-                ?: throw BlueprintNotFoundException()
-
+            val blueprint = blueprintService.getBlueprint(options.blueprint)
             val id = idService.generate()
             var instance: UnitInstance? = null
             var status: UnitStatus = UnitStatus.Ready
@@ -83,7 +81,6 @@ internal class LocalUnitServiceImpl(
                 ) {
                     logger.info("Creating instance...")
                     instance = instanceService.createInstance(
-                        image = options.dockerImage,
                         blueprint = blueprint,
                         host = options.network.host,
                         port = options.network.port

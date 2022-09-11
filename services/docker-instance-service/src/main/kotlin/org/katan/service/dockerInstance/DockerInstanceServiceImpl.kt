@@ -25,7 +25,6 @@ import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
 import org.katan.model.blueprint.Blueprint
-import org.katan.model.blueprint.RawBlueprint
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
@@ -296,25 +295,46 @@ internal class DockerInstanceServiceImpl(
         }
     }
 
-    override suspend fun createInstance(image: String, blueprint: RawBlueprint, host: String?, port: Int?): UnitInstance {
+    override suspend fun createInstance(
+        blueprint: Blueprint,
+        host: String?,
+        port: Int?
+    ): UnitInstance {
         val instanceId = idService.generate()
-        val generatedName = generateContainerName(instanceId, blueprint.instance?.name)
+        val raw = blueprint.raw ?: error("Missing raw blueprint for ${blueprint.id}")
+        val generatedName = generateContainerName(instanceId, raw.instance?.name)
+        val image = raw.build.image
 
         // we'll try to create the container using the given image if the image is not available,
         // it will pull the image and then try to create the container again
         return try {
             val containerId = createContainer(instanceId, image, generatedName, blueprint)
-            resumeCreateInstance(instanceId, containerId, host, port, InstanceStatus.Created)
+            resumeCreateInstance(
+                instanceId,
+                blueprint.id,
+                containerId,
+                host,
+                port,
+                InstanceStatus.Created
+            )
         } catch (e: NotFoundException) {
             var status: InstanceStatus = InstanceStatus.ImagePullNeeded
-            val instance = registerInstance(instanceId, status)
+            val instance = registerInstance(instanceId, blueprint.id, status)
 
             logger.debug("Preparing to pull image")
             pullImageAndUpdateInstance(instanceId, image) { status = it }
             logger.debug("Image pulled!")
 
             val containerId = createContainer(instanceId, image, generatedName, blueprint)
-            resumeCreateInstance(instanceId, containerId, host, port, status, instance)
+            resumeCreateInstance(
+                instanceId,
+                blueprint.id,
+                containerId,
+                host,
+                port,
+                status,
+                instance
+            )
 
             instance
         }
@@ -322,6 +342,7 @@ internal class DockerInstanceServiceImpl(
 
     private suspend fun resumeCreateInstance(
         instanceId: Long,
+        blueprintId: Long,
         containerId: String,
         host: String?,
         port: Int?,
@@ -350,7 +371,7 @@ internal class DockerInstanceServiceImpl(
 
         // fallback instance can set if instance was not created asynchronously
         if (fallbackInstance == null) {
-            return registerInstance(instanceId, finalStatus, containerId, connection)
+            return registerInstance(instanceId, blueprintId, finalStatus, containerId, connection)
         }
 
         return fallbackInstance
@@ -358,6 +379,7 @@ internal class DockerInstanceServiceImpl(
 
     private suspend fun registerInstance(
         instanceId: Long,
+        blueprintId: Long,
         status: InstanceStatus,
         containerId: String? = null,
         connection: Connection? = null
@@ -369,7 +391,7 @@ internal class DockerInstanceServiceImpl(
             containerId = containerId,
             connection = connection,
             runtime = containerId?.let { buildRuntime(it) },
-            blueprintId = null
+            blueprintId = blueprintId
         )
 
         unitInstanceRepository.create(instance)
@@ -417,7 +439,12 @@ internal class DockerInstanceServiceImpl(
      * Creates a Docker container using the given [image] suspending the coroutine until the
      * container creation workflow is completed.
      */
-    private fun createContainer(instanceId: Long, image: String, name: String, blueprint: RawBlueprint): String {
+    private fun createContainer(
+        instanceId: Long,
+        image: String,
+        name: String,
+        blueprint: Blueprint
+    ): String {
         logger.info("Creating container with ($image) to $instanceId...")
         return dockerClient.createContainerCmd(image)
             .withName(name)
@@ -427,13 +454,16 @@ internal class DockerInstanceServiceImpl(
             .exec().id
     }
 
-    private fun createDefaultContainerLabels(instanceId: Long, blueprint: RawBlueprint): Map<String, String> {
+    private fun createDefaultContainerLabels(
+        instanceId: Long,
+        blueprint: Blueprint
+    ): Map<String, String> {
         return mapOf(
             "id" to instanceId.toString(),
             "blueprint.name" to blueprint.name,
             "blueprint.version" to blueprint.version,
-            "blueprint.type" to blueprint.type,
-            "blueprint.remote.main" to blueprint.remote.main
+            "blueprint.type" to blueprint.raw?.type.orEmpty(),
+            "blueprint.remote.main" to blueprint.raw?.remote?.main.orEmpty()
         ).mapKeys { key -> BASE_LABEL + key }
     }
 
@@ -522,7 +552,7 @@ internal class DockerInstanceServiceImpl(
             status = toStatus(status),
             connection = networkService.createConnection(host, port?.toInt()),
             runtime = containerId?.let { buildRuntime(it) },
-            blueprintId = null
+            blueprintId = blueprintId
         )
     }
 

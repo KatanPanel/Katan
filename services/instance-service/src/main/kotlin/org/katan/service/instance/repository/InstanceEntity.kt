@@ -6,6 +6,8 @@ interface InstanceEntity {
 
     var containerId: String?
 
+    var blueprintId: Long
+
     var host: String?
 
     var port: Short?

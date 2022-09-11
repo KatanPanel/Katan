@@ -5,7 +5,6 @@ data class UnitCreateOptions(
     val blueprint: Long,
     val network: Network,
     val externalId: String?,
-    val dockerImage: String,
     val actorId: Long?,
 ) {
 

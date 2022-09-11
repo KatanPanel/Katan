@@ -16,6 +16,7 @@ internal object UnitInstanceTable : LongIdTable("instances") {
 
     val imageUpdatePolicy = varchar("image_update_policy", length = 64)
     val containerId = varchar("container_id", length = 255).nullable()
+    val blueprintId = long("blueprint_id")
     val host = varchar("host", length = 255).nullable()
     val port = short("port").nullable()
     val status = varchar("status", length = 255)
@@ -24,13 +25,14 @@ internal object UnitInstanceTable : LongIdTable("instances") {
 internal class UnitInstanceEntity(id: EntityID<Long>) : LongEntity(id), InstanceEntity {
     companion object : LongEntityClass<UnitInstanceEntity>(UnitInstanceTable)
 
-    override var updatePolicy: String by UnitInstanceTable.imageUpdatePolicy
-    override var containerId: String? by UnitInstanceTable.containerId
-    override var host: String? by UnitInstanceTable.host
-    override var port: Short? by UnitInstanceTable.port
-    override var status: String by UnitInstanceTable.status
+    override var updatePolicy by UnitInstanceTable.imageUpdatePolicy
+    override var containerId by UnitInstanceTable.containerId
+    override var blueprintId by UnitInstanceTable.blueprintId
+    override var host by UnitInstanceTable.host
+    override var port by UnitInstanceTable.port
+    override var status by UnitInstanceTable.status
 
-    override fun getId(): Long = id.value
+    override fun getId() = id.value
 }
 
 internal class UnitInstanceRepositoryImpl(
@@ -54,6 +56,7 @@ internal class UnitInstanceRepositoryImpl(
             UnitInstanceEntity.new(instance.id) {
                 updatePolicy = instance.updatePolicy.id
                 containerId = instance.containerId
+                blueprintId = instance.blueprintId
                 host = instance.connection?.host
                 port = instance.connection?.port?.toShort()
                 status = instance.status.value

@@ -28,9 +28,8 @@ internal fun Route.createUnit() {
         val unit = unitService.createUnit(
             UnitCreateOptions(
                 name = request.name!!,
-                blueprint = request.blueprint!!,
+                blueprint = request.blueprint!!.toLong(),
                 externalId = null,
-                dockerImage = request.image!!,
                 actorId = call.attributes.getOrNull(AccountKey)?.id,
                 network = UnitCreateOptions.Network(
                     host = request.network?.host,

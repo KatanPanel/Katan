@@ -16,5 +16,4 @@ interface WithHttpError {
     val httpError: HttpError
 
     val status: HttpStatusCode
-
 }

@@ -10,11 +10,12 @@ import org.katan.model.instance.UnitInstance
 import org.katan.model.net.Connection
 
 @Serializable
-public data class InstanceResponse internal constructor(
+data class InstanceResponse internal constructor(
     val id: String,
     @SerialName("update-policy") val updatePolicy: String,
     val status: String,
     @SerialName("container-id") val containerId: String?,
+    @SerialName("blueprint-id") val blueprintId: String?,
     val connection: InstanceConnectionResponse?,
     val runtime: InstanceRuntimeResponse?
 ) {
@@ -24,13 +25,14 @@ public data class InstanceResponse internal constructor(
         updatePolicy = instance.updatePolicy.id,
         containerId = instance.containerId,
         status = instance.status.value,
+        blueprintId = instance.blueprintId?.toString(),
         connection = instance.connection?.let(::InstanceConnectionResponse),
         runtime = instance.runtime?.let(::InstanceRuntimeResponse)
     )
 }
 
 @Serializable
-public data class InstanceRuntimeResponse internal constructor(
+data class InstanceRuntimeResponse internal constructor(
     val status: String,
     @SerialName("oom") val outOfMemory: Boolean,
     val error: String?,
@@ -62,14 +64,14 @@ public data class InstanceRuntimeResponse internal constructor(
 }
 
 @Serializable
-public data class InstanceRuntimeNetworkResponse internal constructor(
+data class InstanceRuntimeNetworkResponse internal constructor(
     @SerialName("ipv4-address") val ipAddress: String?,
     val hostname: String?,
     val networks: List<InstanceRuntimeSingleNetworkResponse>
 )
 
 @Serializable
-public data class InstanceConnectionResponse internal constructor(
+data class InstanceConnectionResponse internal constructor(
     val host: String,
     val port: Int
 ) {
@@ -81,7 +83,7 @@ public data class InstanceConnectionResponse internal constructor(
 }
 
 @Serializable
-public data class InstanceRuntimeSingleNetworkResponse internal constructor(
+data class InstanceRuntimeSingleNetworkResponse internal constructor(
     val id: String,
     val name: String,
     @SerialName("ipv4-address") val ipv4Address: String?,
@@ -97,7 +99,7 @@ public data class InstanceRuntimeSingleNetworkResponse internal constructor(
 }
 
 @Serializable
-public data class InstanceRuntimeMountResponse internal constructor(
+data class InstanceRuntimeMountResponse internal constructor(
     val type: String,
     val dest: String,
     val target: String,

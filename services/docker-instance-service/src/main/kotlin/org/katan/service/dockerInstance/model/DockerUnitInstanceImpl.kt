@@ -13,5 +13,5 @@ internal data class DockerUnitInstanceImpl(
     override val containerId: String?,
     override val connection: Connection?,
     override val runtime: InstanceRuntime?,
-    override val blueprintId: Long?
+    override val blueprintId: Long
 ) : UnitInstance

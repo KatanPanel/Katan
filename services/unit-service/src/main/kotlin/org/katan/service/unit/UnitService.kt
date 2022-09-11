@@ -5,15 +5,15 @@ import org.katan.model.unit.auditlog.AuditLog
 import org.katan.service.unit.model.UnitCreateOptions
 import org.katan.service.unit.model.UnitUpdateOptions
 
-public interface UnitService {
+interface UnitService {
 
-    public suspend fun getUnits(): List<KUnit>
+    suspend fun getUnits(): List<KUnit>
 
-    public suspend fun getUnit(id: Long): KUnit
+    suspend fun getUnit(id: Long): KUnit
 
-    public suspend fun createUnit(options: UnitCreateOptions): KUnit
+    suspend fun createUnit(options: UnitCreateOptions): KUnit
 
-    public suspend fun updateUnit(id: Long, options: UnitUpdateOptions): KUnit
+    suspend fun updateUnit(id: Long, options: UnitUpdateOptions): KUnit
 
-    public suspend fun getAuditLogs(unitId: Long): AuditLog
+    suspend fun getAuditLogs(unitId: Long): AuditLog
 }

@@ -16,5 +16,5 @@ interface UnitInstance {
 
     val runtime: InstanceRuntime?
 
-    val blueprintId: Long?
+    val blueprintId: Long
 }

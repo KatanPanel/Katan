@@ -9,6 +9,7 @@ import org.katan.service.id.validation.MustBeSnowflake
 
 // Docker Image Specification v1.2.0
 // https://github.com/moby/moby/blob/master/image/spec/v1.2.md
+// TODO use to validate blueprint import endpoint
 private const val IMAGE_LENGTH = 128
 private const val IMAGE_REGEX = ".*[a-zA-Z0-9_.-]"
 
@@ -24,13 +25,7 @@ internal data class CreateUnitRequest(
 
     @field:NotBlank(message = "Blueprint must be provided.")
     @field:MustBeSnowflake
-    val blueprint: Long? = null,
-
-    @SerialName("image")
-    @field:NotBlank(message = "Image must be provided.")
-    @field:Pattern(regexp = IMAGE_REGEX, message = "Image does not follow image name pattern.")
-    @field:Size(max = IMAGE_LENGTH, message = "Image cannot exceed {max} characters.")
-    val image: String? = null,
+    val blueprint: String? = null,
 
     val network: Network?
 ) {
