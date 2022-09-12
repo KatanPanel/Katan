@@ -13,7 +13,7 @@ import org.katan.http.websocket.WebSocketPacket.Companion.OP
 @Serializable
 data class WebSocketPacket internal constructor(
     @SerialName(OP) val op: Int,
-    @SerialName(DATA) val data: JsonObject?
+    @SerialName(DATA) val data: JsonObject? = null
 ) {
 
     companion object {
