@@ -11,5 +11,4 @@ interface BlueprintRepository {
     suspend fun create(blueprint: Blueprint)
 
     suspend fun delete(id: Long)
-
 }

@@ -48,23 +48,27 @@ internal class StatsStreamingHandler :
         val target = stringData(TARGET_ID)?.toLongOrNull() ?: return
 
         instanceService.streamInternalStats(target).collect { stats ->
-            respond(StatsStreamingResponse(InternalStatsResponse(
-                memoryUsage = stats.memoryUsage,
-                memoryUsagePercent = stats.getMemoryUsagePercentage(),
-                memoryMaxUsage = stats.memoryMaxUsage,
-                memoryLimit = stats.memoryLimit,
-                memoryCache = stats.memoryCache,
-                onlineCpus = stats.onlineCpus,
-                lastOnlineCpus = stats.lastOnlineCpus,
-                cpuUsage = stats.cpuUsage,
-                cpuUsagePercent = stats.getCpuUsagePercentage(),
-                lastCpuUsage = stats.lastCpuUsage,
-                systemCpuUsage = stats.systemCpuUsage,
-                lastSystemCpuUsage = stats.lastSystemCpuUsage,
-                perCpuUsage = stats.perCpuUsage,
-                perCpuUsagePercent = stats.perCpuUsage.map { stats.getCpuUsagePercentage(it) }.toFloatArray(),
-                lastPerCpuUsage = stats.lastPerCpuUsage
-            )))
+            respond(
+                StatsStreamingResponse(
+                    InternalStatsResponse(
+                        memoryUsage = stats.memoryUsage,
+                        memoryUsagePercent = stats.getMemoryUsagePercentage(),
+                        memoryMaxUsage = stats.memoryMaxUsage,
+                        memoryLimit = stats.memoryLimit,
+                        memoryCache = stats.memoryCache,
+                        onlineCpus = stats.onlineCpus,
+                        lastOnlineCpus = stats.lastOnlineCpus,
+                        cpuUsage = stats.cpuUsage,
+                        cpuUsagePercent = stats.getCpuUsagePercentage(),
+                        lastCpuUsage = stats.lastCpuUsage,
+                        systemCpuUsage = stats.systemCpuUsage,
+                        lastSystemCpuUsage = stats.lastSystemCpuUsage,
+                        perCpuUsage = stats.perCpuUsage,
+                        perCpuUsagePercent = stats.perCpuUsage.map { stats.getCpuUsagePercentage(it) }.toFloatArray(),
+                        lastPerCpuUsage = stats.lastPerCpuUsage
+                    )
+                )
+            )
         }
     }
 }

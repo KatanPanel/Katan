@@ -110,5 +110,4 @@ internal class GithubBlueprintResourceProvider(
 
         return ProvidedRawBlueprintMain(result, result.remote.main, contents)
     }
-
 }

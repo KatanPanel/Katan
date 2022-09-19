@@ -13,5 +13,4 @@ interface BlueprintService {
     suspend fun importBlueprint(url: String): ImportedBlueprint
 
     suspend fun readBlueprintAssetContents(id: Long, path: String): Pair<VirtualFile, ByteArray>
-
 }

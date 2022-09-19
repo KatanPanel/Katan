@@ -14,7 +14,6 @@ class BlueprintNotFoundException : BlueprintException(), WithHttpError {
 
     override val httpError get() = UnknownBlueprint
     override val status get() = BadRequest
-
 }
 
 class NoMatchingProviderException : BlueprintException()
@@ -23,15 +22,14 @@ class RemoteRawBlueprintNotFound : BlueprintException(), WithHttpError {
 
     override val httpError get() = RawBlueprintNotFound
     override val status get() = BadRequest
-
 }
 
 class BlueprintConflictException : BlueprintException()
 
-class RawBlueprintParseException(override val message: String) : BlueprintException(),
+class RawBlueprintParseException(override val message: String) :
+    BlueprintException(),
     WithHttpError {
 
     override val httpError get() = RawBlueprintParse(message)
     override val status get() = UnprocessableEntity
-
 }

@@ -105,8 +105,9 @@ internal class HostFSService(
     }
 
     override suspend fun readFile(bucket: String?, destination: String, name: String): Pair<VirtualFile, ByteArray> {
-        if (!bucket.isNullOrBlank())
+        if (!bucket.isNullOrBlank()) {
             throw IllegalStateException("Only local reads are supported for now")
+        }
 
         val base = File(destination)
         val file = File(base, name)
@@ -137,8 +138,9 @@ internal class HostFSService(
         name: String,
         contents: ByteArray
     ): VirtualFile {
-        if (!bucket.isNullOrBlank())
+        if (!bucket.isNullOrBlank()) {
             throw IllegalStateException("Only local uploads are supported for now")
+        }
 
         val base = File(destination)
         val file = File(base, name)
@@ -150,8 +152,9 @@ internal class HostFSService(
                 file.createNewFile()
             }
 
-            if (!file.canWrite())
+            if (!file.canWrite()) {
                 throw FileNotWritableException()
+            }
 
             try {
                 file.writeBytes(contents)

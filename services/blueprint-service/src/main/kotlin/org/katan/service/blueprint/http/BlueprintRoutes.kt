@@ -35,5 +35,4 @@ internal class BlueprintRoutes {
         @field:MustBeSnowflake val blueprintId: String,
         @field:NotBlank val path: String? = null
     )
-
 }

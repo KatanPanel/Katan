@@ -11,5 +11,4 @@ interface BlueprintResourceProvider {
     suspend fun provideFrom(source: BlueprintResource): ProvidedRawBlueprint?
 
     suspend fun provideFrom(url: String): ProvidedRawBlueprint?
-
 }

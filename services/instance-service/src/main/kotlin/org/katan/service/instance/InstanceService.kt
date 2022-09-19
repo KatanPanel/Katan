@@ -2,7 +2,6 @@ package org.katan.service.instance
 
 import kotlinx.coroutines.flow.Flow
 import org.katan.model.blueprint.Blueprint
-import org.katan.model.blueprint.RawBlueprint
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceUpdateCode
 import org.katan.model.instance.UnitInstance
@@ -22,5 +21,4 @@ interface InstanceService {
     suspend fun runInstanceCommand(id: Long, command: String)
 
     suspend fun streamInternalStats(id: Long): Flow<InstanceInternalStats>
-
 }

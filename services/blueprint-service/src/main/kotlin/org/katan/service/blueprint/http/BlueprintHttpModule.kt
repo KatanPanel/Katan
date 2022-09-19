@@ -21,5 +21,4 @@ internal class BlueprintHttpModule(registry: HttpModuleRegistry) : HttpModule(re
             }
         }
     }
-
 }

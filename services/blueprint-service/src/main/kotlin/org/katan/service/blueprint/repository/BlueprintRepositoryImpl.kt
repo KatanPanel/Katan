@@ -19,7 +19,6 @@ internal object BlueprintTable : LongIdTable("blueprints") {
     val imageId = varchar("image_id", length = 255)
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at").nullable()
-
 }
 
 internal class BlueprintEntityImpl(id: EntityID<Long>) : LongEntity(id), BlueprintEntity {
@@ -73,5 +72,4 @@ class BlueprintRepositoryImpl(
             BlueprintEntityImpl.findById(id)?.delete()
         }
     }
-
 }

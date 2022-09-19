@@ -1,9 +1,7 @@
 package org.katan.service.unit.http.dto
 
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.service.id.validation.MustBeSnowflake
 

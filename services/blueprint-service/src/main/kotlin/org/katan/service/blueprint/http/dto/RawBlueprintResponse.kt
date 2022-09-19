@@ -27,7 +27,6 @@ internal data class RawBlueprintResponse(
         build = RawBlueprintBuildResponse(raw.build),
         instance = raw.instance?.let(::RawBlueprintInstanceSettingsResponse)
     )
-
 }
 
 @Serializable
@@ -38,9 +37,8 @@ internal data class RawBlueprintRemoteResponse(
 
     internal constructor(remote: RawBlueprintRemote) : this(
         main = remote.main,
-        origin = remote.origin,
+        origin = remote.origin
     )
-
 }
 
 @Serializable
@@ -53,7 +51,6 @@ internal data class RawBlueprintBuildResponse(
         image = build.image,
         env = build.env
     )
-
 }
 
 @Serializable
@@ -64,5 +61,4 @@ internal data class RawBlueprintInstanceSettingsResponse(
     internal constructor(settings: RawBlueprintInstanceSettings) : this(
         name = settings.name
     )
-
 }

@@ -63,7 +63,7 @@ internal class DockerInstanceServiceImpl(
 ) : InstanceService,
     CoroutineScope by CoroutineScope(
         SupervisorJob() +
-                CoroutineName(DockerInstanceServiceImpl::class.jvmName)
+            CoroutineName(DockerInstanceServiceImpl::class.jvmName)
     ) {
 
     private companion object {
@@ -425,8 +425,9 @@ internal class DockerInstanceServiceImpl(
     }
 
     private fun generateContainerName(id: Long, name: String?): String {
-        if (name != null)
+        if (name != null) {
             return name.replace("{id}", id.toString())
+        }
 
         return buildString {
             append("katan")
@@ -539,9 +540,9 @@ internal class DockerInstanceServiceImpl(
 
     private fun isRunning(status: InstanceStatus): Boolean {
         return status == InstanceStatus.Running ||
-                status == InstanceStatus.Restarting ||
-                status == InstanceStatus.Stopping ||
-                status == InstanceStatus.Paused
+            status == InstanceStatus.Restarting ||
+            status == InstanceStatus.Stopping ||
+            status == InstanceStatus.Paused
     }
 
     private suspend fun InstanceEntity.toDomain(): UnitInstance {
@@ -598,5 +599,4 @@ internal class DockerInstanceServiceImpl(
             last.onlineCpus
         )
     }
-
 }

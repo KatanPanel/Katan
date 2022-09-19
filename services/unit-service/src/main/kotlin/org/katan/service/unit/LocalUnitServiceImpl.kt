@@ -26,7 +26,6 @@ import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogChange
 import org.katan.model.unit.auditlog.AuditLogEvents
 import org.katan.service.account.AccountService
-import org.katan.service.blueprint.BlueprintNotFoundException
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.id.IdService
 import org.katan.service.instance.InstanceService
@@ -46,7 +45,7 @@ internal class LocalUnitServiceImpl(
     private val idService: IdService,
     private val accountService: AccountService,
     private val instanceService: InstanceService,
-    private val blueprintService: BlueprintService,
+    private val blueprintService: BlueprintService
 ) : UnitService,
     CoroutineScope by CoroutineScope(SupervisorJob() + CoroutineName(LocalUnitServiceImpl::class.simpleName!!)) {
 

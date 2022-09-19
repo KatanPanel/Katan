@@ -15,7 +15,6 @@ interface InstanceInternalStats {
     val lastPerCpuUsage: LongArray?
     val lastSystemCpuUsage: Long?
     val lastOnlineCpus: Long?
-
 }
 
 fun InstanceInternalStats.getMemoryUsagePercentage(): Float {
@@ -24,8 +23,9 @@ fun InstanceInternalStats.getMemoryUsagePercentage(): Float {
 }
 
 fun InstanceInternalStats.getCpuUsagePercentage(): Float {
-    if (lastCpuUsage == null || lastSystemCpuUsage == null)
+    if (lastCpuUsage == null || lastSystemCpuUsage == null) {
         return 0.0F
+    }
 
     val cpuUsageDiff = cpuUsage - lastCpuUsage!!
     val sysCpuUsageDiff = systemCpuUsage - lastSystemCpuUsage!!

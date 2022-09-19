@@ -15,5 +15,4 @@ interface FSService {
     suspend fun getBucket(bucket: String, destination: String): Bucket?
 
     suspend fun uploadFile(bucket: String?, destination: String, name: String, contents: ByteArray): VirtualFile
-
 }

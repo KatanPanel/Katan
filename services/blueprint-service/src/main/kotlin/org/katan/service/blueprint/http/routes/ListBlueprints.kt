@@ -15,7 +15,8 @@ internal fun Route.listBlueprints() {
     get<BlueprintRoutes.All> {
         respond(
             ListBlueprintsResponse(
-                blueprintService.listBlueprints().map { BlueprintResponse(it) })
+                blueprintService.listBlueprints().map { BlueprintResponse(it) }
+            )
         )
     }
 }

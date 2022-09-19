@@ -15,5 +15,4 @@ interface BlueprintEntity {
     var updatedAt: Instant?
 
     fun getId(): Long
-
 }

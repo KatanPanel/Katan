@@ -6,8 +6,8 @@ import io.ktor.server.routing.routing
 import org.katan.http.di.HttpModule
 import org.katan.http.di.HttpModuleRegistry
 import org.katan.http.websocket.WebSocketOp
-import org.katan.http.websocket.WebSocketOpCodes.INSTANCE_RUN_COMMAND
 import org.katan.http.websocket.WebSocketOpCodes.INSTANCE_FETCH_LOGS
+import org.katan.http.websocket.WebSocketOpCodes.INSTANCE_RUN_COMMAND
 import org.katan.http.websocket.WebSocketOpCodes.INSTANCE_STATS_STREAMING
 import org.katan.http.websocket.WebSocketPacketEventHandler
 import org.katan.service.instance.http.routes.getInstance

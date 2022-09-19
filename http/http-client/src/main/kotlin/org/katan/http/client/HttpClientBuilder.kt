@@ -1,3 +1,4 @@
+// ktlint-disable filename
 package org.katan.http.client
 
 import io.ktor.client.HttpClient
@@ -9,9 +10,11 @@ import kotlinx.serialization.json.Json
 fun createHttpClient(): HttpClient {
     return HttpClient(CIO) {
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-            })
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                }
+            )
         }
     }
 }

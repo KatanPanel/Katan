@@ -5,7 +5,7 @@ data class UnitCreateOptions(
     val blueprint: Long,
     val network: Network,
     val externalId: String?,
-    val actorId: Long?,
+    val actorId: Long?
 ) {
 
     data class Network(

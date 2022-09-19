@@ -25,5 +25,4 @@ internal data class BlueprintResponse(
         updatedAt = blueprint.updatedAt,
         raw = blueprint.raw?.let(::RawBlueprintResponse)
     )
-
 }

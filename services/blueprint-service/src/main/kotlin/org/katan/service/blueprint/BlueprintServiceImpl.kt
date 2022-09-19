@@ -69,8 +69,9 @@ internal class BlueprintServiceImpl(
         logger.debug("Importing raw ${raw.name}...")
 
         val existing = findExistingFromRaw(raw)
-        if (existing != null)
+        if (existing != null) {
             throw BlueprintConflictException()
+        }
 
         val id = idService.generate()
         logger.debug("Saving blueprint locally...")
@@ -97,8 +98,9 @@ internal class BlueprintServiceImpl(
         id: Long,
         path: String
     ): Pair<VirtualFile, ByteArray> {
-        if (path.equals(MAIN, ignoreCase = true))
+        if (path.equals(MAIN, ignoreCase = true)) {
             throw FileNotAccessibleException()
+        }
 
         return readFileFromLocal(id, path)
     }
@@ -155,5 +157,4 @@ internal class BlueprintServiceImpl(
             raw = readMainFile(getId())
         )
     }
-
 }

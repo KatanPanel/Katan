@@ -37,6 +37,6 @@ internal fun KoinApplication.importAllModules() {
         dockerClientDI,
         hostFsServiceDI,
         httpClientDI,
-        blueprintServiceDI,
+        blueprintServiceDI
     )
 }

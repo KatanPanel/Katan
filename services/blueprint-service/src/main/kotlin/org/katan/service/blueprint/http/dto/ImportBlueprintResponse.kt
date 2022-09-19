@@ -7,5 +7,5 @@ internal data class ImportBlueprintResponse(
     val id: String,
     val main: String,
     val assets: List<String>,
-    val raw: RawBlueprintResponse,
+    val raw: RawBlueprintResponse
 )

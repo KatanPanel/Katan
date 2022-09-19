@@ -18,5 +18,4 @@ internal class BlueprintResourceProviderRegistry {
             registrations.put(provider.id, provider)
         }
     }
-
 }
