@@ -38,7 +38,7 @@ internal fun Route.getInstanceFsBucket() {
         val matchingBind = runtime.mounts.firstOrNull {
             it.target == parameters.bucket
         } ?: respondError(
-            HttpError.ResourceNotAccessible,
+            HttpError.UnknownFSBucket,
             HttpStatusCode.Unauthorized
         )
 
