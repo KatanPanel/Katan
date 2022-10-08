@@ -110,10 +110,10 @@ class WebSocketManager : CoroutineScope by CoroutineScope(
 
     fun register(op: WebSocketOp, handler: WebSocketPacketEventHandler) {
         val name = "$op-${handler::class.simpleName ?: "unknown-websocket-handler"}"
-        val job = Job(coroutineContext[Job]).apply {
+        val job = Job().apply {
             invokeOnCompletion {
-                logger.warn(
-                    "WebSocket handler (${this[CoroutineName]}) coroutine context job completed",
+                logger.debug(
+                    "WebSocket coroutine scope \"${this[CoroutineName]}\" finished",
                     it
                 )
             }
