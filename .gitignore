@@ -31,8 +31,10 @@ hs_err_pid*
 
 # Katan
 logs/
+katan.local.conf
+
+# Ktor
 application.conf
-application.local.conf
 
 # Gradle
 buildSrc/build
