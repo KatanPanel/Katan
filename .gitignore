@@ -31,10 +31,9 @@ hs_err_pid*
 
 # Katan
 logs/
-katan.local.conf
-
-# Ktor
-application.conf
 
 # Gradle
 buildSrc/build
+
+# Fleet
+.fleet/
