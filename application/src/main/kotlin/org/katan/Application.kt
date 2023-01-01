@@ -8,6 +8,7 @@ import org.katan.di.importAllModules
 import org.koin.core.context.startKoin
 import java.io.IOException
 import java.io.InputStream
+import java.lang.RuntimeException
 import java.util.Properties
 import kotlin.reflect.KClass
 
@@ -23,12 +24,17 @@ private object Application {
         try {
             readBuildFile()
         } catch (e: IOException) {
-            logger.error("Failed to read build file", e)
+            logger.error("Failed to read build file.", e)
         }
 
-        startKoin {
-            logger(KoinLog4jLogger())
-            importAllModules()
+        @Suppress("TooGenericException")
+        try {
+            startKoin {
+//                logger(KoinLog4jLogger())
+                importAllModules()
+            }
+        } catch (e: RuntimeException) {
+            logger.error("Failed to initialize Katan.", e)
         }
 
         val app = Katan()
@@ -51,25 +57,22 @@ private object Application {
         System.setProperty("org.katan.build.remote", build.getValue("git.remote.origin.url"))
     }
 
-}
-
-private val possiblePaths = arrayOf("build.properties")
-
-private fun KClass<*>.findResource(resource: String): InputStream? {
-    return java.classLoader.getResourceAsStream(resource)
-}
-
-@Suppress("UNCHECKED_CAST")
-fun KClass<*>.readBuildFile(): Map<String, String> {
-    for (path in possiblePaths) {
-        val res = findResource(path) ?: continue
-
-        return res.use {
-            Properties().apply {
-                load(it)
-            }
-        }.toMap() as Map<String, String>
+    private fun KClass<*>.findResource(resource: String): InputStream? {
+        return java.classLoader.getResourceAsStream(resource)
     }
 
-    error("Unable to find build properties: ${possiblePaths.joinToString(", ")}")
+    @Suppress("UNCHECKED_CAST")
+    fun KClass<*>.readBuildFile(): Map<String, String> {
+        for (path in arrayOf("build.properties")) {
+            val res = findResource(path) ?: continue
+
+            return res.use {
+                Properties().apply {
+                    load(it)
+                }
+            }.toMap() as Map<String, String>
+        }
+
+        error("Unable to find build properties")
+    }
 }

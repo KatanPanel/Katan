@@ -350,12 +350,13 @@ internal class DockerInstanceServiceImpl(
         fallbackInstance: UnitInstance? = null
     ): UnitInstance {
         var finalStatus: InstanceStatus = status
-        logger.info("Connecting $instanceId to ${config.docker.network.name}...")
+        logger.info("Connecting $instanceId to ${config.dockerNetwork}...")
 
         val connection = try {
             networkService.connect(
-                config.docker.network.name,
-                config.docker.network.driver,
+                config.dockerNetwork,
+                // TODO change to correct network driver
+                "overlay",
                 containerId,
                 host,
                 port
@@ -367,7 +368,7 @@ internal class DockerInstanceServiceImpl(
             null
         }
 
-        logger.info("Connected $instanceId to ${config.docker.network.name} @ $connection")
+        logger.info("Connected $instanceId to ${config.dockerNetwork} @ $connection")
 
         // fallback instance can set if instance was not created asynchronously
         if (fallbackInstance == null) {

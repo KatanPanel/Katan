@@ -15,7 +15,7 @@ class DockerClientInitializer(
      */
     fun init(): DockerClient {
         val config = DefaultDockerClientConfig.Builder()
-            .withDockerHost(config.docker.host)
+            .withDockerHost(config.dockerHost)
             .build()
 
         return DockerClientImpl.getInstance(

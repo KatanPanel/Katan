@@ -12,16 +12,20 @@ internal class PostgreSQLDatabaseServiceImpl(
 ) : DatabaseService {
 
     companion object {
+        private const val URL_FORMAT = "jdbc:postgresql://%s/"
+        private const val DRIVER = "org.postgresql.Driver"
+        private const val DEFAULT_USERNAME = "postgres"
+        private const val DEFAULT_PASSWORD = "postgres"
+
         private val logger = LogManager.getLogger(PostgreSQLDatabaseServiceImpl::class.java)
     }
 
     override fun get(): Database {
-        val url = "jdbc:postgresql://${config.database.host}"
         val conn = Database.connect(
-            url = url,
-            user = config.database.username,
-            password = config.database.password,
-            driver = "org.postgresql.Driver",
+            url = URL_FORMAT.format(config.databaseHost),
+            user = config.databaseUser.ifEmpty { DEFAULT_USERNAME },
+            password = config.databasePassword.ifEmpty { DEFAULT_PASSWORD },
+            driver = DRIVER,
             databaseConfig = DatabaseConfig.invoke {
                 sqlLogger = Slf4jSqlDebugLogger
                 useNestedTransactions = true

@@ -22,7 +22,7 @@ internal class DockerNetworkServiceImpl(
         private const val ALL_INTERFACES = "0.0.0.0"
 
         private const val MACVLAN_DRIVER = "macvlan"
-        private const val HOST_DRIVER = "host"
+        internal const val HOST_DRIVER = "host"
 
         private val logger = LogManager.getLogger(DockerNetworkServiceImpl::class.java)
     }

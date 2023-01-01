@@ -22,9 +22,10 @@ internal fun Route.serverInfo() {
                 version = System.getProperty("org.katan.version", "unknown"),
                 nodeId = config.nodeId,
                 clusterMode = false,
+                // TODO reliable info
                 defaultNetwork = ServerInfoNetworkResponse(
-                    name = config.docker.network.name,
-                    driver = config.docker.network.driver
+                    name = "katan",
+                    driver = "overlay"
                 ),
                 build = ServerInfoBuild(
                     branch = buildProperty("branch"),
