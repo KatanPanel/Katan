@@ -6,8 +6,6 @@ WORKDIR $BUILD_HOME
 USER root
 RUN ./gradlew -x test build application:shadowJar
 
-RUN ls $BUILD_HOME/application/build/libs/
-
 # Production build
 FROM adoptopenjdk/openjdk11:alpine
 ENV ARTIFACT_NAME=katan-*.jar
