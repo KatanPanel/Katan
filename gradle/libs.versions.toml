@@ -13,7 +13,6 @@ log4j = "2.17.2"
 ktor = "2.1.0"
 snowflake-id = "0.0.1"
 docker-java = "3.2.13"
-hoplite = "2.3.1"
 postgresql = "42.4.0"
 javaJwt = "4.0.0"
 yoki = "0.0.1-SNAPSHOT"
@@ -193,14 +192,6 @@ version.ref = "ktor"
 [libraries.snowflakeId]
 module = "de.mkammerer.snowflake-id:snowflake-id"
 version.ref = "snowflake-id"
-
-[libraries.hoplite]
-module = "com.sksamuel.hoplite:hoplite-core"
-version.ref = "hoplite"
-
-[libraries.hoplite-hocon]
-module = "com.sksamuel.hoplite:hoplite-hocon"
-version.ref = "hoplite"
 
 [libraries.postgresql]
 module = "org.postgresql:postgresql"
