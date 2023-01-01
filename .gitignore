@@ -31,8 +31,9 @@ hs_err_pid*
 
 # Katan
 logs/
-application.conf
-application.local.conf
 
 # Gradle
 buildSrc/build
+
+# Fleet
+.fleet/

@@ -27,8 +27,6 @@ subprojects {
 
     repositories {
         mavenCentral()
-        // for Yoki
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
 
     dependencies {

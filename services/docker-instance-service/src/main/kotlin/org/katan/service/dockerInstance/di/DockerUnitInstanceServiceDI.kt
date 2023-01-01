@@ -7,7 +7,7 @@ import org.katan.service.instance.repository.UnitInstanceRepository
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-public val dockerInstanceServiceImplDI: Module = module {
+val dockerInstanceServiceImplDI: Module = module {
     single<UnitInstanceRepository> { UnitInstanceRepositoryImpl(get()) }
     single<InstanceService>(createdAtStart = true) {
         DockerInstanceServiceImpl(get(), get(), get(), get(), get(), get())
