@@ -5,7 +5,7 @@ import org.katan.service.db.PostgreSQLDatabaseServiceImpl
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-public val databaseServiceDI: Module = module {
+val databaseServiceDI: Module = module {
     single<DatabaseService> { PostgreSQLDatabaseServiceImpl(get()) }
     single { get<DatabaseService>().get() }
 }

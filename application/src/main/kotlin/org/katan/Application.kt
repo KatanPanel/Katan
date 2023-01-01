@@ -6,24 +6,35 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.di.importAllModules
 import org.koin.core.context.startKoin
+import java.io.IOException
+import java.io.InputStream
+import java.lang.RuntimeException
+import java.util.Properties
+import kotlin.reflect.KClass
 
 @Suppress("UNUSED")
 private object Application {
-
-    const val VERSION = "0.1.0"
 
     val logger: Logger = LogManager.getLogger(Application::class.java)
 
     @JvmStatic
     fun main(args: Array<String>) {
         System.setProperty(DEBUG_PROPERTY_NAME, DEBUG_PROPERTY_VALUE_ON)
-        setProperty("version", VERSION)
 
-        readBuildFile()
+        try {
+            readBuildFile()
+        } catch (e: IOException) {
+            logger.error("Failed to read build file.", e)
+        }
 
-        startKoin {
-            logger(KoinLog4jLogger())
-            importAllModules()
+        @Suppress("TooGenericException")
+        try {
+            startKoin {
+//                logger(KoinLog4jLogger())
+                importAllModules()
+            }
+        } catch (e: RuntimeException) {
+            logger.error("Failed to initialize Katan.", e)
         }
 
         val app = Katan()
@@ -38,14 +49,30 @@ private object Application {
 
     private fun readBuildFile() {
         val build = this::class.readBuildFile()
-        setProperty("build.commit", build.getValue("git.commit.id.abbrev"))
-        setProperty("build.message", build.getValue("git.commit.message.short"))
-        setProperty("build.time", build.getValue("git.commit.time"))
-        setProperty("build.branch", build.getOrDefault("git.branch", ""))
-        setProperty("build.remote", build.getValue("git.remote.origin.url"))
+
+        System.setProperty("org.katan.build.commit", build.getValue("git.commit.id.abbrev"))
+        System.setProperty("org.katan.build.message", build.getValue("git.commit.message.short"))
+        System.setProperty("org.katan.build.time", build.getValue("git.commit.time"))
+        System.setProperty("org.katan.build.branch", build.getOrDefault("git.branch", ""))
+        System.setProperty("org.katan.build.remote", build.getValue("git.remote.origin.url"))
     }
 
-    private fun setProperty(key: String, value: String) {
-        System.setProperty("org.katan.$key", value)
+    private fun KClass<*>.findResource(resource: String): InputStream? {
+        return java.classLoader.getResourceAsStream(resource)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun KClass<*>.readBuildFile(): Map<String, String> {
+        for (path in arrayOf("build.properties")) {
+            val res = findResource(path) ?: continue
+
+            return res.use {
+                Properties().apply {
+                    load(it)
+                }
+            }.toMap() as Map<String, String>
+        }
+
+        error("Unable to find build properties")
     }
 }

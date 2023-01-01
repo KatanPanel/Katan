@@ -52,24 +52,18 @@ internal class HostFSService(
     }
 
     private fun findFsRoot(): String? {
-        return if (config.altFsRoot == null) {
-            val info = try {
-                dockerClient.infoCmd().exec()
-            } catch (e: DockerException) {
-                logger.error("Failed to execute Docker info command to fetch file system root", e)
-                exitProcess(1)
-            }
+        val info = try {
+            dockerClient.infoCmd().exec()
+        } catch (e: DockerException) {
+            logger.error("Failed to execute Docker info command to fetch file system root", e)
+            exitProcess(1)
+        }
 
-            info.dockerRootDir?.let {
-                buildString {
-                    append(it)
-                    append(File.separatorChar)
-                    append("volumes")
-                }
-            }
-        } else {
-            config.altFsRoot?.also {
-                logger.info("Using alternative file system root: $it")
+        return info.dockerRootDir?.let {
+            buildString {
+                append(it)
+                append(File.separatorChar)
+                append("volumes")
             }
         }
     }

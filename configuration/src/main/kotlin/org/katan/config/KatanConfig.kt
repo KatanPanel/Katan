@@ -1,72 +1,37 @@
 package org.katan.config
 
-import kotlin.time.Duration
+class KatanConfig internal constructor() {
 
-interface KatanConfig {
-
-    val nodeId: Int
-
-    val database: DatabaseConfig
-
-    val server: HttpServerConfig
-
-    val docker: DockerClientConfig
-
-    val redis: RedisConfig
-
-    val altFsRoot: String?
-
-    interface DatabaseConfig {
-
-        val host: String
-
-        val username: String
-
-        val password: String
+    companion object {
+        private const val DEFAULT_PORT = 8080
+        private const val DEFAULT_REDIS_USER = "default"
+        private const val DEFAULT_DOCKER_HOST = "unix:///var/run/docker.sock"
+        private const val DEFAULT_DOCKER_NET = "katan0"
+        private const val DEFAULT_DB_HOST = "localhost"
     }
 
-    interface HttpServerConfig {
+    val nodeId: Int = env("NODE_ID")?.toIntOrNull() ?: 0
+    val port: Int = env("PORT")?.toIntOrNull() ?: DEFAULT_PORT
 
-        val port: Int
+    val dockerHost: String = env("DOCKER_HOST") ?: DEFAULT_DOCKER_HOST
+    val dockerNetwork: String = env("DOCKER_NETWORK") ?: DEFAULT_DOCKER_NET
+
+    val databaseHost: String = env("DB_HOST") ?: DEFAULT_DB_HOST
+    val databaseUser: String = env("DB_USER").orEmpty()
+    val databasePassword: String = env("DB_PASS").orEmpty()
+
+    val redisUser: String = env("REDIS_USER") ?: DEFAULT_REDIS_USER
+    val redisPassword: String = env("REDIS_PASS").orEmpty()
+    val redisHost: String? = env("REDIS_HOST")
+    val redisPort: String? = env("REDIS_PORT")
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun env(name: String): String? {
+        return System.getenv(name)
     }
 
-    interface DockerClientConfig {
-
-        val host: String
-
-        val network: DockerNetworkConfig
-    }
-
-    interface DockerNetworkConfig {
-
-        val name: String
-
-        val driver: String
-    }
-
-    interface RedisConfig {
-
-        val host: String?
-
-        val port: Int?
-
-        val username: String?
-
-        val password: String?
-
-        val connectionTimeout: Duration?
-
-        val soTimeout: Duration?
-
-        val clusters: List<RedisClusterConfig>
-
-        val database: Int?
-    }
-
-    interface RedisClusterConfig {
-
-        val host: String?
-
-        val port: Int?
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun envOrThrow(name: String): String {
+        return env(name) ?: error("Missing required environment variable: $name")
     }
 }

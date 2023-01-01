@@ -5,7 +5,6 @@ import org.katan.config.KatanConfig
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisCluster
-import redis.clients.jedis.JedisPooled
 import redis.clients.jedis.Protocol
 import redis.clients.jedis.UnifiedJedis
 import java.io.Closeable
@@ -39,40 +38,37 @@ internal class RedisCacheServiceImpl(
     private fun initClient(): UnifiedJedis {
         logger.info("Initializing Redis client...")
 
-        val redisConfig = config.redis
-        val connectionTimeout = redisConfig.connectionTimeout?.inWholeMilliseconds?.toInt()
-        val soTimeout = redisConfig.soTimeout?.inWholeMilliseconds?.toInt()
         val clientConfig = DefaultJedisClientConfig.builder()
-            .connectionTimeoutMillis(connectionTimeout ?: Protocol.DEFAULT_TIMEOUT)
-            .timeoutMillis(soTimeout ?: Protocol.DEFAULT_TIMEOUT)
-            .user(redisConfig.username)
-            .password(redisConfig.password)
+            .connectionTimeoutMillis(Protocol.DEFAULT_TIMEOUT)
+            .timeoutMillis(Protocol.DEFAULT_TIMEOUT)
+            .user(config.redisUser)
+            .password(config.redisPassword)
             .ssl(false)
-            .database(redisConfig.database ?: Protocol.DEFAULT_DATABASE)
+            .database(Protocol.DEFAULT_DATABASE)
             .clientName("Katan")
             .build()
 
-        if (redisConfig.clusters.isEmpty()) {
-            val addr = HostAndPort(
-                redisConfig.host ?: Protocol.DEFAULT_HOST,
-                redisConfig.port ?: Protocol.DEFAULT_PORT
-            )
+//        if (redisConfig.clusters.isEmpty()) {
+//            val addr = HostAndPort(
+//                redisConfig.host ?: Protocol.DEFAULT_HOST,
+//                redisConfig.port ?: Protocol.DEFAULT_PORT
+//            )
+//
+//            logger.info("Redis: $addr")
+//            return JedisPooled(
+//                addr,
+//                clientConfig
+//            )
+//        }
 
-            logger.info("Redis: $addr")
-            return JedisPooled(
-                addr,
-                clientConfig
-            )
-        }
-
-        val nodes = redisConfig.clusters.map {
+        val nodes = setOf(
             HostAndPort(
-                it.host ?: Protocol.DEFAULT_HOST,
-                it.port ?: Protocol.DEFAULT_PORT
+                config.redisHost ?: Protocol.DEFAULT_HOST,
+                config.redisPort?.toIntOrNull() ?: Protocol.DEFAULT_PORT
             )
-        }.toSet()
-        logger.debug("Jedis cluster nodes (${nodes.size}):")
-        logger.debug(nodes.joinToString(", "))
+        )
+//        logger.debug("Jedis cluster nodes (${nodes.size}):")
+//        logger.debug(nodes.joinToString(", "))
 
         return JedisCluster(
             nodes,
