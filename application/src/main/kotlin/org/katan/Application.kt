@@ -21,34 +21,42 @@ private object Application {
     fun main(args: Array<String>) {
         System.setProperty(DEBUG_PROPERTY_NAME, DEBUG_PROPERTY_VALUE_ON)
 
-        try {
+        runCatching {
             readBuildFile()
-        } catch (e: IOException) {
-            logger.error("Failed to read build file.", e)
-        }
 
-        @Suppress("TooGenericException")
-        try {
             startKoin {
-//                logger(KoinLog4jLogger())
+                logger(KoinLog4jLogger())
                 importAllModules()
             }
-        } catch (e: RuntimeException) {
-            logger.error("Failed to initialize Katan.", e)
+        }.onFailure { exception ->
+            logger.error("Failed to initialize Katan.", exception)
+        }.onSuccess {
+            val app = Katan()
+            Runtime.getRuntime().addShutdownHook(
+                Thread {
+                    app.close()
+                }
+            )
+
+            app.start()
         }
-
-        val app = Katan()
-        Runtime.getRuntime().addShutdownHook(
-            Thread {
-                app.close()
-            }
-        )
-
-        app.start()
     }
 
     private fun readBuildFile() {
-        val build = this::class.readBuildFile()
+        var build: Map<String, String>? = null
+        for (path in arrayOf("build.properties")) {
+            val res = this::class.java.classLoader.getResourceAsStream(path) ?: continue
+
+            @Suppress("UNCHECKED_CAST")
+            build = res.use {
+                Properties().apply {
+                    load(it)
+                }
+            }.toMap() as Map<String, String>
+        }
+
+        if (build == null)
+            return
 
         System.setProperty("org.katan.build.commit", build.getValue("git.commit.id.abbrev"))
         System.setProperty("org.katan.build.message", build.getValue("git.commit.message.short"))
@@ -57,22 +65,4 @@ private object Application {
         System.setProperty("org.katan.build.remote", build.getValue("git.remote.origin.url"))
     }
 
-    private fun KClass<*>.findResource(resource: String): InputStream? {
-        return java.classLoader.getResourceAsStream(resource)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun KClass<*>.readBuildFile(): Map<String, String> {
-        for (path in arrayOf("build.properties")) {
-            val res = findResource(path) ?: continue
-
-            return res.use {
-                Properties().apply {
-                    load(it)
-                }
-            }.toMap() as Map<String, String>
-        }
-
-        error("Unable to find build properties")
-    }
 }
