@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 import org.katan.model.account.Account
 
 @Serializable
-public data class AccountResponse internal constructor(
+internal data class AccountResponse internal constructor(
     val id: String,
     val username: String,
     val email: String,
@@ -15,7 +15,7 @@ public data class AccountResponse internal constructor(
     @SerialName("last-logged-in-at") val lastLoggedInAt: Instant?
 ) {
 
-    public constructor(account: Account) : this(
+    constructor(account: Account) : this(
         id = account.id.toString(),
         username = account.username,
         email = account.email,

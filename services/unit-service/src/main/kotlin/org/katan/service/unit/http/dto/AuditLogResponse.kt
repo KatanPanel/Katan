@@ -3,21 +3,33 @@ package org.katan.service.unit.http.dto
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.katan.model.account.Account
 import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogChange
 import org.katan.model.unit.auditlog.AuditLogEntry
 import org.katan.model.unit.auditlog.AuditLogEvent
-import org.katan.service.account.http.dto.AccountResponse
 
 @Serializable
 internal data class AuditLogResponse(
     val entries: List<AuditLogEntryResponse>,
-    val actors: List<AccountResponse>
+    val actors: List<AuditLogActorResponse>
 ) {
 
     constructor(auditLog: AuditLog) : this(
         entries = auditLog.entries.map(::AuditLogEntryResponse),
-        actors = auditLog.actors.map(::AccountResponse)
+        actors = auditLog.actors.map(::AuditLogActorResponse)
+    )
+}
+
+@Serializable
+internal data class AuditLogActorResponse internal constructor(
+    val id: String,
+    val username: String
+) {
+
+    constructor(account: Account) : this(
+        id = account.id.toString(),
+        username = account.username
     )
 }
 
