@@ -6,11 +6,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.di.importAllModules
 import org.koin.core.context.startKoin
-import java.io.IOException
-import java.io.InputStream
-import java.lang.RuntimeException
 import java.util.Properties
-import kotlin.reflect.KClass
 
 @Suppress("UNUSED")
 private object Application {
@@ -55,8 +51,9 @@ private object Application {
             }.toMap() as Map<String, String>
         }
 
-        if (build == null)
+        if (build == null) {
             return
+        }
 
         System.setProperty("org.katan.build.commit", build.getValue("git.commit.id.abbrev"))
         System.setProperty("org.katan.build.message", build.getValue("git.commit.message.short"))
@@ -64,5 +61,4 @@ private object Application {
         System.setProperty("org.katan.build.branch", build.getOrDefault("git.branch", ""))
         System.setProperty("org.katan.build.remote", build.getValue("git.remote.origin.url"))
     }
-
 }
