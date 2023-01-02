@@ -24,10 +24,12 @@ class HttpServer(
     private val port: Int
 ) : CoroutineScope by CoroutineScope(CoroutineName("HttpServer")), KoinComponent {
 
+    companion object {
+        private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
+    }
+
     private val httpModuleRegistry by inject<HttpModuleRegistry>()
     private val webSocketManager by inject<WebSocketManager>()
-
-    private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
 
     init {
         System.setProperty("io.ktor.development", "true")
@@ -48,7 +50,9 @@ class HttpServer(
             stop()
         }
 
-        logger.info("Listening on {}", port)
+        for (connector in engine.environment.connectors)
+            logger.info("Listening on ${connector.host}:${connector.port} (${connector.type.name.lowercase()})")
+
         engine.start(wait = true)
     }
 
@@ -71,8 +75,6 @@ class HttpServer(
             module.install(app)
             for ((op, handler) in module.webSocketHandlers())
                 webSocketManager.register(op, handler)
-
-            logger.debug("Http module {} installed", module::class.simpleName)
         }
     }
 

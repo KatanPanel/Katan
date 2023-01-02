@@ -37,7 +37,6 @@ internal class PostgreSQLDatabaseServiceImpl(
             transaction { !conn.connector().isClosed }
         } catch (e: Throwable) {
             logger.error("Failed to establish database connection.")
-            logger.error(e.toString())
         }
 
         return conn
