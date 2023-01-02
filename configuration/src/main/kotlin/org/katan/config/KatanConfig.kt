@@ -3,7 +3,7 @@ package org.katan.config
 class KatanConfig internal constructor() {
 
     companion object {
-        private const val DEFAULT_PORT = 8080
+        private const val DEFAULT_PORT = 80
         private const val DEFAULT_REDIS_USER = "default"
         private const val DEFAULT_DOCKER_HOST = "unix:///var/run/docker.sock"
         private const val DEFAULT_DOCKER_NET = "katan0"
