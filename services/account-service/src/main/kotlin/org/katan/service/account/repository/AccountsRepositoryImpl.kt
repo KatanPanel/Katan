@@ -36,9 +36,7 @@ internal class AccountEntity(id: EntityID<Long>) : LongEntity(id) {
     val avatar by AccountsTable.avatar
 }
 
-internal class AccountsRepositoryImpl(
-    private val database: Database
-) : AccountsRepository {
+internal class AccountsRepositoryImpl(private val database: Database) : AccountsRepository {
 
     init {
         transaction(db = database) {

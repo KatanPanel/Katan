@@ -1,18 +1,12 @@
 package org.katan.service.auth
 
 import com.auth0.jwt.JWT
-import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.exceptions.AlgorithmMismatchException
 import com.auth0.jwt.exceptions.JWTCreationException
-import com.auth0.jwt.exceptions.JWTVerificationException
-import com.auth0.jwt.exceptions.MissingClaimException
-import com.auth0.jwt.exceptions.SignatureVerificationException
-import com.auth0.jwt.exceptions.TokenExpiredException
-import com.auth0.jwt.interfaces.DecodedJWT
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
 import org.katan.crypto.SaltedHash
+import org.katan.model.account.Account
 import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.AuthenticationException
 import org.katan.model.security.InvalidCredentialsException
@@ -24,7 +18,7 @@ import kotlin.time.Duration.Companion.hours
 internal class JWTAuthServiceImpl(
     private val accountService: AccountService,
     private val saltedHash: SaltedHash
-) : AuthService, com.auth0.jwt.interfaces.JWTVerifier {
+) : AuthService {
 
     companion object {
         private val jwtTokenLifetime: Duration = 6.hours
@@ -32,24 +26,17 @@ internal class JWTAuthServiceImpl(
     }
 
     private val algorithm = Algorithm.HMAC256("michjaelJackson")
-    private val jwtVerifier: JWTVerifier = JWT.require(algorithm)
-        .withIssuer(JWT_ISSUER)
-        .build()
 
-    private fun validate(
-        input: CharArray,
-        hash: String
-    ): Boolean {
+    private fun validate(input: CharArray, hash: String): Boolean {
         if (input.isEmpty() && hash.isEmpty()) {
             return true
         }
 
-        // Catch any exception here to omit sensitive data
-        return try {
-            this.saltedHash.compare(input, hash)
-        } catch (e: Throwable) {
-            throw SecurityException("Could not decrypt data.", e)
-        }
+        return runCatching {
+            saltedHash.compare(input, hash)
+        }.recoverCatching { exception ->
+            throw SecurityException("Could not decrypt data.", exception)
+        }.getOrThrow()
     }
 
     override suspend fun auth(username: String, password: String): String {
@@ -73,34 +60,14 @@ internal class JWTAuthServiceImpl(
         }
     }
 
-    private fun verify0(token: String): DecodedJWT {
-        return try {
-            jwtVerifier.verify(token)
-        } catch (e: JWTVerificationException) {
-            val message = when (e) {
-                is TokenExpiredException -> "Token has expired"
-                is SignatureVerificationException -> "Invalid signature"
-                is AlgorithmMismatchException -> "Signature algorithm doesn't match"
-                is MissingClaimException -> "Missing JWT claim"
-                else -> null
-            }
-            throw AuthenticationException(message, e)
-        }
-    }
+    override suspend fun verify(subject: String?): Account? {
+        val id = subject?.toLongOrNull()
+            ?: throw AuthenticationException("Invalid account id: $subject")
 
-    override fun verify(token: String): DecodedJWT {
-        return try {
-            verify0(token)
-        } catch (e: AuthenticationException) {
-            throw JWTVerificationException("Access token verification failed", e)
-        }
-    }
-
-    override fun verify(jwt: DecodedJWT): DecodedJWT {
-        return try {
-            verify0(jwt.token)
-        } catch (e: AuthenticationException) {
-            throw JWTVerificationException("Access token verification failed", e)
-        }
+        return runCatching {
+            accountService.getAccount(id)
+        }.recoverCatching { exception ->
+            throw AuthenticationException("Failed to verify JWT credentials.", exception)
+        }.getOrNull()
     }
 }

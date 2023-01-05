@@ -8,8 +8,19 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val dockerInstanceServiceImplDI: Module = module {
-    single<UnitInstanceRepository> { UnitInstanceRepositoryImpl(get()) }
-    single<InstanceService>(createdAtStart = true) {
-        DockerInstanceServiceImpl(get(), get(), get(), get(), get(), get())
+    single<UnitInstanceRepository> {
+        UnitInstanceRepositoryImpl(
+            database = get()
+        )
+    }
+    single<InstanceService> {
+        DockerInstanceServiceImpl(
+            idService = get(),
+            networkService = get(),
+            dockerClient = get(),
+            unitInstanceRepository = get(),
+            config = get(),
+            eventsDispatcher = get()
+        )
     }
 }

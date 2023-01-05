@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.DatabaseConfig
 import org.jetbrains.exposed.sql.Slf4jSqlDebugLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.config.KatanConfig
+import java.sql.SQLException
 
 internal class PostgreSQLDatabaseServiceImpl(
     private val config: KatanConfig
@@ -35,8 +36,8 @@ internal class PostgreSQLDatabaseServiceImpl(
         try {
             // try to establish initial connection before a transaction
             transaction { !conn.connector().isClosed }
-        } catch (e: Throwable) {
-            logger.error("Failed to establish database connection.")
+        } catch (e: SQLException) {
+            logger.error("Failed to establish database connection.", e)
         }
 
         return conn

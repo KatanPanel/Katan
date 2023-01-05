@@ -8,20 +8,28 @@ import org.katan.http.server.HttpServer
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-object Katan : KoinComponent {
+class Katan : KoinComponent {
 
     private val logger: Logger = LogManager.getLogger(Katan::class.java)
     private val config: KatanConfig by inject()
-    private val httpServer: HttpServer = HttpServer(config.host, config.port)
+    private val httpServer: HttpServer = HttpServer(
+        host = config.host,
+        port = config.port
+    )
 
     fun start() {
+        setupShutdownHook()
+        httpServer.start()
+
+        // TODO check for some services availability, database connectivity, etc
+    }
+
+    private fun setupShutdownHook() {
         Runtime.getRuntime().addShutdownHook(
             Thread {
                 close()
             }
         )
-
-        httpServer.start()
     }
 
     private fun close() {

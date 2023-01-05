@@ -1,6 +1,6 @@
 package org.katan.service.account.di
 
-import org.katan.http.di.HttpModule
+import org.katan.http.importHttpModule
 import org.katan.service.account.AccountService
 import org.katan.service.account.AccountServiceImpl
 import org.katan.service.account.http.AccountHttpModule
@@ -9,8 +9,12 @@ import org.katan.service.account.repository.AccountsRepositoryImpl
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-public val accountServiceDI: Module = module {
-    single<AccountsRepository> { AccountsRepositoryImpl(get()) }
-    single<AccountService> { AccountServiceImpl(get(), get(), get()) }
-    single<HttpModule>(createdAtStart = true) { AccountHttpModule(get()) }
+val accountServiceDI: Module = module {
+    importHttpModule(::AccountHttpModule)
+    single<AccountsRepository> {
+        AccountsRepositoryImpl(database = get())
+    }
+    single<AccountService> {
+        AccountServiceImpl(idService = get(), accountsRepository = get(), saltedHash = get())
+    }
 }

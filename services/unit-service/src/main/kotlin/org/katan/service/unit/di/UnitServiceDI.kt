@@ -1,6 +1,6 @@
 package org.katan.service.unit.di
 
-import org.katan.http.di.HttpModule
+import org.katan.http.importHttpModule
 import org.katan.service.unit.LocalUnitServiceImpl
 import org.katan.service.unit.UnitService
 import org.katan.service.unit.http.UnitHttpModule
@@ -10,6 +10,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val unitServiceDI: Module = module {
+    importHttpModule(::UnitHttpModule)
     single<UnitRepository> {
         UnitRepositoryImpl(database = get())
     }
@@ -22,8 +23,5 @@ val unitServiceDI: Module = module {
             accountService = get(),
             blueprintService = get()
         )
-    }
-    single<HttpModule>(createdAtStart = true) {
-        UnitHttpModule(registry = get())
     }
 }

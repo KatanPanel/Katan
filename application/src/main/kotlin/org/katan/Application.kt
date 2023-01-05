@@ -52,7 +52,7 @@ private object Application {
         }
 
         runCatching {
-            Katan.start()
+            Katan().start()
         }.onFailure { exception ->
             logger.error("Failed to start Katan.", exception)
         }

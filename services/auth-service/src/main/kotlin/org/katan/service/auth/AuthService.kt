@@ -1,6 +1,10 @@
 package org.katan.service.auth
 
-public interface AuthService {
+import org.katan.model.account.Account
 
-    public suspend fun auth(username: String, password: String): String
+interface AuthService {
+
+    suspend fun auth(username: String, password: String): String
+
+    suspend fun verify(subject: String?): Account?
 }

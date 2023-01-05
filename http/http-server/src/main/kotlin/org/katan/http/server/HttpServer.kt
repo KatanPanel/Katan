@@ -14,17 +14,18 @@ import kotlinx.coroutines.CoroutineScope
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
-import org.katan.http.di.HttpModuleRegistry
+import org.katan.http.HttpModuleRegistry
 import org.katan.http.installDefaultFeatures
 import org.katan.http.server.routes.serverInfo
 import org.katan.http.websocket.WebSocketManager
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import org.koin.core.component.inject
 
 class HttpServer(
     private val host: String,
     private val port: Int
-) : CoroutineScope by CoroutineScope(CoroutineName("HttpServer")), KoinComponent {
+) : CoroutineScope by CoroutineScope(CoroutineName(HttpServer::class.java.name)), KoinComponent {
 
     companion object {
         private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
@@ -36,7 +37,6 @@ class HttpServer(
     }
 
     private val config by inject<KatanConfig>()
-    private val moduleRegistry by inject<HttpModuleRegistry>()
     private val webSocketManager by inject<WebSocketManager>()
     private var shutdownPending by atomic(false)
     private val engine: ApplicationEngine = createEngine()
@@ -60,10 +60,7 @@ class HttpServer(
         if (shutdownPending) return
 
         shutdownPending = true
-        engine.stop(
-            gracePeriodMillis = STOP_GRACE_PERIOD_MILLIS,
-            timeoutMillis = TIMEOUT_MILLIS
-        )
+        engine.stop(STOP_GRACE_PERIOD_MILLIS, TIMEOUT_MILLIS)
         shutdownPending = false
     }
 
@@ -77,7 +74,7 @@ class HttpServer(
     }
 
     private fun registerModules(app: Application) {
-        for (module in moduleRegistry) {
+        for (module in get<HttpModuleRegistry>().modules) {
             module.install(app)
             for ((op, handler) in module.webSocketHandlers())
                 webSocketManager.register(op, handler)

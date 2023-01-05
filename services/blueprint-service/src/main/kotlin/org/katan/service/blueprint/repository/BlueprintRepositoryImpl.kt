@@ -33,9 +33,7 @@ internal class BlueprintEntityImpl(id: EntityID<Long>) : LongEntity(id), Bluepri
     override fun getId(): Long = id.value
 }
 
-class BlueprintRepositoryImpl(
-    private val database: Database
-) : BlueprintRepository {
+internal class BlueprintRepositoryImpl(private val database: Database) : BlueprintRepository {
 
     init {
         transaction(db = database) {

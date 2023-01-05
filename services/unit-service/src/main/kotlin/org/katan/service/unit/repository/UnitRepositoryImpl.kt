@@ -20,9 +20,7 @@ import org.katan.service.unit.repository.entity.UnitAuditLogEntryEntity
 import org.katan.service.unit.repository.entity.UnitEntityImpl
 import org.katan.service.unit.repository.entity.UnitTable
 
-internal class UnitRepositoryImpl(
-    private val database: Database
-) : UnitRepository {
+internal class UnitRepositoryImpl(private val database: Database) : UnitRepository {
 
     init {
         transaction(db = database) {
