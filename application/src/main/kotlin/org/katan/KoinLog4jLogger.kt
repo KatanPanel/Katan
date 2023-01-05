@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig.Companion.DEVELOPMENT
 import org.katan.config.KatanConfig.Companion.ENV
 import org.koin.core.Koin
+import org.koin.core.logger.Level
 import org.koin.core.logger.MESSAGE
 import org.koin.core.logger.Level as KoinLogLevel
 import org.koin.core.logger.Logger as KoinLogger
@@ -34,7 +35,7 @@ internal class KoinLog4jLogger : KoinLogger(logLevel) {
             }
     }
 
-    override fun log(level: KoinLogLevel, msg: MESSAGE) {
+    override fun display(level: Level, msg: MESSAGE) {
         backingLogger.log(transformLevel(level), msg)
     }
 

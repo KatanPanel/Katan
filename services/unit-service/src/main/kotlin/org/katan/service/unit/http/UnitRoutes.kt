@@ -19,7 +19,8 @@ internal class UnitRoutes {
     @Resource("{unit-id}")
     internal class ById(
         @Suppress("UNUSED") val parent: UnitRoutes = UnitRoutes(),
-        @field:MustBeSnowflake @SerialName("unit-id")
+        @field:MustBeSnowflake
+        @SerialName("unit-id")
         val unitId: String
     )
 
@@ -27,7 +28,8 @@ internal class UnitRoutes {
     @Resource("{unit-id}/audit-logs")
     internal class GetUnitAuditLogs(
         @Suppress("UNUSED") val parent: UnitRoutes = UnitRoutes(),
-        @field:MustBeSnowflake @SerialName("unit-id")
+        @field:MustBeSnowflake
+        @SerialName("unit-id")
         val unitId: String
     )
 }

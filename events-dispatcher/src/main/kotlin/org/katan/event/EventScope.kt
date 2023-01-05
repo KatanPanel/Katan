@@ -15,7 +15,9 @@ interface EventScope : CoroutineScope {
     /**
      * Dispatches an event.
      */
-    fun dispatch(event: Any)
+    fun dispatch(
+        event: Any
+    )
 
     /**
      * Listens as Flow for an event of the given type.

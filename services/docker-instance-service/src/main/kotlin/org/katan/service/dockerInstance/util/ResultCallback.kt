@@ -69,7 +69,9 @@ private class FlowResultCallback<T, R>(
             error?.let { cause ->
                 if (cause !is CancellationException) {
                     CancellationException(cause)
-                } else cause
+                } else {
+                    cause
+                }
             }
         )
     }

@@ -190,11 +190,13 @@ internal class HostFSService(
 
         val size = if (!isDirectory) {
             length()
-        } else Files.walk(absPath).asSequence()
-            .map { it.toFile() }
-            .filter { it.isFile && it.exists() }
-            .map { it.length() }
-            .sum()
+        } else {
+            Files.walk(absPath).asSequence()
+                .map { it.toFile() }
+                .filter { it.isFile && it.exists() }
+                .map { it.length() }
+                .sum()
+        }
 
         val file = FileImpl(
             name = name,
