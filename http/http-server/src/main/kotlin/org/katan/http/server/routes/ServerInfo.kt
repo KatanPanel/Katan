@@ -11,7 +11,11 @@ import org.katan.http.server.dto.ServerInfoNetworkResponse
 import org.katan.http.server.dto.ServerInfoResponse
 import org.koin.ktor.ext.inject
 
-private fun buildProperty(name: String) = System.getProperty("org.katan.build.$name")
+private fun buildProperty(name: String): String {
+    return runCatching {
+        System.getProperty("org.katan.build.$name")
+    }.getOrNull().orEmpty()
+}
 
 internal fun Route.serverInfo() {
     val config by inject<KatanConfig>()

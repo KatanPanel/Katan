@@ -8,14 +8,11 @@ import org.katan.http.server.HttpServer
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class Katan : KoinComponent {
+object Katan : KoinComponent {
 
-    companion object {
-        val logger: Logger = LogManager.getLogger(Katan::class.java)
-    }
-
+    private val logger: Logger = LogManager.getLogger(Katan::class.java)
     private val config: KatanConfig by inject()
-    private val httpServer: HttpServer by lazy { HttpServer(config.port) }
+    private val httpServer: HttpServer = HttpServer(config.host, config.port)
 
     fun start() {
         Runtime.getRuntime().addShutdownHook(

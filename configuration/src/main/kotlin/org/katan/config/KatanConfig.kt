@@ -3,14 +3,22 @@ package org.katan.config
 class KatanConfig internal constructor() {
 
     companion object {
+        private const val DEFAULT_HOST = "0.0.0.0"
         private const val DEFAULT_PORT = 80
         private const val DEFAULT_REDIS_USER = "default"
         private const val DEFAULT_DOCKER_HOST = "unix:///var/run/docker.sock"
         private const val DEFAULT_DOCKER_NET = "katan0"
         private const val DEFAULT_DB_HOST = "localhost"
+
+        const val ENV = "ENV"
+        const val DEVELOPMENT = "dev"
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
+    val env: String = env(ENV) ?: DEVELOPMENT
+
     val nodeId: Int = env("NODE_ID")?.toIntOrNull() ?: 0
+    val host: String = env("HOST") ?: DEFAULT_HOST
     val port: Int = env("PORT")?.toIntOrNull() ?: DEFAULT_PORT
 
     val dockerHost: String = env("DOCKER_HOST") ?: DEFAULT_DOCKER_HOST
@@ -24,6 +32,8 @@ class KatanConfig internal constructor() {
     val redisPassword: String = env("REDIS_PASS").orEmpty()
     val redisHost: String? = env("REDIS_HOST")
     val redisPort: String? = env("REDIS_PORT")
+
+    val isDevelopment: Boolean get() = env == DEVELOPMENT
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun env(name: String): String? {

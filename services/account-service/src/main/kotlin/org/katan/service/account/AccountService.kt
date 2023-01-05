@@ -2,15 +2,15 @@ package org.katan.service.account
 
 import org.katan.model.account.Account
 
-public interface AccountService {
+interface AccountService {
 
-    public suspend fun getAccount(id: Long): Account?
+    suspend fun getAccount(id: Long): Account?
 
-    public suspend fun getAccount(username: String): Account?
+    suspend fun getAccount(username: String): Account?
 
-    public suspend fun getAccountAndHash(username: String): Pair<Account, String>?
+    suspend fun getAccountAndHash(username: String): Pair<Account, String>?
 
-    public suspend fun createAccount(username: String, email: String, password: String): Account
+    suspend fun createAccount(username: String, email: String, password: String): Account
 
-    public suspend fun deleteAccount(id: Long)
+    suspend fun deleteAccount(id: Long)
 }

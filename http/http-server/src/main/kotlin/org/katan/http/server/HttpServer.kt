@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.katan.config.KatanConfig
 import org.katan.http.di.HttpModuleRegistry
 import org.katan.http.installDefaultFeatures
 import org.katan.http.server.routes.serverInfo
@@ -21,28 +22,27 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class HttpServer(
+    private val host: String,
     private val port: Int
 ) : CoroutineScope by CoroutineScope(CoroutineName("HttpServer")), KoinComponent {
 
     companion object {
         private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
+
+        private const val STOP_GRACE_PERIOD_MILLIS: Long = 1000
+        private const val TIMEOUT_MILLIS: Long = 5000
+
+        private const val KTOR_DEVELOPMENT_PROPERTY = "io.ktor.development"
     }
 
-    private val httpModuleRegistry by inject<HttpModuleRegistry>()
+    private val config by inject<KatanConfig>()
+    private val moduleRegistry by inject<HttpModuleRegistry>()
     private val webSocketManager by inject<WebSocketManager>()
+    private var shutdownPending by atomic(false)
+    private val engine: ApplicationEngine = createEngine()
 
     init {
-        System.setProperty("io.ktor.development", "true")
-    }
-
-    private var shutdownPending by atomic(false)
-
-    private val engine: ApplicationEngine by lazy {
-        embeddedServer(
-            factory = CIO,
-            module = { setupEngine(this) },
-            connectors = arrayOf(createHttpConnector())
-        )
+        System.setProperty(KTOR_DEVELOPMENT_PROPERTY, config.isDevelopment.toString())
     }
 
     fun start() {
@@ -51,7 +51,7 @@ class HttpServer(
         }
 
         for (connector in engine.environment.connectors)
-            logger.info("Listening on ${connector.host}:${connector.port} (${connector.type.name.lowercase()})")
+            logger.info("Listening on {}", connector)
 
         engine.start(wait = true)
     }
@@ -61,31 +61,37 @@ class HttpServer(
 
         shutdownPending = true
         engine.stop(
-            gracePeriodMillis = 1000,
-            timeoutMillis = 5000
+            gracePeriodMillis = STOP_GRACE_PERIOD_MILLIS,
+            timeoutMillis = TIMEOUT_MILLIS
         )
         shutdownPending = false
     }
 
-    private fun setupEngine(app: Application) {
-        app.installDefaultFeatures()
-        app.setupWebsocket()
-        app.routing { serverInfo() }
-        for (module in httpModuleRegistry) {
+    private fun setupEngine(app: Application) = with(app) {
+        installDefaultFeatures()
+        routing {
+            webSocket { webSocketManager.connect(this) }
+            serverInfo()
+        }
+        registerModules(app)
+    }
+
+    private fun registerModules(app: Application) {
+        for (module in moduleRegistry) {
             module.install(app)
             for ((op, handler) in module.webSocketHandlers())
                 webSocketManager.register(op, handler)
         }
     }
 
-    private fun Application.setupWebsocket() = routing {
-        webSocket {
-            webSocketManager.connect(this)
-        }
-    }
-
-    private fun createHttpConnector() = EngineConnectorBuilder().apply {
-        host = "0.0.0.0"
-        port = this@HttpServer.port
-    }
+    private fun createEngine() = embeddedServer(
+        factory = CIO,
+        module = { setupEngine(this) },
+        connectors = arrayOf(
+            EngineConnectorBuilder().apply {
+                host = this@HttpServer.host
+                port = this@HttpServer.port
+            }
+        )
+    )
 }
