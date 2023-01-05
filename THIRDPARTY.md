@@ -1,9 +1,7 @@
 # Third-Party Software
 This document contains a list of third-party libraries that Katan uses.
 
-* [gRPC](https://grpc.io). Apache License 2.0.
 * [Koin](https://github.com/InsertKoinIO/koin). Apache License 2.0.
-* [Google Protocol Buffers](https://github.com/protocolbuffers/protobuf). Google License.
 * [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization). Apache License 2.0.
 * [kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines). Apache License 2.0.
 * [kotlinx.datetime](https://github.com/Kotlin/kotlinx-datetime). Apache License 2.0.

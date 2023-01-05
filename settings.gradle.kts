@@ -12,8 +12,6 @@ pluginManagement {
 }
 
 include(
-    "grpc:stub",
-    "grpc:protos",
     "model",
     "application",
     "configuration",
