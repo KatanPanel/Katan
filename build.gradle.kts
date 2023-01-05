@@ -18,10 +18,10 @@ subprojects {
     group = "org.katan"
     version = "0.1.0-SNAPSHOT"
 
-    apply(plugin = rootProject.libs.plugins.kotlin.jvm.get().pluginId)
-    apply(plugin = rootProject.libs.plugins.kotlin.serialization.get().pluginId)
-    apply(plugin = rootProject.libs.plugins.kotlin.atomicfu.get().pluginId)
-    apply(plugin = rootProject.libs.plugins.spotless.get().pluginId)
+    apply(plugin = libs.plugins.kotlin.jvm.get().pluginId)
+    apply(plugin = libs.plugins.kotlin.serialization.get().pluginId)
+    apply(plugin = libs.plugins.kotlin.atomicfu.get().pluginId)
+    apply(plugin = libs.plugins.spotless.get().pluginId)
 
     repositories {
         mavenCentral()
@@ -30,14 +30,14 @@ subprojects {
     dependencies {
         implementation(kotlin("stdlib"))
         implementation(kotlin("reflect"))
-        implementation(rootProject.libs.ktx.coroutines.core)
-        implementation(rootProject.libs.ktx.serialization.core)
-        implementation(rootProject.libs.koin.core)
-        implementation(rootProject.libs.ktx.datetime)
-        implementation(rootProject.libs.log4j.core)
-        compileOnly(rootProject.libs.ktx.atomicfu)
-        runtimeOnly(rootProject.libs.ktx.atomicfu)
-        testImplementation(rootProject.libs.kotlin.test)
+        implementation(libs.ktx.coroutines.core)
+        implementation(libs.ktx.serialization.core)
+        implementation(libs.koin.core)
+        implementation(libs.ktx.datetime)
+        implementation(libs.log4j.core)
+        compileOnly(libs.ktx.atomicfu)
+        runtimeOnly(libs.ktx.atomicfu)
+        testImplementation(libs.kotlin.test)
     }
 
     configure<SpotlessExtension> {
@@ -48,11 +48,6 @@ subprojects {
         kotlinGradle {
             ktlint()
         }
-    }
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 
     tasks {
