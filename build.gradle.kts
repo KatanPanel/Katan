@@ -1,7 +1,6 @@
 @file:Suppress("UnstableApiUsage", "DSL_SCOPE_VIOLATION")
 
 import com.diffplug.gradle.spotless.SpotlessExtension
-import com.gorylenko.GitPropertiesPluginExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -9,7 +8,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kotlin.atomicfu) apply false
     alias(libs.plugins.spotless) apply false
-    id("com.gorylenko.gradle-git-properties") version "2.4.1"
 }
 
 repositories {
@@ -64,10 +62,4 @@ subprojects {
             }
         }
     }
-}
-
-configure<GitPropertiesPluginExtension> {
-    dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-    gitPropertiesName = "build.properties"
-    gitPropertiesResourceDir.set(file("${project.rootDir}/application/build/resources/main"))
 }
