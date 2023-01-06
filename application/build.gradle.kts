@@ -10,7 +10,6 @@ application {
 }
 
 dependencies {
-    implementation(libs.jedis)
     implementation(projects.crypto)
     implementation(projects.configuration)
     implementation(projects.eventsDispatcher)
@@ -29,6 +28,8 @@ dependencies {
     implementation(projects.services.databaseService)
     implementation(projects.services.hostFsService)
     implementation(projects.services.blueprintService)
+    implementation(libs.jedis)
+    implementation(libs.exposed.core)
 }
 
 tasks {

@@ -1,5 +1,6 @@
 package org.katan
 
+import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.config.di.configDI
@@ -51,10 +52,15 @@ private object Application {
             )
         }
 
-        runCatching {
-            Katan().start()
-        }.onFailure { exception ->
-            logger.error("Failed to start Katan.", exception)
+        val katan = Katan()
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                katan.close()
+            }
+        )
+
+        runBlocking {
+            katan.start()
         }
     }
 }
