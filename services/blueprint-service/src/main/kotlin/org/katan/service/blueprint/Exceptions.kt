@@ -16,7 +16,7 @@ class BlueprintNotFoundException : BlueprintException(), WithHttpError {
     override val status get() = BadRequest
 }
 
-class NoMatchingProviderException : BlueprintException()
+class NoBlueprintMatchingProviderException : BlueprintException()
 
 class RemoteRawBlueprintNotFound : BlueprintException(), WithHttpError {
 

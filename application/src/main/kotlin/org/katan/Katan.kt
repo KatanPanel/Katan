@@ -17,7 +17,10 @@ import kotlin.time.measureTime
 
 internal class Katan : KoinComponent {
 
-    private val logger: Logger = LogManager.getLogger(Katan::class.java)
+    companion object {
+        private val logger: Logger = LogManager.getLogger(Katan::class.java)
+    }
+
     private val config: KatanConfig by inject()
     private val httpServer: HttpServer = HttpServer(
         host = config.host,

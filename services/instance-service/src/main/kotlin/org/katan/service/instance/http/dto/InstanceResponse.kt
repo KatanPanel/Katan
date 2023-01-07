@@ -25,7 +25,7 @@ data class InstanceResponse internal constructor(
         updatePolicy = instance.updatePolicy.id,
         containerId = instance.containerId,
         status = instance.status.value,
-        blueprintId = instance.blueprintId?.toString(),
+        blueprintId = instance.blueprintId.toString(),
         connection = instance.connection?.let(::InstanceConnectionResponse),
         runtime = instance.runtime?.let(::InstanceRuntimeResponse)
     )
