@@ -1,14 +1,13 @@
 package org.katan.service.auth.http.routes
 
 import io.ktor.server.application.call
-import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.routing.Route
 import jakarta.validation.Validator
 import org.katan.http.response.HttpError
+import org.katan.http.response.receiveValidating
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
-import org.katan.http.response.validateOrThrow
 import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.InvalidCredentialsException
 import org.katan.service.auth.AuthService
@@ -22,17 +21,13 @@ internal fun Route.login() {
     val validator by inject<Validator>()
 
     post<AuthResource.Login> {
-        val req = call.receive<LoginRequest>()
-        validator.validateOrThrow(req)
-
+        val req = call.receiveValidating<LoginRequest>(validator)
         val token = try {
             authService.auth(req.username!!, req.password!!)
-        } catch (e: Throwable) {
-            when (e) {
-                is AccountNotFoundException -> respondError(HttpError.UnknownAccount)
-                is InvalidCredentialsException -> respondError(HttpError.AccountInvalidCredentials)
-                else -> throw e
-            }
+        } catch (_: AccountNotFoundException) {
+            respondError(HttpError.UnknownAccount)
+        } catch (_: InvalidCredentialsException) {
+            respondError(HttpError.AccountInvalidCredentials)
         }
 
         respond(LoginResponse(token))
