@@ -81,7 +81,6 @@ internal class DockerInstanceServiceImpl(
             throw InstanceUnreachableRuntimeException()
         }
 
-        logger.info("fetch instance lolgs @ ${instance.containerId}")
         // TODO handle docker client calls properly
         return callbackFlow {
             dockerClient.logContainerCmd(instance.containerId!!)
@@ -342,7 +341,7 @@ internal class DockerInstanceServiceImpl(
         fallbackInstance: UnitInstance? = null
     ): UnitInstance {
         var finalStatus: InstanceStatus = status
-        logger.info("Connecting $instanceId to ${config.dockerNetwork}...")
+        logger.debug("Connecting $instanceId to ${config.dockerNetwork}...")
 
         val connection = try {
             networkService.connect(
@@ -358,7 +357,7 @@ internal class DockerInstanceServiceImpl(
             null
         }
 
-        logger.info("Connected $instanceId to ${config.dockerNetwork} @ $connection")
+        logger.debug("Connected $instanceId to ${config.dockerNetwork} @ $connection")
 
         // fallback instance can set if instance was not created asynchronously
         if (fallbackInstance == null) {
@@ -398,7 +397,7 @@ internal class DockerInstanceServiceImpl(
             onUpdate(this)
             updateInstance(instanceId, this)
         }
-        logger.info("Image pull started")
+        logger.debug("Image pull started")
     }.onCompletion { error ->
         val status =
             if (error == null) InstanceStatus.ImagePullCompleted else InstanceStatus.ImagePullFailed
@@ -410,9 +409,9 @@ internal class DockerInstanceServiceImpl(
 
         onUpdate(status)
         updateInstance(instanceId, status)
-        logger.info("Image pull completed")
+        logger.debug("Image pull completed")
     }.collect {
-        logger.info("Pulling ($image): $it")
+        logger.debug("Pulling ($image): $it")
     }
 
     private fun generateContainerName(id: Long, name: String?): String {
@@ -437,11 +436,10 @@ internal class DockerInstanceServiceImpl(
         name: String,
         blueprint: Blueprint
     ): String {
-        logger.info("Creating container with ($image) to $instanceId...")
+        logger.debug("Creating container with ($image) to $instanceId...")
         return dockerClient.createContainerCmd(image)
             .withName(name)
             .withTty(false)
-            .withEnv(mapOf("EULA" to "true").map { (k, v) -> "$k=$v" })
             .withLabels(createDefaultContainerLabels(instanceId, blueprint))
             .exec().id
     }
