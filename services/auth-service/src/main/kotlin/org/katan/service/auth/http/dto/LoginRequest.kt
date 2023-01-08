@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class LoginRequest(
-    @field:NotBlank(message = "Username must be provided.") val username: String? = null,
-    @field:NotBlank(message = "Password must be provided.") val password: String? = null
+    @field:NotBlank(message = "Username must be provided") val username: String = "",
+    @field:NotBlank(message = "Password must be provided") val password: String = ""
 )

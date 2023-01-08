@@ -35,41 +35,36 @@ class WebSocketManager : CoroutineScope by CoroutineScope(
 
     suspend fun connect(connection: DefaultWebSocketServerSession) {
         val session = WebSocketSession(generatedId.getAndIncrement(), connection)
-        attach(session)
-        logger.info("New WebSocket session ${session.id} connected @ ${session.connection.call.request.local.remoteHost}")
+        sessions.add(session)
+        logger.debug(
+            "WebSocket session {} connected @ {}",
+            session.id,
+            session.connection.call.request.local.remoteHost
+        )
 
         try {
             for (frame in connection.incoming) {
                 if (frame !is Frame.Text) continue
 
-                val packet = try {
-                    json.decodeFromString<WebSocketPacket>(frame.readText())
+                try {
+                    val packet: WebSocketPacket = json.decodeFromString(frame.readText())
+                    packetReceived(packet, session)
                 } catch (e: SerializationException) {
-                    logger.error("Failed to read WebSocket packet.", e)
-                    continue
+                    logger.error("Failed to handle WebSocket packet", e)
                 }
-
-                logger.info("Received packet: $packet")
-
-                val op = packet.op
-                logger.info("Op: $op")
-
-                val data = packet.data
-                logger.info("data: $data")
-                packetReceived(packet, session)
             }
+        } catch (e: ClosedReceiveChannelException) {
+            logger.debug("WebSocket session receive channel closed")
         } catch (e: Throwable) {
-            error(e, connection)
+            val closeReason = session.connection.closeReason.await()
+            logger.error("WebSocket session handling uncaught error: $closeReason", e)
         } finally {
             logger.debug("WebSocket session ${session.id} closed")
             detach(session)
         }
     }
 
-    private suspend fun packetReceived(
-        packet: WebSocketPacket,
-        session: WebSocketSession
-    ) {
+    private suspend fun packetReceived(packet: WebSocketPacket, session: WebSocketSession) {
         val context = WebSocketPacketContext(packet, session)
 
         handlers[packet.op]?.forEach { handler ->
@@ -79,47 +74,22 @@ class WebSocketManager : CoroutineScope by CoroutineScope(
         }
     }
 
-    private suspend fun error(error: Throwable, session: DefaultWebSocketServerSession) {
-        if (error is ClosedReceiveChannelException) {
-            logger.debug("WebSocket session receive channel closed: ${session.closeReason.await()}")
-            return
-        }
-
-        logger.error(
-            "WebSocket session handling uncaught error: ${session.closeReason.await()}",
-            error
-        )
-    }
-
-    private fun attach(session: WebSocketSession) {
-        sessions.add(session)
-    }
-
     private suspend fun detach(session: WebSocketSession) {
         try {
-            close(session)
+            session.connection.close()
         } catch (_: ClosedChannelException) {
         }
 
         sessions.remove(session)
     }
 
-    private suspend fun close(session: WebSocketSession) {
-        session.connection.close()
-    }
-
     fun register(op: WebSocketOp, handler: WebSocketPacketEventHandler) {
-        val name = "$op-${handler::class.simpleName ?: "unknown-websocket-handler"}"
-        val job = Job().apply {
-            invokeOnCompletion { exception ->
-                logger.debug(
-                    "WebSocket coroutine scope \"${this[CoroutineName]}\" completed",
-                    exception
-                )
-            }
-        }
-
-        handler.coroutineContext = job + CoroutineName(name)
+        handler.coroutineContext = Job() + CoroutineName(
+            "%s-%s".format(
+                op,
+                handler::class.simpleName ?: "unknown-websocket-handler"
+            )
+        )
         handlers.computeIfAbsent(op) { mutableListOf() }.add(handler)
     }
 }

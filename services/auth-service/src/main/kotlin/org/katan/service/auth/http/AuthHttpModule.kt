@@ -11,6 +11,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
+import io.ktor.server.routing.Routing
 import io.ktor.server.routing.routing
 import org.katan.http.HttpModule
 import org.katan.http.response.HttpError
@@ -25,18 +26,23 @@ import org.koin.ktor.ext.inject
 internal class AuthHttpModule : HttpModule() {
 
     override fun install(app: Application) {
-        app.installAuthentication()
-        app.routing {
-            intercept(ApplicationCallPipeline.Call) {
-                call.principal<AccountPrincipal>()?.account?.let {
-                    call.attributes.put(AccountKey, it)
+        with(app) {
+            installAuthentication()
+            routing {
+                addAccountAttributeIfNeeded()
+                login()
+                authenticate {
+                    verify()
                 }
             }
+        }
+    }
 
-            login()
-            authenticate {
-                verify()
-            }
+    private fun Routing.addAccountAttributeIfNeeded() {
+        intercept(ApplicationCallPipeline.Call) {
+            val account = call.principal<AccountPrincipal>()?.account
+                ?: return@intercept
+            call.attributes.put(AccountKey, account)
         }
     }
 

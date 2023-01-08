@@ -23,9 +23,9 @@ internal fun Route.login() {
     post<AuthResource.Login> {
         val req = call.receiveValidating<LoginRequest>(validator)
         val token = try {
-            authService.auth(req.username!!, req.password!!)
+            authService.auth(req.username, req.password)
         } catch (_: AccountNotFoundException) {
-            respondError(HttpError.UnknownAccount)
+            respondError(HttpError.AccountInvalidCredentials)
         } catch (_: InvalidCredentialsException) {
             respondError(HttpError.AccountInvalidCredentials)
         }
