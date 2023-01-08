@@ -18,7 +18,7 @@ val blueprintServiceDI: Module = module {
     single<BlueprintResourceProvider> {
         CombinedBlueprintResourceProvider(
             listOf(
-                GithubBlueprintResourceProvider(get())
+                GithubBlueprintResourceProvider(httpClient = get())
             )
         )
     }

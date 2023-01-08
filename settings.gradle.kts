@@ -33,5 +33,5 @@ include(
     "services:cache-service",
     "services:fs-service",
     "services:host-fs-service",
-    "services:blueprint-service"
+    "services:blueprint-service",
 )

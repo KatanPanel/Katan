@@ -67,7 +67,7 @@ internal class JWTAuthServiceImpl(
         return runCatching {
             accountService.getAccount(id)
         }.recoverCatching { exception ->
-            throw AuthenticationException("Failed to verify JWT credentials.", exception)
+            throw AuthenticationException("Failed to verify JWT credentials", exception)
         }.getOrNull()
     }
 }

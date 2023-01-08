@@ -5,5 +5,9 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val dockerClientDI: Module = module {
-    single { DockerClientInitializer(get()).init() }
+    single {
+        DockerClientInitializer(
+            config = get()
+        ).init()
+    }
 }
