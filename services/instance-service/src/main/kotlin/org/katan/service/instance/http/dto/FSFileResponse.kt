@@ -3,8 +3,8 @@ package org.katan.service.instance.http.dto
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.katan.model.fs.Directory
-import org.katan.model.fs.VirtualFile
+import org.katan.model.io.Directory
+import org.katan.model.io.VirtualFile
 
 @Serializable
 data class FSSingleFileResponse(

@@ -8,9 +8,9 @@ import org.katan.http.response.HttpError
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
-import org.katan.model.fs.BucketNotFoundException
-import org.katan.model.fs.Directory
-import org.katan.model.fs.NotAFileException
+import org.katan.model.io.BucketNotFoundException
+import org.katan.model.io.Directory
+import org.katan.model.io.NotAFileException
 import org.katan.service.fs.FSService
 import org.katan.service.instance.InstanceNotFoundException
 import org.katan.service.instance.InstanceService

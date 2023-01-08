@@ -7,7 +7,7 @@ import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceRuntimeMount
 import org.katan.model.instance.InstanceRuntimeSingleNetwork
 import org.katan.model.instance.UnitInstance
-import org.katan.model.net.Connection
+import org.katan.model.io.HostPort
 
 @Serializable
 data class InstanceResponse internal constructor(
@@ -73,10 +73,10 @@ data class InstanceRuntimeNetworkResponse internal constructor(
 @Serializable
 data class InstanceConnectionResponse internal constructor(
     val host: String,
-    val port: Int
+    val port: Short
 ) {
 
-    internal constructor(connection: Connection) : this(
+    internal constructor(connection: HostPort) : this(
         host = connection.host,
         port = connection.port
     )

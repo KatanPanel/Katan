@@ -1,6 +1,6 @@
 package org.katan.model.instance
 
-import org.katan.model.net.Connection
+import org.katan.model.io.HostPort
 import org.katan.model.unit.ImageUpdatePolicy
 
 interface UnitInstance {
@@ -12,7 +12,7 @@ interface UnitInstance {
 
     val updatePolicy: ImageUpdatePolicy
 
-    val connection: Connection?
+    val connection: HostPort?
 
     val runtime: InstanceRuntime?
 

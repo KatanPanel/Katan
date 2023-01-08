@@ -25,8 +25,6 @@ include(
     "services:id-service",
     "services:unit-service",
     "services:instance-service",
-    "services:docker-instance-service",
-    "services:docker-network-service",
     "services:account-service",
     "services:database-service",
     "services:network-service",

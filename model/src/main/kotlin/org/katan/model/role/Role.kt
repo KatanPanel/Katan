@@ -1,6 +1,6 @@
 package org.katan.model.role
 
-import org.katan.model.permission.PermissionsHolder
+import org.katan.model.PermissionsHolder
 
 /**
  * Roles are a set of permissions attached to a group of accounts.

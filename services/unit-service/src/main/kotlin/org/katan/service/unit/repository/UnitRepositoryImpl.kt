@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
-import org.katan.model.internal.ifNotEmpty
+import org.katan.model.ifNotEmpty
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.auditlog.AuditLogEntry
 import org.katan.service.unit.model.AuditLogChangeImpl

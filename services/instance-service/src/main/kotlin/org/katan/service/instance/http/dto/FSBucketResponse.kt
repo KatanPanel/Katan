@@ -3,7 +3,7 @@ package org.katan.service.instance.http.dto
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.katan.model.fs.Bucket
+import org.katan.model.io.Bucket
 
 @Serializable
 internal data class FSBucketResponse(

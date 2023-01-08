@@ -9,8 +9,8 @@ import kotlinx.serialization.hocon.Hocon
 import kotlinx.serialization.hocon.decodeFromConfig
 import org.katan.model.blueprint.Blueprint
 import org.katan.model.blueprint.RawBlueprint
-import org.katan.model.fs.FileNotAccessibleException
-import org.katan.model.fs.VirtualFile
+import org.katan.model.io.FileNotAccessibleException
+import org.katan.model.io.VirtualFile
 import org.katan.service.blueprint.model.BlueprintImpl
 import org.katan.service.blueprint.model.ImportedBlueprint
 import org.katan.service.blueprint.model.RawBlueprintImpl

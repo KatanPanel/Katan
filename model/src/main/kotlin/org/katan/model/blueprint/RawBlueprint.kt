@@ -41,10 +41,6 @@ interface RawBlueprintInstanceSettings {
 }
 
 fun RawBlueprint.normalizedIcon(): String? {
-    if (remote.origin == null) {
-        return icon
-    }
-
     return icon?.let {
         val path = Paths.get(it)
         if (path.isAbsolute) {
@@ -56,6 +52,6 @@ fun RawBlueprint.normalizedIcon(): String? {
             relative = relative.substring(1)
         }
 
-        return remote.origin!! + relative
+        return remote.origin + relative
     }
 }

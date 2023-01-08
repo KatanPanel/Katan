@@ -1,7 +1,7 @@
 package org.katan.service.fs
 
-import org.katan.model.fs.Bucket
-import org.katan.model.fs.VirtualFile
+import org.katan.model.io.Bucket
+import org.katan.model.io.VirtualFile
 import java.io.File
 
 interface FSService {

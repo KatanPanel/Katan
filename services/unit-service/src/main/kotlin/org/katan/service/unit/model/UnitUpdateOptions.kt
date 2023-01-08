@@ -1,6 +1,6 @@
 package org.katan.service.unit.model
 
-import org.katan.model.internal.Wrapper
+import org.katan.model.Wrapper
 import org.katan.model.unit.UnitStatus
 
 public data class UnitUpdateOptions(

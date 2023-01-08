@@ -22,8 +22,6 @@ dependencies {
     implementation(projects.services.authService)
     implementation(projects.services.networkService)
     implementation(projects.services.instanceService)
-    implementation(projects.services.dockerNetworkService)
-    implementation(projects.services.dockerInstanceService)
     implementation(projects.services.cacheService)
     implementation(projects.services.databaseService)
     implementation(projects.services.hostFsService)

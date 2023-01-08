@@ -1,7 +1,7 @@
 package org.katan.service.fs.impl
 
 import kotlinx.datetime.Instant
-import org.katan.model.fs.VirtualFile
+import org.katan.model.io.VirtualFile
 
 public data class FileImpl(
     override val name: String,

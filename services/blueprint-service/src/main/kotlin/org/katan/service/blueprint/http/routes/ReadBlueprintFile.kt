@@ -11,8 +11,8 @@ import io.ktor.server.routing.Route
 import jakarta.validation.Validator
 import org.katan.http.response.respond
 import org.katan.http.response.validateOrThrow
-import org.katan.model.fs.FileNotFoundException
-import org.katan.model.fs.extension
+import org.katan.model.io.FileNotFoundException
+import org.katan.model.io.extension
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.blueprint.http.BlueprintRoutes
 import org.katan.service.blueprint.http.dto.ReadBlueprintFileResponse

@@ -18,13 +18,13 @@ import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.instance.UnitInstance
-import org.katan.model.internal.unwrap
-import org.katan.model.internal.wrap
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.UnitStatus
 import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogChange
 import org.katan.model.unit.auditlog.AuditLogEvents
+import org.katan.model.unwrap
+import org.katan.model.wrap
 import org.katan.service.account.AccountService
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.id.IdService

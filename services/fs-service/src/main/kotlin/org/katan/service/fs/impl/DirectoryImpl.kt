@@ -1,7 +1,7 @@
 package org.katan.service.fs.impl
 
-import org.katan.model.fs.Directory
-import org.katan.model.fs.VirtualFile
+import org.katan.model.io.Directory
+import org.katan.model.io.VirtualFile
 
 public data class DirectoryImpl(
     private val file: VirtualFile,

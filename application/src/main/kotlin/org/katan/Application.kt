@@ -13,11 +13,10 @@ import org.katan.service.account.di.accountServiceDI
 import org.katan.service.auth.di.authServiceDI
 import org.katan.service.blueprint.di.blueprintServiceDI
 import org.katan.service.db.di.databaseServiceDI
-import org.katan.service.dockerInstance.di.dockerInstanceServiceImplDI
-import org.katan.service.dockerNetwork.di.dockerNetworkServiceDI
 import org.katan.service.fs.host.di.hostFsServiceDI
 import org.katan.service.id.di.idServiceDI
-import org.katan.service.instance.di.unitInstanceServiceDI
+import org.katan.service.instance.di.instanceServiceDI
+import org.katan.service.network.di.networkServiceDI
 import org.katan.service.unit.di.unitServiceDI
 import org.katan.services.cache.di.cacheServiceDI
 import org.koin.core.context.startKoin
@@ -40,9 +39,8 @@ private object Application {
                 authServiceDI,
                 accountServiceDI,
                 unitServiceDI,
-                unitInstanceServiceDI,
-                dockerNetworkServiceDI,
-                dockerInstanceServiceImplDI,
+                networkServiceDI,
+                instanceServiceDI,
                 cacheServiceDI,
                 databaseServiceDI,
                 dockerClientDI,

@@ -10,7 +10,7 @@ import org.katan.http.response.HttpError
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
-import org.katan.model.internal.wrap
+import org.katan.model.wrap
 import org.katan.service.auth.http.shared.AccountKey
 import org.katan.service.unit.UnitService
 import org.katan.service.unit.http.UnitRoutes
