@@ -1,8 +1,8 @@
 package org.katan.service.id
 
-public interface IdService {
+interface IdService {
 
-    public suspend fun generate(): Long
+    suspend fun generate(): Long
 
-    public suspend fun parse(input: String): Long
+    suspend fun parse(input: String): Long
 }

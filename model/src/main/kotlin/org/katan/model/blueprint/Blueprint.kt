@@ -1,10 +1,11 @@
 package org.katan.model.blueprint
 
 import kotlinx.datetime.Instant
+import org.katan.model.Snowflake
 
 interface Blueprint {
 
-    val id: Long
+    val id: Snowflake
 
     val name: String
 
@@ -14,5 +15,5 @@ interface Blueprint {
 
     val createdAt: Instant
 
-    val updatedAt: Instant
+    val updatedAt: Instant?
 }

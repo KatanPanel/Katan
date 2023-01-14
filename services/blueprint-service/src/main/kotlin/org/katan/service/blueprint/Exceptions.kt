@@ -1,35 +1,20 @@
 package org.katan.service.blueprint
 
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.UnprocessableEntity
-import org.katan.http.WithHttpError
-import org.katan.http.response.HttpError.Companion.RawBlueprintNotFound
-import org.katan.http.response.HttpError.Companion.RawBlueprintParse
-import org.katan.http.response.HttpError.Companion.UnknownBlueprint
 import org.katan.model.KatanException
 
 open class BlueprintException : KatanException()
 
-class BlueprintNotFoundException : BlueprintException(), WithHttpError {
+class BlueprintNotFoundException : BlueprintException()
 
-    override val httpError get() = UnknownBlueprint
-    override val status get() = BadRequest
-}
+class NoMatchingBlueprintSpecProviderException : BlueprintException()
 
-class NoBlueprintMatchingProviderException : BlueprintException()
-
-class RemoteRawBlueprintNotFound : BlueprintException(), WithHttpError {
-
-    override val httpError get() = RawBlueprintNotFound
-    override val status get() = BadRequest
-}
+class BlueprintSpecNotFound : BlueprintException()
 
 class BlueprintConflictException : BlueprintException()
 
-class RawBlueprintParseException(override val message: String) :
-    BlueprintException(),
-    WithHttpError {
+class BlueprintSpecParseException(
+    override val message: String,
+    override val cause: Throwable?
+) : BlueprintException()
 
-    override val httpError get() = RawBlueprintParse(message)
-    override val status get() = UnprocessableEntity
-}
+class UnsupportedBlueprintSpecSource : BlueprintException()

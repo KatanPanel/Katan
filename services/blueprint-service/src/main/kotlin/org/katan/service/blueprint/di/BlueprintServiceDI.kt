@@ -3,6 +3,7 @@ package org.katan.service.blueprint.di
 import org.katan.http.importHttpModule
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.blueprint.BlueprintServiceImpl
+import org.katan.service.blueprint.BlueprintSpecParser
 import org.katan.service.blueprint.http.BlueprintHttpModule
 import org.katan.service.blueprint.provider.BlueprintSpecProvider
 import org.katan.service.blueprint.provider.CombinedBlueprintSpecProvider
@@ -18,7 +19,10 @@ val blueprintServiceDI: Module = module {
     single<BlueprintSpecProvider> {
         CombinedBlueprintSpecProvider(
             listOf(
-                GithubBlueprintSpecProvider(httpClient = get())
+                GithubBlueprintSpecProvider(
+                    httpClient = get(),
+                    blueprintSpecParser = get()
+                )
             )
         )
     }
@@ -29,5 +33,8 @@ val blueprintServiceDI: Module = module {
             blueprintSpecProvider = get(),
             fsService = get()
         )
+    }
+    single {
+        BlueprintSpecParser()
     }
 }

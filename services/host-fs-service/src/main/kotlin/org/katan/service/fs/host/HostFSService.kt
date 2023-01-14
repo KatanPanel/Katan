@@ -24,6 +24,7 @@ import org.katan.service.fs.impl.FileImpl
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
+import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 import kotlin.streams.asSequence
 import kotlin.system.exitProcess
@@ -68,29 +69,24 @@ internal class HostFSService(
         }
     }
 
-    override suspend fun getFile(bucket: String, destination: String, path: String): VirtualFile? {
-        val volume = getVolumeOrNull(bucket) ?: throw BucketNotFoundException()
+    override suspend fun getFile(bucket: String?, destination: String, path: String): VirtualFile? {
+        val volume = if (bucket != null) {
+            getVolumeOrNull(bucket) ?: throw BucketNotFoundException(bucket)
+        } else {
+            null
+        }
 
-        val base = File(buildFile(volume.name, volume.mountpoint))
+        val base = File(if (volume == null) fsRoot else buildFile(volume.name, volume.mountpoint))
         val file = File(base, File.separator + path)
 
-        if (!file.exists()) {
-            logger.debug("File not found: $file")
-            return null
+        return when {
+            !file.exists() -> null
+            file.isDirectory -> file.toDomain(base, file.listFiles()?.map { it.toDomain(base) })
+            else -> file.toDomain(base)
         }
-
-        if (file.isDirectory) {
-            return file.toDomain(base, file.listFiles()?.map { it.toDomain(base) })
-        }
-
-        return file.toDomain(base)
     }
 
-    override suspend fun readFile(
-        path: String,
-        startIndex: Int?,
-        endIndex: Int?
-    ): File {
+    override suspend fun readFile(path: String, startIndex: Int?, endIndex: Int?): File {
         val file = File(path)
         if (!file.exists()) throw FileNotFoundException()
         if (!file.canRead()) throw FileNotReadableException()
@@ -98,21 +94,15 @@ internal class HostFSService(
         return file
     }
 
-    override suspend fun readFile(bucket: String?, destination: String, name: String): Pair<VirtualFile, ByteArray> {
-        if (!bucket.isNullOrBlank()) {
-            throw IllegalStateException("Only local reads are supported for now")
+    override suspend fun readFile(bucket: String?, destination: String, name: String): ByteArray {
+        check(bucket.isNullOrBlank()) { "Only local reads are supported for now" }
+
+        val file = File(destination, name)
+        return when {
+            !file.exists() -> throw FileNotFoundException()
+            !file.canRead() -> throw FileNotReadableException()
+            else -> file.readBytes()
         }
-
-        val base = File(destination)
-        val file = File(base, name)
-        if (!file.exists()) throw FileNotFoundException()
-        if (!file.canRead()) throw FileNotReadableException()
-
-        val bytes = withContext(IO) {
-            file.readBytes()
-        }
-
-        return file.toDomain(base) to bytes
     }
 
     override suspend fun getBucket(bucket: String, destination: String): Bucket? {
@@ -192,10 +182,10 @@ internal class HostFSService(
             length()
         } else {
             Files.walk(absPath).asSequence()
-                .map { it.toFile() }
-                .filter { it.isFile && it.exists() }
-                .map { it.length() }
-                .sum()
+                .map(Path::toFile)
+                .filter(File::exists)
+                .filter(File::isFile)
+                .sumOf(File::length)
         }
 
         val file = FileImpl(

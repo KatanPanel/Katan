@@ -55,7 +55,7 @@ internal class BlueprintRepositoryImpl(private val database: Database) : Bluepri
 
     override suspend fun create(blueprint: Blueprint) {
         return newSuspendedTransaction(db = database) {
-            BlueprintEntityImpl.new(blueprint.id) {
+            BlueprintEntityImpl.new(blueprint.id.value) {
                 name = blueprint.name
                 version = blueprint.version
                 imageId = blueprint.imageId

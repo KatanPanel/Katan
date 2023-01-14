@@ -1,5 +1,6 @@
 package org.katan.service.instance
 
+import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.instance.UnitInstance
@@ -13,5 +14,5 @@ internal data class DockerUnitInstanceImpl(
     override val containerId: String?,
     override val connection: HostPort?,
     override val runtime: InstanceRuntime?,
-    override val blueprintId: Long
+    override val blueprintId: Snowflake
 ) : UnitInstance

@@ -24,6 +24,7 @@ import kotlinx.datetime.Instant
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
+import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceRuntime
@@ -290,7 +291,7 @@ internal class DockerInstanceServiceImpl(
 
     override suspend fun createInstance(blueprint: Blueprint, host: String?, port: Int?): UnitInstance {
         val instanceId = idService.generate()
-        val rawBlueprint = blueprintService.getSpec(blueprint.id)
+        val rawBlueprint = blueprintService.getSpec(blueprint.id.value)
         val generatedName = generateContainerName(instanceId, rawBlueprint.build.instance?.name)
         val image = rawBlueprint.build.image
 
@@ -331,7 +332,7 @@ internal class DockerInstanceServiceImpl(
 
     private suspend fun resumeCreateInstance(
         instanceId: Long,
-        blueprintId: Long,
+        blueprintId: Snowflake,
         containerId: String,
         host: String?,
         port: Int?,
@@ -373,7 +374,7 @@ internal class DockerInstanceServiceImpl(
 
     private suspend fun registerInstance(
         instanceId: Long,
-        blueprintId: Long,
+        blueprintId: Snowflake,
         status: InstanceStatus,
         containerId: String? = null,
         connection: HostPort? = null
@@ -531,7 +532,7 @@ internal class DockerInstanceServiceImpl(
             status = toStatus(status),
             connection = networkService.createConnection(host, port),
             runtime = containerId?.let { buildRuntime(it) },
-            blueprintId = blueprintId
+            blueprintId = Snowflake(blueprintId)
         )
     }
 

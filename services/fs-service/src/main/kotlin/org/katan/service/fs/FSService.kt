@@ -6,11 +6,11 @@ import java.io.File
 
 interface FSService {
 
-    suspend fun getFile(bucket: String, destination: String, path: String): VirtualFile?
+    suspend fun getFile(bucket: String?, destination: String, path: String): VirtualFile?
 
     suspend fun readFile(path: String, startIndex: Int?, endIndex: Int?): File
 
-    suspend fun readFile(bucket: String?, destination: String, name: String): Pair<VirtualFile, ByteArray>
+    suspend fun readFile(bucket: String?, destination: String, name: String): ByteArray
 
     suspend fun getBucket(bucket: String, destination: String): Bucket?
 

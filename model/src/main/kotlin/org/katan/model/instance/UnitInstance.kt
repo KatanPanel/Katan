@@ -1,5 +1,6 @@
 package org.katan.model.instance
 
+import org.katan.model.Snowflake
 import org.katan.model.io.HostPort
 import org.katan.model.unit.ImageUpdatePolicy
 
@@ -16,5 +17,5 @@ interface UnitInstance {
 
     val runtime: InstanceRuntime?
 
-    val blueprintId: Long
+    val blueprintId: Snowflake
 }

@@ -4,7 +4,9 @@ import org.katan.model.KatanException
 
 open class FSException : KatanException()
 
-class BucketNotFoundException : FSException()
+class BucketNotFoundException(bucket: String) : FSException() {
+    override val message: String = bucket
+}
 
 class FileNotFoundException : FSException()
 

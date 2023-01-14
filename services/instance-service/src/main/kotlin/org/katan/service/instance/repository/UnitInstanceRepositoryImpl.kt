@@ -52,9 +52,9 @@ internal class UnitInstanceRepositoryImpl(private val database: Database) : Unit
             UnitInstanceEntity.new(instance.id) {
                 updatePolicy = instance.updatePolicy.id
                 containerId = instance.containerId
-                blueprintId = instance.blueprintId
+                blueprintId = instance.blueprintId.value
                 host = instance.connection?.host
-                port = instance.connection?.port?.toShort()
+                port = instance.connection?.port
                 status = instance.status.value
             }
         }

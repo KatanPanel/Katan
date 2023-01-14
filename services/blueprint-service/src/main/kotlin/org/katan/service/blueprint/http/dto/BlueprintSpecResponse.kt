@@ -8,27 +8,27 @@ import org.katan.model.blueprint.BlueprintSpecOption
 import org.katan.model.blueprint.BlueprintSpecRemote
 
 @Serializable
-internal data class RawBlueprintResponse(
+internal data class BlueprintSpecResponse(
     val name: String,
     val version: String,
     val icon: String?,
-    val remote: RawBlueprintRemoteResponse,
-    val build: RawBlueprintBuildResponse,
-    val options: List<RawBlueprintOptionResponse>
+    val remote: BlueprintSpecRemoteResponse,
+    val build: BlueprintSpecBuildResponse,
+    val options: List<BlueprintSpecOptionResponse>
 ) {
 
-    internal constructor(raw: BlueprintSpec) : this(
-        name = raw.name,
-        version = raw.version,
-        icon = raw.icon,
-        remote = RawBlueprintRemoteResponse(raw.remote),
-        build = RawBlueprintBuildResponse(raw.build),
-        options = raw.options.map(::RawBlueprintOptionResponse)
+    internal constructor(spec: BlueprintSpec) : this(
+        name = spec.name,
+        version = spec.version,
+        icon = spec.icon,
+        remote = BlueprintSpecRemoteResponse(spec.remote),
+        build = BlueprintSpecBuildResponse(spec.build),
+        options = spec.options.map(::BlueprintSpecOptionResponse)
     )
 }
 
 @Serializable
-internal data class RawBlueprintOptionResponse(
+internal data class BlueprintSpecOptionResponse(
     val name: String,
     val type: List<String>,
     val env: String?,
@@ -44,7 +44,7 @@ internal data class RawBlueprintOptionResponse(
 }
 
 @Serializable
-internal data class RawBlueprintRemoteResponse(
+internal data class BlueprintSpecRemoteResponse(
     val main: String,
     val origin: String,
     val exports: List<String>
@@ -58,23 +58,23 @@ internal data class RawBlueprintRemoteResponse(
 }
 
 @Serializable
-internal data class RawBlueprintBuildResponse(
+internal data class BlueprintSpecBuildResponse(
     val image: String,
     val entrypoint: String,
     val env: Map<String, String>,
-    val instance: RawBlueprintInstanceResponse?
+    val instance: BlueprintSpecBuildInstanceResponse?
 ) {
 
     internal constructor(build: BlueprintSpecBuild) : this(
         image = build.image,
         entrypoint = build.entrypoint,
         env = build.env,
-        instance = build.instance?.let(::RawBlueprintInstanceResponse)
+        instance = build.instance?.let(::BlueprintSpecBuildInstanceResponse)
     )
 }
 
 @Serializable
-internal data class RawBlueprintInstanceResponse(
+internal data class BlueprintSpecBuildInstanceResponse(
     val name: String? = null
 ) {
 

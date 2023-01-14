@@ -6,16 +6,14 @@ import org.katan.http.HttpModule
 import org.katan.service.blueprint.http.routes.getBlueprint
 import org.katan.service.blueprint.http.routes.importBlueprints
 import org.katan.service.blueprint.http.routes.listBlueprints
-import org.katan.service.blueprint.http.routes.readBlueprintFile
 
-class BlueprintHttpModule : HttpModule() {
+internal class BlueprintHttpModule : HttpModule() {
 
     override fun install(app: Application) {
         app.routing {
             getBlueprint()
             listBlueprints()
             importBlueprints()
-            readBlueprintFile()
         }
     }
 }

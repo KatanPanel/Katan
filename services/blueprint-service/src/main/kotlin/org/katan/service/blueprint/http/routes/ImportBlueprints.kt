@@ -9,9 +9,10 @@ import org.katan.http.response.receiveValidating
 import org.katan.http.response.respond
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.blueprint.http.BlueprintRoutes
+import org.katan.service.blueprint.http.dto.BlueprintResponse
+import org.katan.service.blueprint.http.dto.BlueprintSpecResponse
 import org.katan.service.blueprint.http.dto.ImportBlueprintRequest
 import org.katan.service.blueprint.http.dto.ImportBlueprintResponse
-import org.katan.service.blueprint.http.dto.RawBlueprintResponse
 import org.katan.service.blueprint.importBlueprint
 import org.koin.ktor.ext.inject
 
@@ -21,15 +22,13 @@ internal fun Route.importBlueprints() {
 
     post<BlueprintRoutes.Import> {
         val req = call.receiveValidating<ImportBlueprintRequest>(validator)
-        val (id, blueprint) = blueprintService.importBlueprint(req.url)
+        val import = blueprintService.importBlueprint(req.url)
 
         respond(
             status = HttpStatusCode.Created,
             response = ImportBlueprintResponse(
-                id = id.toString(),
-                main = blueprint.main.name,
-                assets = blueprint.assets.map { it.name },
-                raw = RawBlueprintResponse(blueprint.main.raw)
+                blueprint = BlueprintResponse(import.blueprint),
+                spec = BlueprintSpecResponse(import.spec)
             )
         )
     }

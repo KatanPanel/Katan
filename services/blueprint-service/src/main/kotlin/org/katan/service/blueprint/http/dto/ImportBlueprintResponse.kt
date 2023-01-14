@@ -4,8 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class ImportBlueprintResponse(
-    val id: String,
-    val main: String,
-    val assets: List<String>,
-    val raw: RawBlueprintResponse
+    val blueprint: BlueprintResponse,
+    val spec: BlueprintSpecResponse
 )
