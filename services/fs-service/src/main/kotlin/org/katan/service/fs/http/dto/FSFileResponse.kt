@@ -1,4 +1,4 @@
-package org.katan.service.instance.http.dto
+package org.katan.service.fs.http.dto
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
@@ -11,7 +11,7 @@ data class FSSingleFileResponse(
     val name: String,
     @SerialName("relative-path") val relativePath: String,
     @SerialName("absolute-path") val absolutePath: String,
-    val size: Long, // TODO use String to prevent overflow on JS
+    val size: Long, // TODO use String to prevent overflow on clients
     @SerialName("is-directory") val isDirectory: Boolean,
     @SerialName("is-hidden") val isHidden: Boolean,
     @SerialName("created-at") val createdAt: Instant?,
@@ -30,20 +30,15 @@ data class FSSingleFileResponse(
 }
 
 @Serializable
-internal data class FSFileResponse(
-    val file: FSSingleFileResponse
-) {
+data class FSFileResponse(val file: FSSingleFileResponse) {
 
-    internal constructor(file: VirtualFile) : this(FSSingleFileResponse(file))
+    constructor(file: VirtualFile) : this(FSSingleFileResponse(file))
 }
 
 @Serializable
-internal data class FSDirectoryResponse(
-    val file: FSSingleFileResponse,
-    val children: List<FSSingleFileResponse>
-) {
+data class FSDirectoryResponse(val file: FSSingleFileResponse, val children: List<FSSingleFileResponse>) {
 
-    internal constructor(file: Directory) : this(
+    constructor(file: Directory) : this(
         FSSingleFileResponse(file),
         file.children.map(::FSSingleFileResponse)
     )

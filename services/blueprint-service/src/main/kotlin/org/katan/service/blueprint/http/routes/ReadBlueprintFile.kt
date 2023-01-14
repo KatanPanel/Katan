@@ -16,18 +16,18 @@ import org.katan.model.io.extension
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.blueprint.http.BlueprintRoutes
 import org.katan.service.blueprint.http.dto.ReadBlueprintFileResponse
-import org.katan.service.instance.http.dto.FSSingleFileResponse
+import org.katan.service.fs.http.dto.FSSingleFileResponse
 import org.koin.ktor.ext.inject
 
 internal fun Route.readBlueprintFile() {
     val blueprintService by inject<BlueprintService>()
     val validator by inject<Validator>()
 
-    get<BlueprintRoutes.ReadAsset> {
-        validator.validateOrThrow(it)
+    get<BlueprintRoutes.ReadAsset> { params ->
+        validator.validateOrThrow(params)
 
         val (file, contents) = try {
-            blueprintService.readBlueprintAssetContents(it.blueprintId.toLong(), it.path!!)
+            blueprintService.readBlueprintAssetContents(params.blueprintId.toLong(), params.path!!)
         } catch (e: FileNotFoundException) {
             call.response.status(HttpStatusCode.NotFound)
             return@get
@@ -36,8 +36,7 @@ internal fun Route.readBlueprintFile() {
         respond(
             ReadBlueprintFileResponse(
                 file = FSSingleFileResponse(file),
-                type = ContentType.fromFileExtension(file.extension)
-                    .selectDefault().toString(),
+                type = ContentType.fromFileExtension(file.extension).selectDefault().toString(),
                 data = contents
             )
         )

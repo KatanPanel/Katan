@@ -9,6 +9,5 @@ dependencies {
     implementation(projects.http.httpShared)
     implementation(projects.services.idService)
     implementation(projects.services.databaseService)
-    implementation(projects.services.instanceService)
     implementation(projects.services.fsService)
 }

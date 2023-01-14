@@ -13,9 +13,11 @@ internal fun Route.listBlueprints() {
     val blueprintService by inject<BlueprintService>()
 
     get<BlueprintRoutes.All> {
+        val blueprints = blueprintService.listBlueprints()
+
         respond(
             ListBlueprintsResponse(
-                blueprintService.listBlueprints().map { BlueprintResponse(it) }
+                blueprints.map(::BlueprintResponse)
             )
         )
     }

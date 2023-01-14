@@ -18,12 +18,13 @@ val instanceServiceDI: Module = module {
     }
     single<InstanceService> {
         DockerInstanceServiceImpl(
+            eventsDispatcher = get(),
             idService = get(),
             networkService = get(),
+            blueprintService = get(),
             dockerClient = get(),
             unitInstanceRepository = get(),
-            config = get(),
-            eventsDispatcher = get()
+            config = get()
         )
     }
 }

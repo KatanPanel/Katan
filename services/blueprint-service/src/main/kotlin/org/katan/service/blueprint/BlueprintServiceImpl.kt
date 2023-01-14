@@ -43,6 +43,10 @@ internal class BlueprintServiceImpl(
         return blueprintRepository.findAll().map { it.toModel() }
     }
 
+    override suspend fun getRaw(id: Long): RawBlueprint {
+        TODO("get raw from local files :)")
+    }
+
     override suspend fun getBlueprint(id: Long): Blueprint {
         return blueprintRepository.find(id)?.toModel() ?: throw BlueprintNotFoundException()
     }
@@ -110,26 +114,24 @@ internal class BlueprintServiceImpl(
                 version = raw.version,
                 imageId = raw.build.image,
                 createdAt = Clock.System.now(),
-                updatedAt = Clock.System.now(),
-                raw = raw
+                updatedAt = Clock.System.now()
             )
         )
     }
 
-    private suspend fun findExistingFromRaw(rawBlueprint: RawBlueprint): Blueprint? {
+    private fun findExistingFromRaw(rawBlueprint: RawBlueprint): Blueprint? {
         // TODO
         return null
     }
 
-    private suspend fun BlueprintEntity.toModel(): Blueprint {
+    private fun BlueprintEntity.toModel(): Blueprint {
         return BlueprintImpl(
             id = getId(),
             name = name,
             version = version,
             imageId = imageId,
             createdAt = createdAt,
-            updatedAt = updatedAt,
-            raw = readMainFile(getId())
+            updatedAt = updatedAt ?: createdAt
         )
     }
 }

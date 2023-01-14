@@ -12,8 +12,7 @@ internal data class BlueprintResponse(
     val version: String,
     @SerialName("image-id") val imageId: String,
     @SerialName("created-at") val createdAt: Instant,
-    @SerialName("updated-at") val updatedAt: Instant?,
-    val raw: RawBlueprintResponse?
+    @SerialName("updated-at") val updatedAt: Instant?
 ) {
 
     constructor(blueprint: Blueprint) : this(
@@ -22,7 +21,6 @@ internal data class BlueprintResponse(
         version = blueprint.version,
         imageId = blueprint.imageId,
         createdAt = blueprint.createdAt,
-        updatedAt = blueprint.updatedAt,
-        raw = blueprint.raw?.let(::RawBlueprintResponse)
+        updatedAt = blueprint.updatedAt
     )
 }

@@ -14,7 +14,5 @@ interface Blueprint {
 
     val createdAt: Instant
 
-    val updatedAt: Instant?
-
-    val raw: RawBlueprint?
+    val updatedAt: Instant
 }

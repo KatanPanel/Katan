@@ -1,7 +1,5 @@
 package org.katan.model.blueprint
 
-import java.nio.file.Paths
-
 interface RawBlueprint {
 
     val name: String
@@ -10,13 +8,21 @@ interface RawBlueprint {
 
     val icon: String?
 
-    val type: String
-
     val remote: RawBlueprintRemote
 
     val build: RawBlueprintBuild
 
-    val instance: RawBlueprintInstanceSettings?
+    val options: List<RawBlueprintOption>
+}
+
+interface RawBlueprintOption {
+    val name: String
+
+    val type: List<String>
+
+    val env: String?
+
+    val defaultValue: String?
 }
 
 interface RawBlueprintRemote {
@@ -24,6 +30,8 @@ interface RawBlueprintRemote {
     val main: String
 
     val origin: String
+
+    val exports: List<String>
 }
 
 interface RawBlueprintBuild {
@@ -32,26 +40,12 @@ interface RawBlueprintBuild {
 
     val entrypoint: String
 
-    val env: Map<String, String>?
+    val env: Map<String, String>
+
+    val instance: RawBlueprintInstance?
 }
 
-interface RawBlueprintInstanceSettings {
+interface RawBlueprintInstance {
 
     val name: String?
-}
-
-fun RawBlueprint.normalizedIcon(): String? {
-    return icon?.let {
-        val path = Paths.get(it)
-        if (path.isAbsolute) {
-            return it
-        }
-
-        var relative = it
-        if (relative.first() == '.') {
-            relative = relative.substring(1)
-        }
-
-        return remote.origin + relative
-    }
 }

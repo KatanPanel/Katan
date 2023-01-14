@@ -1,7 +1,7 @@
 package org.katan.service.blueprint.http.dto
 
 import kotlinx.serialization.Serializable
-import org.katan.service.instance.http.dto.FSSingleFileResponse
+import org.katan.service.fs.http.dto.FSSingleFileResponse
 
 @Serializable
 internal data class ReadBlueprintFileResponse(
