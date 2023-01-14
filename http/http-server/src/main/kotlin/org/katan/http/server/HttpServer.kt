@@ -21,19 +21,18 @@ import org.katan.http.websocket.WebSocketManager
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
+import kotlin.reflect.jvm.jvmName
 
 class HttpServer(
     private val host: String,
     private val port: Int
-) : CoroutineScope by CoroutineScope(CoroutineName(HttpServer::class.java.name)), KoinComponent {
+) : CoroutineScope by CoroutineScope(CoroutineName(HttpServer::class.jvmName)), KoinComponent {
 
     companion object {
         private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
 
         private const val STOP_GRACE_PERIOD_MILLIS: Long = 1000
         private const val TIMEOUT_MILLIS: Long = 5000
-
-        private const val KTOR_DEVELOPMENT_PROPERTY = "io.ktor.development"
     }
 
     private val config by inject<KatanConfig>()
@@ -42,16 +41,14 @@ class HttpServer(
     private val engine: ApplicationEngine = createEngine()
 
     init {
-        System.setProperty(KTOR_DEVELOPMENT_PROPERTY, config.isDevelopment.toString())
+        System.setProperty("io.ktor.development", config.isDevelopment.toString())
     }
 
     fun start() {
-        engine.addShutdownHook {
-            stop()
-        }
+        engine.addShutdownHook(::stop)
 
         for (connector in engine.environment.connectors)
-            logger.info("Listening on {}", connector)
+            logger.debug("Listening on {}", connector)
 
         engine.start(wait = true)
     }

@@ -4,18 +4,10 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import kotlinx.datetime.Instant
 import org.katan.config.KatanConfig
 import org.katan.http.server.dto.ServerInfoBuild
-import org.katan.http.server.dto.ServerInfoNetworkResponse
 import org.katan.http.server.dto.ServerInfoResponse
 import org.koin.ktor.ext.inject
-
-private fun buildProperty(name: String): String {
-    return runCatching {
-        System.getProperty("org.katan.build.$name")
-    }.getOrNull().orEmpty()
-}
 
 internal fun Route.serverInfo() {
     val config by inject<KatanConfig>()
@@ -23,20 +15,11 @@ internal fun Route.serverInfo() {
     get("/") {
         call.respond(
             ServerInfoResponse(
-                version = System.getProperty("org.katan.version", "unknown"),
+                version = config.version,
                 nodeId = config.nodeId,
-                clusterMode = false,
-                // TODO reliable info
-                defaultNetwork = ServerInfoNetworkResponse(
-                    name = "katan",
-                    driver = "overlay"
-                ),
                 build = ServerInfoBuild(
-                    branch = buildProperty("branch"),
-                    commit = buildProperty("commit"),
-                    message = buildProperty("message"),
-                    remote = buildProperty("remote"),
-                    time = Instant.parse(buildProperty("time"))
+                    branch = config.gitBranch.orEmpty(),
+                    commit = config.gitCommit.orEmpty()
                 )
             )
         )

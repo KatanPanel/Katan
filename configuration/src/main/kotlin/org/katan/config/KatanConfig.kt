@@ -16,6 +16,9 @@ class KatanConfig internal constructor() {
 
     @Suppress("MemberVisibilityCanBePrivate")
     val env: String = env(ENV) ?: DEVELOPMENT
+    val version: String = env("VERSION") ?: "Unknown"
+    val gitBranch: String? = env("GIT_BRANCH")
+    val gitCommit: String? = env("GIT_COMMIT")
 
     val nodeId: Int = env("NODE_ID")?.toIntOrNull() ?: 0
     val host: String = env("HOST") ?: DEFAULT_HOST
