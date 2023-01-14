@@ -12,6 +12,7 @@ class KatanConfig internal constructor() {
 
         const val ENV = "ENV"
         const val DEVELOPMENT = "dev"
+        const val PRODUCTION = "prod"
     }
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -37,6 +38,12 @@ class KatanConfig internal constructor() {
     val redisPort: String? = env("REDIS_PORT")
 
     val isDevelopment: Boolean get() = env == DEVELOPMENT
+
+    init {
+        require(env == DEVELOPMENT || env == PRODUCTION) {
+            "Invalid %s environment variable value: %s".format(ENV, env)
+        }
+    }
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun env(name: String): String? {
