@@ -21,7 +21,7 @@ internal class Katan : KoinComponent {
         private val logger: Logger = LogManager.getLogger(Katan::class.java)
     }
 
-    private val config: KatanConfig by inject()
+    internal val config: KatanConfig by inject()
     private val httpServer: HttpServer = HttpServer(
         host = config.host,
         port = config.port
@@ -35,13 +35,13 @@ internal class Katan : KoinComponent {
     private suspend fun checkDatabaseConnection() {
         val database = get<Database>()
 
-        // try to establish initial connection before a transaction
         @OptIn(ExperimentalTime::class)
         val duration = measureTime {
             newSuspendedTransaction(db = database) {
                 runCatching {
                     database.connector()
                 }.onFailure { exception ->
+                    // TODO detailed error message about how to establish a database connection
                     logger.error("Unable to establish database connection.", exception)
                     exitProcess(0)
                 }

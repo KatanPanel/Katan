@@ -1,8 +1,13 @@
 package org.katan
 
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.DEBUG_PROPERTY_NAME
+import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_AUTO
+import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import org.katan.config.KatanConfig
 import org.katan.config.di.configDI
 import org.katan.crypto.di.cryptoDI
 import org.katan.docker.di.dockerClientDI
@@ -20,6 +25,7 @@ import org.katan.service.network.di.networkServiceDI
 import org.katan.service.unit.di.unitServiceDI
 import org.katan.services.cache.di.cacheServiceDI
 import org.koin.core.context.startKoin
+import kotlin.reflect.jvm.jvmName
 
 @Suppress("UNUSED")
 private object Application {
@@ -28,7 +34,7 @@ private object Application {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        startKoin {
+        val di = startKoin {
             logger(KoinLog4jLogger())
             modules(
                 configDI,
@@ -50,14 +56,25 @@ private object Application {
             )
         }
 
+        // enables coroutines debug logs if it's in development mode
+        System.setProperty(
+            DEBUG_PROPERTY_NAME,
+            if (di.koin.get<KatanConfig>().isDevelopment) {
+                DEBUG_PROPERTY_VALUE_ON
+            } else {
+                DEBUG_PROPERTY_VALUE_AUTO
+            }
+        )
+
         val katan = Katan()
+
         Runtime.getRuntime().addShutdownHook(
             Thread {
                 katan.close()
             }
         )
 
-        runBlocking {
+        runBlocking(CoroutineName(Katan::class.jvmName)) {
             katan.start()
         }
     }
