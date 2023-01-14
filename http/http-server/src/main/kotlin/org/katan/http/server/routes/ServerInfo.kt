@@ -15,7 +15,7 @@ internal fun Route.serverInfo() {
     get("/") {
         call.respond(
             ServerInfoResponse(
-                env = config.env,
+                developmentMode = config.isDevelopment,
                 version = config.version,
                 nodeId = config.nodeId,
                 build = ServerInfoBuild(

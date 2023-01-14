@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class ServerInfoResponse(
-    val env: String,
+    @SerialName("development-mode") val developmentMode: Boolean,
     val version: String,
     val build: ServerInfoBuild,
     @SerialName("node-id") val nodeId: Int
