@@ -8,13 +8,14 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.hocon.Hocon
 import kotlinx.serialization.hocon.decodeFromConfig
 import org.katan.model.blueprint.Blueprint
-import org.katan.model.blueprint.RawBlueprint
+import org.katan.model.blueprint.BlueprintSpec
 import org.katan.model.io.FileNotAccessibleException
 import org.katan.model.io.VirtualFile
 import org.katan.service.blueprint.model.BlueprintImpl
+import org.katan.service.blueprint.model.BlueprintSpecImpl
 import org.katan.service.blueprint.model.ImportedBlueprint
-import org.katan.service.blueprint.model.RawBlueprintImpl
-import org.katan.service.blueprint.provider.BlueprintResourceProvider
+import org.katan.service.blueprint.provider.BlueprintSpecProvider
+import org.katan.service.blueprint.provider.BlueprintSpecSource
 import org.katan.service.blueprint.repository.BlueprintEntity
 import org.katan.service.blueprint.repository.BlueprintRepository
 import org.katan.service.fs.FSService
@@ -24,7 +25,7 @@ import java.io.File
 internal class BlueprintServiceImpl(
     private val idService: IdService,
     private val blueprintRepository: BlueprintRepository,
-    private val blueprintResourceProvider: BlueprintResourceProvider,
+    private val blueprintSpecProvider: BlueprintSpecProvider,
     private val fsService: FSService
 ) : BlueprintService {
 
@@ -43,7 +44,7 @@ internal class BlueprintServiceImpl(
         return blueprintRepository.findAll().map { it.toModel() }
     }
 
-    override suspend fun getRaw(id: Long): RawBlueprint {
+    override suspend fun getSpec(id: Long): BlueprintSpec {
         TODO("get raw from local files :)")
     }
 
@@ -51,8 +52,8 @@ internal class BlueprintServiceImpl(
         return blueprintRepository.find(id)?.toModel() ?: throw BlueprintNotFoundException()
     }
 
-    override suspend fun importBlueprint(url: String): ImportedBlueprint {
-        val provided = blueprintResourceProvider.provideFrom(url)
+    override suspend fun importBlueprint(source: BlueprintSpecSource): ImportedBlueprint {
+        val provided = blueprintSpecProvider.provide(source)
             ?: throw BlueprintNotFoundException()
 
         val raw = provided.main.raw
@@ -91,7 +92,7 @@ internal class BlueprintServiceImpl(
         return fsService.readFile(null, rootDirectoryFor(id), name)
     }
 
-    private suspend fun readMainFile(id: Long): RawBlueprint {
+    private suspend fun readMainFile(id: Long): BlueprintSpec {
         val (_, bytes) = readFileFromLocal(id, MAIN)
         val config = ConfigFactory.parseString(
             bytes.decodeToString(),
@@ -99,14 +100,14 @@ internal class BlueprintServiceImpl(
         )
 
         @OptIn(ExperimentalSerializationApi::class)
-        return hocon.decodeFromConfig<RawBlueprintImpl>(config)
+        return hocon.decodeFromConfig<BlueprintSpecImpl>(config)
     }
 
     private fun rootDirectoryFor(id: Long): String {
         return FS_DIR + File.separator + id
     }
 
-    private suspend fun registerBlueprint(id: Long, raw: RawBlueprint) {
+    private suspend fun registerBlueprint(id: Long, raw: BlueprintSpec) {
         blueprintRepository.create(
             BlueprintImpl(
                 id = id,
@@ -119,7 +120,7 @@ internal class BlueprintServiceImpl(
         )
     }
 
-    private fun findExistingFromRaw(rawBlueprint: RawBlueprint): Blueprint? {
+    private fun findExistingFromRaw(blueprintSpec: BlueprintSpec): Blueprint? {
         // TODO
         return null
     }

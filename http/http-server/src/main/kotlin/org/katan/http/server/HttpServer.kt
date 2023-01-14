@@ -62,7 +62,7 @@ class HttpServer(
     }
 
     private fun setupEngine(app: Application) = with(app) {
-        installDefaultFeatures()
+        installDefaultFeatures(isDevelopmentMode = config.isDevelopment)
         routing {
             webSocket { webSocketManager.connect(this) }
             serverInfo()

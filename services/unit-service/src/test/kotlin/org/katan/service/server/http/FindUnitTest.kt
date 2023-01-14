@@ -4,10 +4,10 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.routing.routing
-import org.katan.http.createTestClient
 import org.katan.http.response.HttpError
 import org.katan.http.test.VALID_SNOWFLAKE_ID
-import org.katan.http.withTestApplication
+import org.katan.http.test.createTestClient
+import org.katan.http.test.withTestApplication
 import org.katan.service.unit.http.UnitRoutes
 import org.katan.service.unit.http.routes.getUnit
 import org.koin.test.KoinTest

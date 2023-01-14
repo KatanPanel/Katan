@@ -1,4 +1,4 @@
-package org.katan.http
+package org.katan.http.test
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -12,6 +12,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import org.katan.http.installDefaultFeatures
 
 inline fun withTestApplication(
     noinline setup: Application.() -> Unit,
@@ -19,7 +20,7 @@ inline fun withTestApplication(
 ) {
     testApplication {
         application {
-            installDefaultFeatures()
+            installDefaultFeatures(isDevelopmentMode = true)
             setup()
         }
 

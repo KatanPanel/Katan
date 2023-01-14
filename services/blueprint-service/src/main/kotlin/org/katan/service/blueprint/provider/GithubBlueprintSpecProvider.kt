@@ -10,45 +10,40 @@ import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.hocon.Hocon
 import kotlinx.serialization.hocon.decodeFromConfig
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.katan.model.blueprint.RawBlueprint
+import org.katan.model.blueprint.BlueprintSpec
 import org.katan.service.blueprint.RawBlueprintParseException
 import org.katan.service.blueprint.RemoteRawBlueprintNotFound
+import org.katan.service.blueprint.model.BlueprintSpecImpl
 import org.katan.service.blueprint.model.ProvidedRawBlueprint
 import org.katan.service.blueprint.model.ProvidedRawBlueprintAsset
 import org.katan.service.blueprint.model.ProvidedRawBlueprintMain
-import org.katan.service.blueprint.model.RawBlueprintImpl
 import java.nio.channels.UnresolvedAddressException
+import kotlin.reflect.jvm.jvmName
 
-class GithubBlueprintResource(val url: String) : BlueprintResource
-
-internal class GithubBlueprintResourceProvider(
+internal class GithubBlueprintSpecProvider(
     val httpClient: HttpClient
-) : BlueprintResourceProvider {
+) : BlueprintSpecProvider {
 
     companion object {
-        private val logger: Logger =
-            LogManager.getLogger(GithubBlueprintResourceProvider::class.java)
+        private val logger: Logger = LogManager.getLogger(GithubBlueprintSpecProvider::class.jvmName)
         const val NAME = "github"
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     private val hocon = Hocon {
         useConfigNamingConvention = true
     }
 
     override val id: String get() = NAME
 
-    override suspend fun canProvideFrom(url: String): Boolean {
-        // TODO check for some github urls
-        return true
-    }
-
-    override suspend fun provideFrom(source: BlueprintResource): ProvidedRawBlueprint? {
-        require(source is GithubBlueprintResource)
+    override suspend fun provide(source: BlueprintSpecSource): ProvidedRawBlueprint? {
+        require(source is URLBlueprintSpecSource) { "Only url blueprint spec source is supported" }
 
         logger.info("Download blueprint from $source...")
 
@@ -73,11 +68,7 @@ internal class GithubBlueprintResourceProvider(
         }
     }
 
-    override suspend fun provideFrom(url: String): ProvidedRawBlueprint? {
-        return provideFrom(GithubBlueprintResource(url))
-    }
-
-    private suspend fun readReadme(raw: RawBlueprint): ProvidedRawBlueprintAsset? {
+    private suspend fun readReadme(raw: BlueprintSpec): ProvidedRawBlueprintAsset? {
         val name = "README.md"
         val origin = raw.remote.origin
         val url = URLBuilder(origin).apply {
@@ -106,7 +97,7 @@ internal class GithubBlueprintResourceProvider(
             contents.decodeToString(),
             ConfigParseOptions.defaults().setSyntax(ConfigSyntax.CONF)
         )
-        val result = hocon.decodeFromConfig<RawBlueprintImpl>(config)
+        val result = hocon.decodeFromConfig<BlueprintSpecImpl>(config)
 
         return ProvidedRawBlueprintMain(result, result.remote.main, contents)
     }

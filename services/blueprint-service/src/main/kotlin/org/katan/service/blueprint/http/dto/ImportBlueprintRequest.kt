@@ -8,5 +8,5 @@ import org.hibernate.validator.constraints.URL
 internal data class ImportBlueprintRequest(
     @field:NotBlank(message = "Url must be provided")
     @field:URL(message = "Input is not a valid url")
-    val url: String? = null
+    val url: String = ""
 )

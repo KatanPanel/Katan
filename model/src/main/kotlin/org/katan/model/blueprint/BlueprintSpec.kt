@@ -1,6 +1,6 @@
 package org.katan.model.blueprint
 
-interface RawBlueprint {
+interface BlueprintSpec {
 
     val name: String
 
@@ -8,14 +8,14 @@ interface RawBlueprint {
 
     val icon: String?
 
-    val remote: RawBlueprintRemote
+    val remote: BlueprintSpecRemote
 
-    val build: RawBlueprintBuild
+    val build: BlueprintSpecBuild
 
-    val options: List<RawBlueprintOption>
+    val options: List<BlueprintSpecOption>
 }
 
-interface RawBlueprintOption {
+interface BlueprintSpecOption {
     val name: String
 
     val type: List<String>
@@ -25,7 +25,7 @@ interface RawBlueprintOption {
     val defaultValue: String?
 }
 
-interface RawBlueprintRemote {
+interface BlueprintSpecRemote {
 
     val main: String
 
@@ -34,7 +34,7 @@ interface RawBlueprintRemote {
     val exports: List<String>
 }
 
-interface RawBlueprintBuild {
+interface BlueprintSpecBuild {
 
     val image: String
 
@@ -42,10 +42,10 @@ interface RawBlueprintBuild {
 
     val env: Map<String, String>
 
-    val instance: RawBlueprintInstance?
+    val instance: BlueprintSpecBuildInstance?
 }
 
-interface RawBlueprintInstance {
+interface BlueprintSpecBuildInstance {
 
     val name: String?
 }

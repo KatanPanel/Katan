@@ -290,7 +290,7 @@ internal class DockerInstanceServiceImpl(
 
     override suspend fun createInstance(blueprint: Blueprint, host: String?, port: Int?): UnitInstance {
         val instanceId = idService.generate()
-        val rawBlueprint = blueprintService.getRaw(blueprint.id)
+        val rawBlueprint = blueprintService.getSpec(blueprint.id)
         val generatedName = generateContainerName(instanceId, rawBlueprint.build.instance?.name)
         val image = rawBlueprint.build.image
 

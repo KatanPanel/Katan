@@ -1,11 +1,11 @@
 package org.katan.service.blueprint.http.dto
 
 import kotlinx.serialization.Serializable
-import org.katan.model.blueprint.RawBlueprint
-import org.katan.model.blueprint.RawBlueprintBuild
-import org.katan.model.blueprint.RawBlueprintInstance
-import org.katan.model.blueprint.RawBlueprintOption
-import org.katan.model.blueprint.RawBlueprintRemote
+import org.katan.model.blueprint.BlueprintSpec
+import org.katan.model.blueprint.BlueprintSpecBuild
+import org.katan.model.blueprint.BlueprintSpecBuildInstance
+import org.katan.model.blueprint.BlueprintSpecOption
+import org.katan.model.blueprint.BlueprintSpecRemote
 
 @Serializable
 internal data class RawBlueprintResponse(
@@ -17,7 +17,7 @@ internal data class RawBlueprintResponse(
     val options: List<RawBlueprintOptionResponse>
 ) {
 
-    internal constructor(raw: RawBlueprint) : this(
+    internal constructor(raw: BlueprintSpec) : this(
         name = raw.name,
         version = raw.version,
         icon = raw.icon,
@@ -35,7 +35,7 @@ internal data class RawBlueprintOptionResponse(
     val defaultValue: String?
 ) {
 
-    internal constructor(option: RawBlueprintOption) : this(
+    internal constructor(option: BlueprintSpecOption) : this(
         name = option.name,
         type = option.type,
         env = option.env,
@@ -50,7 +50,7 @@ internal data class RawBlueprintRemoteResponse(
     val exports: List<String>
 ) {
 
-    internal constructor(remote: RawBlueprintRemote) : this(
+    internal constructor(remote: BlueprintSpecRemote) : this(
         main = remote.main,
         origin = remote.origin,
         exports = remote.exports
@@ -65,7 +65,7 @@ internal data class RawBlueprintBuildResponse(
     val instance: RawBlueprintInstanceResponse?
 ) {
 
-    internal constructor(build: RawBlueprintBuild) : this(
+    internal constructor(build: BlueprintSpecBuild) : this(
         image = build.image,
         entrypoint = build.entrypoint,
         env = build.env,
@@ -78,7 +78,7 @@ internal data class RawBlueprintInstanceResponse(
     val name: String? = null
 ) {
 
-    internal constructor(instance: RawBlueprintInstance) : this(
+    internal constructor(instance: BlueprintSpecBuildInstance) : this(
         name = instance.name
     )
 }

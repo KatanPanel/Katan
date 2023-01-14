@@ -4,9 +4,9 @@ import org.katan.http.importHttpModule
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.blueprint.BlueprintServiceImpl
 import org.katan.service.blueprint.http.BlueprintHttpModule
-import org.katan.service.blueprint.provider.BlueprintResourceProvider
-import org.katan.service.blueprint.provider.CombinedBlueprintResourceProvider
-import org.katan.service.blueprint.provider.GithubBlueprintResourceProvider
+import org.katan.service.blueprint.provider.BlueprintSpecProvider
+import org.katan.service.blueprint.provider.CombinedBlueprintSpecProvider
+import org.katan.service.blueprint.provider.GithubBlueprintSpecProvider
 import org.katan.service.blueprint.repository.BlueprintRepository
 import org.katan.service.blueprint.repository.BlueprintRepositoryImpl
 import org.koin.core.module.Module
@@ -15,10 +15,10 @@ import org.koin.dsl.module
 val blueprintServiceDI: Module = module {
     importHttpModule(::BlueprintHttpModule)
     single<BlueprintRepository> { BlueprintRepositoryImpl(database = get()) }
-    single<BlueprintResourceProvider> {
-        CombinedBlueprintResourceProvider(
+    single<BlueprintSpecProvider> {
+        CombinedBlueprintSpecProvider(
             listOf(
-                GithubBlueprintResourceProvider(httpClient = get())
+                GithubBlueprintSpecProvider(httpClient = get())
             )
         )
     }
@@ -26,7 +26,7 @@ val blueprintServiceDI: Module = module {
         BlueprintServiceImpl(
             idService = get(),
             blueprintRepository = get(),
-            blueprintResourceProvider = get(),
+            blueprintSpecProvider = get(),
             fsService = get()
         )
     }
