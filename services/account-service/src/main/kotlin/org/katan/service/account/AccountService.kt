@@ -10,7 +10,7 @@ interface AccountService {
 
     suspend fun getAccountAndHash(username: String): Pair<Account, String>?
 
-    suspend fun createAccount(username: String, email: String, password: String): Account
+    suspend fun createAccount(username: String, displayName: String, email: String, password: String): Account
 
     suspend fun deleteAccount(id: Long)
 }

@@ -31,6 +31,7 @@ internal class AccountServiceImpl(
 
     override suspend fun createAccount(
         username: String,
+        displayName: String,
         email: String,
         password: String
     ): Account {
@@ -41,7 +42,7 @@ internal class AccountServiceImpl(
         val now = Clock.System.now()
         val impl = AccountImpl(
             id = idService.generate(),
-            displayName = null,
+            displayName = displayName,
             username = username,
             email = email,
             createdAt = now,
