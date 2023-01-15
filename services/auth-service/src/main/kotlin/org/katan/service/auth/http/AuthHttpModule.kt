@@ -25,6 +25,9 @@ import org.koin.ktor.ext.inject
 
 internal class AuthHttpModule : HttpModule() {
 
+    // Needed to Ktor's [Authentication] plugin be installed before services try to hook on it
+    override val priority: Int get() = 1
+
     override fun install(app: Application) {
         with(app) {
             installAuthentication()

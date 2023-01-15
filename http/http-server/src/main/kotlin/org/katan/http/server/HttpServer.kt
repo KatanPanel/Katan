@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
+import org.katan.http.HttpModule
 import org.katan.http.HttpModuleRegistry
 import org.katan.http.installDefaultFeatures
 import org.katan.http.server.routes.serverInfo
@@ -71,7 +72,8 @@ class HttpServer(
     }
 
     private fun registerModules(app: Application) {
-        for (module in get<HttpModuleRegistry>().modules) {
+        val registry = get<HttpModuleRegistry>()
+        for (module in registry.modules.sortedByDescending(HttpModule::priority)) {
             module.install(app)
             for ((op, handler) in module.webSocketHandlers())
                 webSocketManager.register(op, handler)

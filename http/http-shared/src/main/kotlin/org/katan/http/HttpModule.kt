@@ -9,6 +9,8 @@ import org.koin.core.qualifier.named
 
 abstract class HttpModule : KoinComponent {
 
+    open val priority: Int get() = 0
+
     abstract fun install(app: Application)
 
     open fun webSocketHandlers(): Map<WebSocketOp, WebSocketPacketEventHandler> {
