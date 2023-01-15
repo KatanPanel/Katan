@@ -29,11 +29,9 @@ internal class AuthHttpModule : HttpModule() {
         with(app) {
             installAuthentication()
             routing {
-                addAccountAttributeIfNeeded()
                 login()
-                authenticate {
-                    verify()
-                }
+                authenticate { verify() }
+                addAccountAttributeIfNeeded()
             }
         }
     }

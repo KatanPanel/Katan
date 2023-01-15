@@ -4,13 +4,17 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.atomicfu)
     alias(libs.plugins.kotlin.serialization) apply false
-    alias(libs.plugins.kotlin.atomicfu) apply false
     alias(libs.plugins.kotlinter) apply false
 }
 
 repositories {
     mavenCentral()
+}
+
+atomicfuCompilerPlugin {
+    isJvmIrTransformationEnabled = true
 }
 
 subprojects {
@@ -19,7 +23,6 @@ subprojects {
 
     apply(plugin = rootProject.libs.plugins.kotlin.jvm.get().pluginId)
     apply(plugin = rootProject.libs.plugins.kotlin.serialization.get().pluginId)
-    apply(plugin = rootProject.libs.plugins.kotlin.atomicfu.get().pluginId)
     apply(plugin = rootProject.libs.plugins.kotlinter.get().pluginId)
 
     repositories {

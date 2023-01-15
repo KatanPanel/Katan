@@ -16,13 +16,13 @@ abstract class HttpModule : KoinComponent {
     }
 }
 
-inline fun <reified T : HttpModule> Module.importHttpModule(
-    crossinline module: () -> T
-) {
+inline fun <reified T : HttpModule> Module.importHttpModule(crossinline module: () -> T) {
     single(
         qualifier = named<T>(),
         createdAtStart = true
     ) {
-        get<HttpModuleRegistry>() += module()
+        val module = module()
+        get<HttpModuleRegistry>() += module
+        module
     }
 }

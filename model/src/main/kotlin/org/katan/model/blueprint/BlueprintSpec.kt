@@ -6,8 +6,6 @@ interface BlueprintSpec {
 
     val version: String
 
-    val icon: String?
-
     val remote: BlueprintSpecRemote
 
     val build: BlueprintSpecBuild
@@ -16,6 +14,9 @@ interface BlueprintSpec {
 }
 
 interface BlueprintSpecOption {
+
+    val id: String
+
     val name: String
 
     val type: List<String>
@@ -27,16 +28,12 @@ interface BlueprintSpecOption {
 
 interface BlueprintSpecRemote {
 
-    val main: String
-
     val origin: String
-
-    val exports: List<String>
 }
 
 interface BlueprintSpecBuild {
 
-    val image: String
+    val image: BlueprintSpecBuildImage
 
     val entrypoint: String
 
@@ -48,4 +45,21 @@ interface BlueprintSpecBuild {
 interface BlueprintSpecBuildInstance {
 
     val name: String?
+}
+
+interface BlueprintSpecBuildImage {
+
+    interface Single : BlueprintSpecBuildImage {
+        val id: String
+    }
+
+    interface Ref : BlueprintSpecBuildImage {
+        val ref: String
+
+        val tag: String
+    }
+
+    interface Multiple : BlueprintSpecBuildImage {
+        val images: List<Single>
+    }
 }

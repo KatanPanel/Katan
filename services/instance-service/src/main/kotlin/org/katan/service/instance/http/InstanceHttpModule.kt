@@ -17,8 +17,9 @@ import org.katan.service.instance.http.routes.updateStatus
 import org.katan.service.instance.http.websocket.ExecuteCommandHandler
 import org.katan.service.instance.http.websocket.FetchLogsHandler
 import org.katan.service.instance.http.websocket.StatsStreamingHandler
+import org.koin.core.component.get
 
-internal class UnitInstanceHttpModule : HttpModule() {
+internal class InstanceHttpModule : HttpModule() {
 
     override fun webSocketHandlers(): Map<WebSocketOp, WebSocketPacketEventHandler> {
         return mapOf(
@@ -29,13 +30,20 @@ internal class UnitInstanceHttpModule : HttpModule() {
     }
 
     override fun install(app: Application) {
-        app.routing {
-            authenticate {
-                getInstance()
-                updateStatus()
-                getInstanceFsFile()
-                getInstanceFsBucket()
-                readFsFile()
+        // since Ktor 2.2.2 "authenticate" route needs to have an Authentication plugin
+        // installed before it's call, and HTTP modules initialization are unordered
+        // so AuthService can be loaded after this HTTP module, this will ensure its load
+//        get<HttpModule>(qualifier = named("org.katan.service.auth.http.AuthHttpModule"))
+
+        with(app) {
+            routing {
+                authenticate {
+                    getInstance()
+                    updateStatus()
+                    getInstanceFsFile()
+                    getInstanceFsBucket()
+                    readFsFile()
+                }
             }
         }
     }

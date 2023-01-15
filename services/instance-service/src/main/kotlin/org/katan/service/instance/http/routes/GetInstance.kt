@@ -9,7 +9,7 @@ import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
 import org.katan.service.instance.InstanceNotFoundException
 import org.katan.service.instance.InstanceService
-import org.katan.service.instance.http.UnitInstanceRoutes
+import org.katan.service.instance.http.InstanceRoutes
 import org.katan.service.instance.http.dto.InstanceResponse
 import org.koin.ktor.ext.inject
 
@@ -17,7 +17,7 @@ internal fun Route.getInstance() {
     val instanceService by inject<InstanceService>()
     val validator by inject<Validator>()
 
-    get<UnitInstanceRoutes.ById> { parameters ->
+    get<InstanceRoutes.ById> { parameters ->
         validator.validateOrThrow(parameters)
 
         val instance = try {

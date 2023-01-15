@@ -42,7 +42,6 @@ private object Application {
                 httpServerDI,
                 eventsDispatcherDI,
                 idServiceDI,
-                authServiceDI,
                 accountServiceDI,
                 unitServiceDI,
                 networkServiceDI,
@@ -52,7 +51,8 @@ private object Application {
                 dockerClientDI,
                 hostFsServiceDI,
                 httpClientDI,
-                blueprintServiceDI
+                blueprintServiceDI,
+                authServiceDI
             )
         }
 

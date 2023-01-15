@@ -9,15 +9,18 @@ import org.katan.service.blueprint.BlueprintSpecParser
 import org.katan.service.blueprint.UnsupportedBlueprintSpecSource
 import java.nio.channels.UnresolvedAddressException
 
-internal class GithubBlueprintSpecProvider(
+@JvmInline
+value class RemoteBlueprintSpecSource(val url: String) : BlueprintSpecSource
+
+internal class RemoteBlueprintSpecProvider(
     val httpClient: HttpClient,
     val blueprintSpecParser: BlueprintSpecParser
 ) : BlueprintSpecProvider {
 
-    override val id: String get() = "github"
+    override val id: String get() = "remote"
 
     override suspend fun provide(source: BlueprintSpecSource): BlueprintSpec {
-        if (source !is URLBlueprintSpecSource) {
+        if (source !is RemoteBlueprintSpecSource) {
             throw UnsupportedBlueprintSpecSource()
         }
 

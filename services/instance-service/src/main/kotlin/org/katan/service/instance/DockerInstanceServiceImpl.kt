@@ -26,6 +26,7 @@ import org.katan.config.KatanConfig
 import org.katan.event.EventScope
 import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
+import org.katan.model.blueprint.BlueprintSpecBuildImage
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
@@ -38,7 +39,7 @@ import org.katan.service.blueprint.BlueprintService
 import org.katan.service.id.IdService
 import org.katan.service.instance.internal.DockerEventScope
 import org.katan.service.instance.repository.InstanceEntity
-import org.katan.service.instance.repository.UnitInstanceRepository
+import org.katan.service.instance.repository.InstanceRepository
 import org.katan.service.network.NetworkService
 import java.io.Closeable
 import kotlin.reflect.jvm.jvmName
@@ -53,7 +54,7 @@ internal class DockerInstanceServiceImpl(
     private val networkService: NetworkService,
     private val blueprintService: BlueprintService,
     private val dockerClient: DockerClient,
-    private val unitInstanceRepository: UnitInstanceRepository,
+    private val instanceRepository: InstanceRepository,
     private val config: KatanConfig
 ) : InstanceService,
     CoroutineScope by CoroutineScope(
@@ -73,7 +74,7 @@ internal class DockerInstanceServiceImpl(
 
     override suspend fun getInstance(id: Long): UnitInstance {
         // TODO cache service
-        return unitInstanceRepository.findById(id)?.toDomain()
+        return instanceRepository.findById(id)?.toDomain()
             ?: throw InstanceNotFoundException()
     }
 
@@ -183,7 +184,7 @@ internal class DockerInstanceServiceImpl(
         require(instance is DockerUnitInstanceImpl)
 
         // TODO fix coroutine scope of both runtime remove and repository delete
-        unitInstanceRepository.delete(instance.id)
+        instanceRepository.delete(instance.id)
         withContext(IO) {
             dockerClient.removeContainerCmd(instance.containerId!!)
                 .withRemoveVolumes(true)
@@ -263,7 +264,7 @@ internal class DockerInstanceServiceImpl(
     }
 
     private suspend fun updateInstance(id: Long, status: InstanceStatus) {
-        unitInstanceRepository.update(id) {
+        instanceRepository.update(id) {
             this.status = status.value
         }
     }
@@ -291,14 +292,17 @@ internal class DockerInstanceServiceImpl(
 
     override suspend fun createInstance(blueprint: Blueprint, host: String?, port: Int?): UnitInstance {
         val instanceId = idService.generate()
-        val rawBlueprint = blueprintService.getSpec(blueprint.id.value)
-        val generatedName = generateContainerName(instanceId, rawBlueprint.build.instance?.name)
-        val image = rawBlueprint.build.image
+        val spec = blueprintService.getSpec(blueprint.id.value)
+        val generatedName = generateContainerName(instanceId, spec.build.instance?.name)
+        val image = spec.build.image
+
+        // TODO add support to more image types
+        require(image is BlueprintSpecBuildImage.Single) { "Only single spec image is supported" }
 
         // we'll try to create the container using the given image if the image is not available,
         // it will pull the image and then try to create the container again
         return try {
-            val containerId = createContainer(instanceId, image, generatedName)
+            val containerId = createContainer(instanceId, image.id, generatedName)
             resumeCreateInstance(
                 instanceId = instanceId,
                 blueprintId = blueprint.id,
@@ -311,11 +315,9 @@ internal class DockerInstanceServiceImpl(
             var status: InstanceStatus = InstanceStatus.ImagePullNeeded
             val instance = registerInstance(instanceId, blueprint.id, status)
 
-            logger.debug("Preparing to pull image")
-            pullImageAndUpdateInstance(instanceId, image) { status = it }
-            logger.debug("Image pulled!")
+            pullImageAndUpdateInstance(instanceId, image.id) { status = it }
 
-            val containerId = createContainer(instanceId, image, generatedName)
+            val containerId = createContainer(instanceId, image.id, generatedName)
             resumeCreateInstance(
                 instanceId = instanceId,
                 blueprintId = blueprint.id,
@@ -325,8 +327,6 @@ internal class DockerInstanceServiceImpl(
                 status = status,
                 fallbackInstance = instance
             )
-
-            instance
         }
     }
 
@@ -389,7 +389,7 @@ internal class DockerInstanceServiceImpl(
             blueprintId = blueprintId
         )
 
-        unitInstanceRepository.create(instance)
+        instanceRepository.create(instance)
         return instance
     }
 

@@ -13,15 +13,11 @@ internal data class CombinedBlueprintSpecProvider(
 
     override suspend fun provide(source: BlueprintSpecSource): BlueprintSpec {
         for (provider in providers) {
-            runCatching {
-                provider.provide(source)
-            }.recoverCatching { exception ->
-                if (exception is UnsupportedBlueprintSpecSource) {
-                    null
-                } else {
-                    throw exception
-                }
-            }.getOrNull() ?: continue
+            try {
+                return provider.provide(source)
+            } catch (_: UnsupportedBlueprintSpecSource) {
+                continue
+            }
         }
 
         throw NoMatchingBlueprintSpecProviderException()

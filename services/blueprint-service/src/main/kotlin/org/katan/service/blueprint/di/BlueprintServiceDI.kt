@@ -7,7 +7,7 @@ import org.katan.service.blueprint.BlueprintSpecParser
 import org.katan.service.blueprint.http.BlueprintHttpModule
 import org.katan.service.blueprint.provider.BlueprintSpecProvider
 import org.katan.service.blueprint.provider.CombinedBlueprintSpecProvider
-import org.katan.service.blueprint.provider.GithubBlueprintSpecProvider
+import org.katan.service.blueprint.provider.RemoteBlueprintSpecProvider
 import org.katan.service.blueprint.repository.BlueprintRepository
 import org.katan.service.blueprint.repository.BlueprintRepositoryImpl
 import org.koin.core.module.Module
@@ -19,7 +19,7 @@ val blueprintServiceDI: Module = module {
     single<BlueprintSpecProvider> {
         CombinedBlueprintSpecProvider(
             listOf(
-                GithubBlueprintSpecProvider(
+                RemoteBlueprintSpecProvider(
                     httpClient = get(),
                     blueprintSpecParser = get()
                 )

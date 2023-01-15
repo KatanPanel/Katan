@@ -8,26 +8,26 @@ import org.katan.service.id.validation.MustBeSnowflake
 
 @Serializable
 @Resource("/instances")
-internal class UnitInstanceRoutes {
+internal class InstanceRoutes {
 
     @Serializable
     @Resource("{instanceId}")
     internal class ById(
-        @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
+        @Suppress("UNUSED") val parent: InstanceRoutes = InstanceRoutes(),
         @field:MustBeSnowflake val instanceId: String
     )
 
     @Serializable
     @Resource("{instanceId}/status")
     internal class UpdateStatus(
-        @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
+        @Suppress("UNUSED") val parent: InstanceRoutes = InstanceRoutes(),
         @field:MustBeSnowflake val instanceId: String
     )
 
     @Serializable
     @Resource("{instanceId}/fs/{bucket}")
     internal class FSBucket(
-        @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
+        @Suppress("UNUSED") val parent: InstanceRoutes = InstanceRoutes(),
         @field:MustBeSnowflake val instanceId: String,
         @field:NotBlank(message = "Bucket must be provided") val bucket: String
     )
@@ -35,7 +35,7 @@ internal class UnitInstanceRoutes {
     @Serializable
     @Resource("{instanceId}/fs/{bucket}/file")
     internal class FSFile(
-        @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
+        @Suppress("UNUSED") val parent: InstanceRoutes = InstanceRoutes(),
         @field:MustBeSnowflake val instanceId: String,
         @field:NotBlank(message = "Bucket must be provided") val bucket: String,
         val path: String? = ""
@@ -44,7 +44,7 @@ internal class UnitInstanceRoutes {
     @Serializable
     @Resource("{instanceId}/fs/{bucket}/file/read")
     internal class FSReadFile(
-        @Suppress("UNUSED") val parent: UnitInstanceRoutes = UnitInstanceRoutes(),
+        @Suppress("UNUSED") val parent: InstanceRoutes = InstanceRoutes(),
         @field:MustBeSnowflake val instanceId: String,
         @field:NotBlank(message = "Bucket must be provided") val bucket: String,
         @field:NotBlank(message = "File absolute path must be provided") val path: String? = null,

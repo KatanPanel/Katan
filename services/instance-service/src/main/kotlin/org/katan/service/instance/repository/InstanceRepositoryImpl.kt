@@ -33,7 +33,7 @@ internal class UnitInstanceEntity(id: EntityID<Long>) : LongEntity(id), Instance
     override fun getId() = id.value
 }
 
-internal class UnitInstanceRepositoryImpl(private val database: Database) : UnitInstanceRepository {
+internal class InstanceRepositoryImpl(private val database: Database) : InstanceRepository {
 
     init {
         transaction(db = database) {

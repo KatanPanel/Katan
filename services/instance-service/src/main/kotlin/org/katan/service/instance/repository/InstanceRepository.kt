@@ -2,7 +2,7 @@ package org.katan.service.instance.repository
 
 import org.katan.model.instance.UnitInstance
 
-interface UnitInstanceRepository {
+interface InstanceRepository {
 
     suspend fun findById(id: Long): InstanceEntity?
 

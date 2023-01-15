@@ -3,16 +3,16 @@ package org.katan.service.instance.di
 import org.katan.http.importHttpModule
 import org.katan.service.instance.DockerInstanceServiceImpl
 import org.katan.service.instance.InstanceService
-import org.katan.service.instance.http.UnitInstanceHttpModule
-import org.katan.service.instance.repository.UnitInstanceRepository
-import org.katan.service.instance.repository.UnitInstanceRepositoryImpl
+import org.katan.service.instance.http.InstanceHttpModule
+import org.katan.service.instance.repository.InstanceRepository
+import org.katan.service.instance.repository.InstanceRepositoryImpl
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val instanceServiceDI: Module = module {
-    importHttpModule(::UnitInstanceHttpModule)
-    single<UnitInstanceRepository> {
-        UnitInstanceRepositoryImpl(
+    importHttpModule(::InstanceHttpModule)
+    single<InstanceRepository> {
+        InstanceRepositoryImpl(
             database = get()
         )
     }
@@ -23,7 +23,7 @@ val instanceServiceDI: Module = module {
             networkService = get(),
             blueprintService = get(),
             dockerClient = get(),
-            unitInstanceRepository = get(),
+            instanceRepository = get(),
             config = get()
         )
     }

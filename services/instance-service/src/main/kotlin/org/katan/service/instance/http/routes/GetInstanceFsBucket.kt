@@ -12,7 +12,7 @@ import org.katan.service.fs.FSService
 import org.katan.service.fs.http.dto.FSBucketResponse
 import org.katan.service.instance.InstanceNotFoundException
 import org.katan.service.instance.InstanceService
-import org.katan.service.instance.http.UnitInstanceRoutes
+import org.katan.service.instance.http.InstanceRoutes
 import org.koin.ktor.ext.inject
 
 internal fun Route.getInstanceFsBucket() {
@@ -20,7 +20,7 @@ internal fun Route.getInstanceFsBucket() {
     val fsService by inject<FSService>()
     val validator by inject<Validator>()
 
-    get<UnitInstanceRoutes.FSBucket> { parameters ->
+    get<InstanceRoutes.FSBucket> { parameters ->
         validator.validateOrThrow(parameters)
 
         val instance = try {

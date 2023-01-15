@@ -15,7 +15,7 @@ import org.katan.http.response.validateOrThrow
 import org.katan.service.fs.FSService
 import org.katan.service.instance.InstanceNotFoundException
 import org.katan.service.instance.InstanceService
-import org.katan.service.instance.http.UnitInstanceRoutes
+import org.katan.service.instance.http.InstanceRoutes
 import org.koin.ktor.ext.inject
 
 internal fun Route.readFsFile() {
@@ -23,7 +23,7 @@ internal fun Route.readFsFile() {
     val fsService by inject<FSService>()
     val validator by inject<Validator>()
 
-    get<UnitInstanceRoutes.FSReadFile> { parameters ->
+    get<InstanceRoutes.FSReadFile> { parameters ->
         validator.validateOrThrow(parameters)
         val instance = try {
             instanceService.getInstance(parameters.instanceId.toLong())

@@ -11,6 +11,7 @@ import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.plugins.dataconversion.DataConversion
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.resources.Resources
@@ -24,15 +25,24 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.katan.http.response.HttpError
 import org.katan.http.response.ValidationException
+import org.katan.model.Snowflake
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
-import java.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 fun Application.installDefaultFeatures(isDevelopmentMode: Boolean) {
     install(Routing)
     install(Resources)
     install(DefaultHeaders)
     install(AutoHeadResponse)
+    install(DataConversion) {
+        @Suppress("RemoveExplicitTypeArguments")
+        convert<Snowflake> {
+            decode { values -> Snowflake(values.first().toLong()) }
+            encode { snowflake -> listOf(snowflake.value.toString()) }
+        }
+    }
     install(CallLogging) {
         level = if (isDevelopmentMode) Level.DEBUG else Level.INFO
         logger = LoggerFactory.getLogger("Ktor")
@@ -96,8 +106,8 @@ fun Application.installDefaultFeatures(isDevelopmentMode: Boolean) {
         anyHost()
     }
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(15)
-        timeout = Duration.ofSeconds(15)
+        pingPeriod = 15.seconds.toJavaDuration()
+        timeout = 15.seconds.toJavaDuration()
         maxFrameSize = Long.MAX_VALUE
     }
 }

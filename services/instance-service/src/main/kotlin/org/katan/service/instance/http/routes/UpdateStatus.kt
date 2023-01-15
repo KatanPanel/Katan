@@ -13,7 +13,7 @@ import org.katan.http.response.validateOrThrow
 import org.katan.model.instance.InstanceUpdateCode
 import org.katan.service.instance.InstanceNotFoundException
 import org.katan.service.instance.InstanceService
-import org.katan.service.instance.http.UnitInstanceRoutes
+import org.katan.service.instance.http.InstanceRoutes
 import org.katan.service.instance.http.dto.UpdateStatusCodeRequest
 import org.koin.ktor.ext.inject
 
@@ -21,7 +21,7 @@ internal fun Route.updateStatus() {
     val instanceService by inject<InstanceService>()
     val validator by inject<Validator>()
 
-    post<UnitInstanceRoutes.UpdateStatus> { params ->
+    post<InstanceRoutes.UpdateStatus> { params ->
         validator.validateOrThrow(params)
 
         val request = call.receive<UpdateStatusCodeRequest>()
