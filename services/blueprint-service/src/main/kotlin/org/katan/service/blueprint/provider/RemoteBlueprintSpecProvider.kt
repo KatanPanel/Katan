@@ -5,8 +5,8 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import org.katan.model.blueprint.BlueprintSpec
 import org.katan.service.blueprint.BlueprintSpecNotFound
-import org.katan.service.blueprint.BlueprintSpecParser
 import org.katan.service.blueprint.UnsupportedBlueprintSpecSource
+import org.katan.service.blueprint.parser.BlueprintSpecParser
 import java.nio.channels.UnresolvedAddressException
 
 @JvmInline

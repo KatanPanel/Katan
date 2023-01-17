@@ -12,9 +12,4 @@ class BlueprintSpecNotFound : BlueprintException()
 
 class BlueprintConflictException : BlueprintException()
 
-class BlueprintSpecParseException(
-    override val message: String,
-    override val cause: Throwable?
-) : BlueprintException()
-
 class UnsupportedBlueprintSpecSource : BlueprintException()

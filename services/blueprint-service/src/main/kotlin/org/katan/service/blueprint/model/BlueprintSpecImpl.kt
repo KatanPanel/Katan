@@ -1,21 +1,21 @@
 package org.katan.service.blueprint.model
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.model.blueprint.BlueprintSpec
 import org.katan.model.blueprint.BlueprintSpecBuild
 import org.katan.model.blueprint.BlueprintSpecBuildImage
 import org.katan.model.blueprint.BlueprintSpecBuildInstance
 import org.katan.model.blueprint.BlueprintSpecOption
+import org.katan.model.blueprint.BlueprintSpecOptions
 import org.katan.model.blueprint.BlueprintSpecRemote
 
 @Serializable
 internal data class BlueprintSpecImpl(
     override val name: String,
     override val version: String,
-    override val remote: BlueprintSpecRemoteImpl,
-    override val build: BlueprintSpecBuildImpl,
-    override val options: List<BlueprintSpecOptionImpl> = emptyList()
+    override val remote: BlueprintSpecRemote,
+    override val build: BlueprintSpecBuild,
+    override val options: BlueprintSpecOptions = emptyList()
 ) : BlueprintSpec
 
 @Serializable
@@ -34,7 +34,8 @@ internal data class BlueprintSpecRemoteImpl(
 
 @Serializable
 internal data class BlueprintSpecBuildImpl(
-    override val image: BlueprintSpecBuildImageImpl,
+    override val image: String?,
+    override val images: List<BlueprintSpecBuildImage>?,
     override val entrypoint: String,
     override val env: Map<String, String> = emptyMap(),
     override val instance: BlueprintSpecBuildInstanceImpl? = null
@@ -46,23 +47,7 @@ internal data class BlueprintSpecBuildInstanceImpl(
 ) : BlueprintSpecBuildInstance
 
 @Serializable
-internal sealed class BlueprintSpecBuildImageImpl : BlueprintSpecBuildImage {
-
-    @JvmInline
-    @Serializable
-    @SerialName("single")
-    internal value class Single(override val id: String) : BlueprintSpecBuildImage.Single
-
-    @Serializable
-    @SerialName("ref")
-    internal data class Ref(
-        override val ref: String,
-        override val tag: String
-    ) : BlueprintSpecBuildImage.Ref
-
-    @Serializable
-    @SerialName("multiple")
-    internal data class Multiple(
-        override val images: List<BlueprintSpecBuildImage.Single>
-    ) : BlueprintSpecBuildImage.Multiple
-}
+internal data class BlueprintSpecBuildImageImpl(
+    override val ref: String,
+    override val tag: String
+) : BlueprintSpecBuildImage

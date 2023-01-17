@@ -26,7 +26,6 @@ import org.katan.config.KatanConfig
 import org.katan.event.EventScope
 import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
-import org.katan.model.blueprint.BlueprintSpecBuildImage
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
@@ -297,12 +296,12 @@ internal class DockerInstanceServiceImpl(
         val image = spec.build.image
 
         // TODO add support to more image types
-        require(image is BlueprintSpecBuildImage.Single) { "Only single spec image is supported" }
+        requireNotNull(image) { "Only single spec image is supported" }
 
         // we'll try to create the container using the given image if the image is not available,
         // it will pull the image and then try to create the container again
         return try {
-            val containerId = createContainer(instanceId, image.id, generatedName)
+            val containerId = createContainer(instanceId, image, generatedName)
             resumeCreateInstance(
                 instanceId = instanceId,
                 blueprintId = blueprint.id,
@@ -315,9 +314,9 @@ internal class DockerInstanceServiceImpl(
             var status: InstanceStatus = InstanceStatus.ImagePullNeeded
             val instance = registerInstance(instanceId, blueprint.id, status)
 
-            pullImageAndUpdateInstance(instanceId, image.id) { status = it }
+            pullImageAndUpdateInstance(instanceId, image) { status = it }
 
-            val containerId = createContainer(instanceId, image.id, generatedName)
+            val containerId = createContainer(instanceId, image, generatedName)
             resumeCreateInstance(
                 instanceId = instanceId,
                 blueprintId = blueprint.id,

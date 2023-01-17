@@ -1,6 +1,5 @@
 package org.katan.service.blueprint.http.dto
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.model.blueprint.BlueprintSpec
 import org.katan.model.blueprint.BlueprintSpecBuild
@@ -55,14 +54,16 @@ internal data class BlueprintSpecRemoteResponse(
 
 @Serializable
 internal data class BlueprintSpecBuildResponse(
-    val image: BlueprintSpecBuildImageResponse,
+    val image: String?,
+    val images: List<BlueprintSpecBuildImageResponse>?,
     val entrypoint: String,
     val env: Map<String, String>,
     val instance: BlueprintSpecBuildInstanceResponse?
 ) {
 
     internal constructor(build: BlueprintSpecBuild) : this(
-        image = BlueprintSpecBuildImageResponse(build.image),
+        image = build.image,
+        images = build.images?.map(::BlueprintSpecBuildImageResponse),
         entrypoint = build.entrypoint,
         env = build.env,
         instance = build.instance?.let(::BlueprintSpecBuildInstanceResponse)
@@ -78,40 +79,13 @@ internal data class BlueprintSpecBuildInstanceResponse(val name: String? = null)
 }
 
 @Serializable
-internal sealed class BlueprintSpecBuildImageResponse {
+internal data class BlueprintSpecBuildImageResponse(
+    val ref: String,
+    val tag: String
+) {
 
-    companion object {
-        operator fun invoke(value: BlueprintSpecBuildImage): BlueprintSpecBuildImageResponse {
-            return when (value) {
-                is BlueprintSpecBuildImage.Single -> Single(value.id)
-                is BlueprintSpecBuildImage.Ref -> Ref(
-                    ref = value.ref,
-                    tag = value.tag
-                )
-                is BlueprintSpecBuildImage.Multiple -> Multiple(
-                    images = value.images
-                )
-                else -> error("Type not mapped")
-            }
-        }
-    }
-
-    @Serializable
-    @SerialName("single")
-    internal data class Single(override val id: String) :
-        BlueprintSpecBuildImageResponse(),
-        BlueprintSpecBuildImage.Single
-
-    @Serializable
-    @SerialName("ref")
-    internal data class Ref(
-        override val ref: String,
-        override val tag: String
-    ) : BlueprintSpecBuildImageResponse(), BlueprintSpecBuildImage.Ref
-
-    @Serializable
-    @SerialName("multiple")
-    internal data class Multiple(
-        override val images: List<BlueprintSpecBuildImage.Single>
-    ) : BlueprintSpecBuildImageResponse(), BlueprintSpecBuildImage.Multiple
+    internal constructor(image: BlueprintSpecBuildImage) : this(
+        ref = image.ref,
+        tag = image.tag
+    )
 }

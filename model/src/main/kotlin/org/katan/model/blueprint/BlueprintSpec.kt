@@ -10,7 +10,13 @@ interface BlueprintSpec {
 
     val build: BlueprintSpecBuild
 
-    val options: List<BlueprintSpecOption>
+    val options: BlueprintSpecOptions
+}
+
+typealias BlueprintSpecOptions = List<BlueprintSpecOption>
+
+fun BlueprintSpecOptions(): BlueprintSpecOptions {
+    return emptyList()
 }
 
 interface BlueprintSpecOption {
@@ -33,7 +39,9 @@ interface BlueprintSpecRemote {
 
 interface BlueprintSpecBuild {
 
-    val image: BlueprintSpecBuildImage
+    val image: String?
+
+    val images: List<BlueprintSpecBuildImage>?
 
     val entrypoint: String
 
@@ -48,18 +56,7 @@ interface BlueprintSpecBuildInstance {
 }
 
 interface BlueprintSpecBuildImage {
+    val ref: String
 
-    interface Single : BlueprintSpecBuildImage {
-        val id: String
-    }
-
-    interface Ref : BlueprintSpecBuildImage {
-        val ref: String
-
-        val tag: String
-    }
-
-    interface Multiple : BlueprintSpecBuildImage {
-        val images: List<Single>
-    }
+    val tag: String
 }
