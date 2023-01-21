@@ -156,7 +156,7 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         if (kind !is PropertyKind.Mixed) return checkPropertyAndNodeKindEquality(kind::class, inputNodeType)
         if (kind.isAllTypesSupported) return
 
-        val anyMatchingKindAvailable = checkMultipleKinds(kind, inputNodeType, kind.kinds)
+        val anyMatchingKindAvailable = checkMultipleKinds(inputNodeType, kind.kinds)
         if (!anyMatchingKindAvailable) {
             val kinds = kind.kinds.map { childKind -> childKind::class.java.simpleName }
             val actual = kindFromNodeValueType(inputNodeType).java.simpleName
@@ -176,11 +176,11 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         }
     }
 
-    private fun checkMultipleKinds(kind: PropertyKind, nodeType: ConfigValueType, values: List<PropertyKind>): Boolean {
+    private fun checkMultipleKinds(nodeType: ConfigValueType, values: List<PropertyKind>): Boolean {
         var anyMatch = false
         for (childKind in values) {
             try {
-                checkPropertyAndNodeKindEquality(kind::class, nodeType)
+                checkPropertyAndNodeKindEquality(childKind::class, nodeType)
                 anyMatch = true
                 break
             } catch (_: Throwable) {
