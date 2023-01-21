@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
 import org.katan.model.blueprint.BlueprintSpec
+import org.katan.model.blueprint.BlueprintSpecImage
 import org.katan.model.blueprint.ImportedBlueprint
 import org.katan.service.blueprint.model.BlueprintImpl
 import org.katan.service.blueprint.model.BlueprintSpecImpl
@@ -82,7 +83,7 @@ internal class BlueprintServiceImpl(
         val currentInstant = Clock.System.now()
 
         // TODO add support to Ref & Multiple image types
-        val image = spec.build.image
+        val image = (spec.build.image as BlueprintSpecImage.Identifier).id
         require(image != null)
 
         val blueprint = BlueprintImpl(
@@ -92,6 +93,7 @@ internal class BlueprintServiceImpl(
             imageId = image,
             createdAt = currentInstant
         )
+        // TODO create blueprint
 //        blueprintRepository.create(blueprint)
 
         return ImportedBlueprint(blueprint, spec)

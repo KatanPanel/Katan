@@ -39,24 +39,31 @@ interface BlueprintSpecRemote {
 
 interface BlueprintSpecBuild {
 
-    val image: String?
-
-    val images: List<BlueprintSpecBuildImage>?
+    val image: BlueprintSpecImage
 
     val entrypoint: String
 
     val env: Map<String, String>
 
-    val instance: BlueprintSpecBuildInstance?
+    val instance: BlueprintSpecInstance?
 }
 
-interface BlueprintSpecBuildInstance {
+interface BlueprintSpecInstance {
 
     val name: String?
 }
 
-interface BlueprintSpecBuildImage {
-    val ref: String
+sealed interface BlueprintSpecImage {
+    interface Identifier : BlueprintSpecImage {
+        val id: String
+    }
 
-    val tag: String
+    interface Ref : BlueprintSpecImage {
+        val ref: String
+        val tag: String
+    }
+
+    interface Multiple : BlueprintSpecImage {
+        val images: List<Ref>
+    }
 }

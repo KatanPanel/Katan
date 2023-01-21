@@ -26,6 +26,7 @@ import org.katan.config.KatanConfig
 import org.katan.event.EventScope
 import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
+import org.katan.model.blueprint.BlueprintSpecImage
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
@@ -293,7 +294,7 @@ internal class DockerInstanceServiceImpl(
         val instanceId = idService.generate()
         val spec = blueprintService.getSpec(blueprint.id.value)
         val generatedName = generateContainerName(instanceId, spec.build.instance?.name)
-        val image = spec.build.image
+        val image = (spec.build.image as BlueprintSpecImage.Identifier).id
 
         // TODO add support to more image types
         requireNotNull(image) { "Only single spec image is supported" }

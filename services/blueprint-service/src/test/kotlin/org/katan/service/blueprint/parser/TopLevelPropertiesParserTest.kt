@@ -14,10 +14,10 @@ class TopLevelPropertiesParserTest {
 
         val exception = withParserTest {
             assertFailsWith<RequiredPropertyException> {
-                input.asConfigValue().parseTopLevel()
+                parse(input)
             }
         }
-        assertEquals(SpecProperty.Name, exception.property)
+        assertEquals(Properties.Name, exception.property)
     }
 
     @Test
@@ -28,10 +28,10 @@ class TopLevelPropertiesParserTest {
 
         val exception = withParserTest {
             assertFailsWith<RequiredPropertyException> {
-                input.asConfigValue().parseTopLevel()
+                parse(input)
             }
         }
-        assertEquals(SpecProperty.Version, exception.property)
+        assertEquals(Properties.Version, exception.property)
     }
 
     @Test
@@ -43,10 +43,10 @@ class TopLevelPropertiesParserTest {
 
         val exception = withParserTest {
             assertFailsWith<BlankPropertyException> {
-                input.asConfigValue().parseTopLevel()
+                parse(input)
             }
         }
-        assertEquals(SpecProperty.Name, exception.property)
+        assertEquals(Properties.Name, exception.property)
     }
 
     @Test
@@ -58,9 +58,9 @@ class TopLevelPropertiesParserTest {
 
         val exception = withParserTest {
             assertFailsWith<BlankPropertyException> {
-                input.asConfigValue().parseTopLevel()
+                parse(input)
             }
         }
-        assertEquals(SpecProperty.Version, exception.property)
+        assertEquals(Properties.Version, exception.property)
     }
 }

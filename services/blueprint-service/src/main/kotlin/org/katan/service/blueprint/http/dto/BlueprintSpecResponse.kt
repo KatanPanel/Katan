@@ -1,10 +1,11 @@
 package org.katan.service.blueprint.http.dto
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import org.katan.model.blueprint.BlueprintSpec
 import org.katan.model.blueprint.BlueprintSpecBuild
-import org.katan.model.blueprint.BlueprintSpecBuildImage
-import org.katan.model.blueprint.BlueprintSpecBuildInstance
+import org.katan.model.blueprint.BlueprintSpecImage
+import org.katan.model.blueprint.BlueprintSpecInstance
 import org.katan.model.blueprint.BlueprintSpecOption
 import org.katan.model.blueprint.BlueprintSpecRemote
 
@@ -54,38 +55,42 @@ internal data class BlueprintSpecRemoteResponse(
 
 @Serializable
 internal data class BlueprintSpecBuildResponse(
-    val image: String?,
-    val images: List<BlueprintSpecBuildImageResponse>?,
+    val image: @Contextual Any?,
     val entrypoint: String,
     val env: Map<String, String>,
-    val instance: BlueprintSpecBuildInstanceResponse?
+    val instance: BlueprintSpecInstanceResponse?
 ) {
 
     internal constructor(build: BlueprintSpecBuild) : this(
-        image = build.image,
-        images = build.images?.map(::BlueprintSpecBuildImageResponse),
+        image = when (val image = build.image) {
+            is BlueprintSpecImage.Identifier -> BlueprintSpecImageIdentifierResponse(image.id)
+            is BlueprintSpecImage.Ref -> BlueprintSpecImageRefResponse(
+                ref = image.ref,
+                tag = image.tag
+            )
+            is BlueprintSpecImage.Multiple -> image.images.map { image ->
+                BlueprintSpecImageRefResponse(
+                    ref = image.ref,
+                    tag = image.tag
+                )
+            }
+        },
         entrypoint = build.entrypoint,
         env = build.env,
-        instance = build.instance?.let(::BlueprintSpecBuildInstanceResponse)
+        instance = build.instance?.let(::BlueprintSpecInstanceResponse)
     )
 }
 
 @Serializable
-internal data class BlueprintSpecBuildInstanceResponse(val name: String? = null) {
+internal data class BlueprintSpecInstanceResponse(val name: String? = null) {
 
-    internal constructor(instance: BlueprintSpecBuildInstance) : this(
+    internal constructor(instance: BlueprintSpecInstance) : this(
         name = instance.name
     )
 }
 
 @Serializable
-internal data class BlueprintSpecBuildImageResponse(
-    val ref: String,
-    val tag: String
-) {
+internal data class BlueprintSpecImageIdentifierResponse(val id: String)
 
-    internal constructor(image: BlueprintSpecBuildImage) : this(
-        ref = image.ref,
-        tag = image.tag
-    )
-}
+@Serializable
+internal data class BlueprintSpecImageRefResponse(val ref: String, val tag: String)
