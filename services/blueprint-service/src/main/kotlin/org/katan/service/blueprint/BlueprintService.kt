@@ -1,13 +1,11 @@
 package org.katan.service.blueprint
 
-import kotlinx.datetime.Clock
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
 import org.katan.model.blueprint.BlueprintSpec
-import org.katan.model.blueprint.BlueprintSpecImage
-import org.katan.model.blueprint.ImportedBlueprint
 import org.katan.service.blueprint.model.BlueprintImpl
 import org.katan.service.blueprint.model.BlueprintSpecImpl
 import org.katan.service.blueprint.provider.BlueprintSpecProvider
@@ -26,7 +24,7 @@ interface BlueprintService {
 
     suspend fun getBlueprint(id: Long): Blueprint
 
-    suspend fun importBlueprint(source: BlueprintSpecSource): ImportedBlueprint
+    suspend fun importBlueprint(source: BlueprintSpecSource): BlueprintSpec
 }
 
 suspend inline fun BlueprintService.importBlueprint(url: String) =
@@ -45,6 +43,7 @@ internal class BlueprintServiceImpl(
 
     private val json: Json = Json {
         coerceInputValues = false
+        prettyPrint = true
     }
 
     override suspend fun listBlueprints(): List<Blueprint> {
@@ -66,37 +65,18 @@ internal class BlueprintServiceImpl(
             ?: throw BlueprintNotFoundException()
     }
 
-    override suspend fun importBlueprint(source: BlueprintSpecSource): ImportedBlueprint {
+    override suspend fun importBlueprint(source: BlueprintSpecSource): BlueprintSpec {
         val spec = blueprintSpecProvider.provide(source)
         val id = Snowflake(idService.generate())
 
-        // save generated blueprint spec locally
         fsService.uploadFile(
             bucket = null,
             destination = ROOT,
             name = id.value.toString(),
-            // TODO save spec contents :)
-            contents = byteArrayOf()
+            contents = json.encodeToString(spec as BlueprintSpecImpl).encodeToByteArray()
         )
 
-        // register blueprint on database
-        val currentInstant = Clock.System.now()
-
-        // TODO add support to Ref & Multiple image types
-        val image = (spec.build.image as BlueprintSpecImage.Identifier).id
-        require(image != null)
-
-        val blueprint = BlueprintImpl(
-            id = id,
-            name = spec.name,
-            version = spec.version,
-            imageId = image,
-            createdAt = currentInstant
-        )
-        // TODO create blueprint
-//        blueprintRepository.create(blueprint)
-
-        return ImportedBlueprint(blueprint, spec)
+        return spec
     }
 
     private fun toModel(entity: BlueprintEntity): Blueprint = with(entity) {
@@ -106,7 +86,7 @@ internal class BlueprintServiceImpl(
             version = version,
             imageId = imageId,
             createdAt = createdAt,
-            updatedAt = updatedAt ?: createdAt
+            updatedAt = updatedAt
         )
     }
 }

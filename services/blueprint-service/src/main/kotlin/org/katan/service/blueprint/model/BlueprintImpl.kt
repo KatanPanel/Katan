@@ -10,5 +10,5 @@ internal data class BlueprintImpl(
     override val version: String,
     override val imageId: String,
     override val createdAt: Instant,
-    override val updatedAt: Instant? = null
+    override val updatedAt: Instant?
 ) : Blueprint

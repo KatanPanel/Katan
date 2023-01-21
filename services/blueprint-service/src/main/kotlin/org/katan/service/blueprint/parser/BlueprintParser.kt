@@ -15,9 +15,11 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.decodeFromJsonElement
 import org.katan.model.blueprint.BlueprintSpec
+import org.katan.service.blueprint.model.BlueprintSpecBuildImpl
+import org.katan.service.blueprint.model.BlueprintSpecImageImpl
 import org.katan.service.blueprint.model.BlueprintSpecImpl
+import org.katan.service.blueprint.model.BlueprintSpecInstanceImpl
 import kotlin.reflect.KClass
 
 // TODO detailed error diagnostics
@@ -25,6 +27,7 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
 
     private val json: Json = Json {
         ignoreUnknownKeys = false
+        isLenient = true
     }
     private val parseOptions = ConfigParseOptions.defaults().setSyntax(ConfigSyntax.CONF)
 
@@ -54,12 +57,8 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         return JsonObject(output)
     }
 
-    internal fun read(qualifiedName: String, node: ConfigValue): JsonElement? {
-        val property = supportedProperties.firstOrNull { property ->
-            property.qualifiedName == qualifiedName
-        } ?: error("Property $qualifiedName not found")
-
-        checkPropertyAndNodeKindEquality(property, node)
+    internal fun read(property: Property, node: ConfigValue, equalityCheck: Boolean): JsonElement {
+        if (equalityCheck) checkPropertyAndNodeKindEquality(property, node)
 
         return when (node.valueType()) {
             ConfigValueType.LIST -> {
@@ -74,21 +73,21 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
                         error("Expected list of $supportedName, got ${childKind.java.simpleName} instead")
                     }
 
-                    val value = childNode.unwrapped()
-
                     // we need to check each value in this list based on supported list types
                     checkPropertyAndNodeKindEquality(childKind, childType)
 
-                    elements.add(primitiveElement(value))
+                    val element = read(property, childNode, false) ?: continue
+                    elements.add(element)
                 }
 
                 JsonArray(elements.toList())
             }
+
             ConfigValueType.OBJECT -> {
                 val root = (node as ConfigObject)
                 val elements = mutableMapOf<String, JsonElement>()
                 for ((childKey, childNode) in root.entries) {
-                    val qName = qualifiedName + PROPERTY_NAME_SEPARATOR + childKey
+                    val qName = property.qualifiedName + PROPERTY_NAME_SEPARATOR + childKey
                     val el = read(qName, childNode)
                         ?: continue
 
@@ -97,6 +96,7 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
 
                 JsonObject(elements.toMap())
             }
+
             else -> {
                 val unwrappedValue = node.unwrapped()
                 val actualKind = kindFromNodeValueType(node.valueType())
@@ -106,9 +106,17 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         }
     }
 
+    internal fun read(qualifiedName: String, node: ConfigValue): JsonElement? {
+        val property = supportedProperties.firstOrNull { property ->
+            property.qualifiedName == qualifiedName
+        } ?: return null
+
+        return read(property, node, true)
+    }
+
     fun parse(input: String): BlueprintSpec {
-        val transformed = read(input)
-        return json.decodeFromJsonElement<BlueprintSpecImpl>(transformed)
+        val value = read(input)
+        return transform(value)
     }
 
     private fun validate(property: Property, actualKind: KClass<out PropertyKind>?, value: Any?) {
@@ -153,7 +161,12 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         val inputNodeType = node.valueType()
         val kind = property.kind
 
-        if (kind !is PropertyKind.Mixed) return checkPropertyAndNodeKindEquality(kind::class, inputNodeType)
+        if (kind !is PropertyKind.Mixed) {
+            return checkPropertyAndNodeKindEquality(
+                kind::class,
+                inputNodeType
+            )
+        }
         if (kind.isAllTypesSupported) return
 
         val anyMatchingKindAvailable = checkMultipleKinds(inputNodeType, kind.kinds)
@@ -169,7 +182,10 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         return
     }
 
-    private fun checkPropertyAndNodeKindEquality(kind: KClass<out PropertyKind>, nodeType: ConfigValueType) {
+    private fun checkPropertyAndNodeKindEquality(
+        kind: KClass<out PropertyKind>,
+        nodeType: ConfigValueType
+    ) {
         val targetNodeType = nodeValueTypeFromKind(kind)
         if (nodeType != targetNodeType) {
             error("Wrong value type. Expected: $targetNodeType, given: $nodeType")
@@ -187,5 +203,51 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
             }
         }
         return anyMatch
+    }
+
+    private fun transform(value: JsonObject): BlueprintSpec = with(value) {
+        BlueprintSpecImpl(
+            name = string("name"),
+            version = string("version"),
+            remote = null,
+            build = struct("build")?.let { build ->
+                BlueprintSpecBuildImpl(
+                    entrypoint = build.string("entrypoint"),
+                    env = emptyMap(),
+                    image = build.getValue("image").let(::elementToImage),
+                    instance = build.struct("instance")?.let { instance ->
+                        BlueprintSpecInstanceImpl(
+                            name = instance.string("name")
+                        )
+                    }
+                )
+            },
+            options = emptyList()
+        )
+    }
+
+    private fun elementToImage(element: JsonElement): BlueprintSpecImageImpl {
+        return when (element) {
+            is JsonObject -> BlueprintSpecImageImpl.Ref(
+                ref = element.string("ref"),
+                tag = element.string("tag")
+            )
+            is JsonArray -> BlueprintSpecImageImpl.Multiple(
+                images = element.map { child ->
+                    if (child !is JsonObject) {
+                        error("Expected a JsonObject for image multiple child, given $child")
+                    }
+
+                    BlueprintSpecImageImpl.Ref(
+                        ref = child.string("ref"),
+                        tag = child.string("tag")
+                    )
+                }
+            )
+            is JsonPrimitive -> BlueprintSpecImageImpl.Identifier(
+                id = element.content
+            )
+            else -> error("Unsupported type")
+        }
     }
 }

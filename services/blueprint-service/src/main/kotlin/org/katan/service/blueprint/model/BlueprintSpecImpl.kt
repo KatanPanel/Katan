@@ -1,21 +1,21 @@
 package org.katan.service.blueprint.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.model.blueprint.BlueprintSpec
 import org.katan.model.blueprint.BlueprintSpecBuild
 import org.katan.model.blueprint.BlueprintSpecImage
 import org.katan.model.blueprint.BlueprintSpecInstance
 import org.katan.model.blueprint.BlueprintSpecOption
-import org.katan.model.blueprint.BlueprintSpecOptions
 import org.katan.model.blueprint.BlueprintSpecRemote
 
 @Serializable
 internal data class BlueprintSpecImpl(
-    override val name: String = "",
-    override val version: String = "",
-    override val remote: BlueprintSpecRemote = BlueprintSpecRemoteImpl(),
-    override val build: BlueprintSpecBuild = BlueprintSpecBuildImpl(),
-    override val options: BlueprintSpecOptions = BlueprintSpecOptions()
+    override val name: String,
+    override val version: String,
+    override val remote: BlueprintSpecRemoteImpl?,
+    override val build: BlueprintSpecBuildImpl?,
+    override val options: List<BlueprintSpecOptionImpl> = emptyList()
 ) : BlueprintSpec
 
 @Serializable
@@ -28,30 +28,37 @@ internal data class BlueprintSpecOptionImpl(
 ) : BlueprintSpecOption
 
 @Serializable
-internal data class BlueprintSpecRemoteImpl(override val origin: String = "") : BlueprintSpecRemote
+internal data class BlueprintSpecRemoteImpl(
+    override val origin: String
+) : BlueprintSpecRemote
 
 @Serializable
 internal data class BlueprintSpecBuildImpl(
-    override val image: BlueprintSpecImage = BlueprintSpecImageImpl.Identifier(""),
-    override val entrypoint: String = "",
-    override val env: Map<String, String> = emptyMap(),
-    override val instance: BlueprintSpecInstanceImpl? = null
+    override val image: BlueprintSpecImageImpl,
+    override val entrypoint: String,
+    override val env: Map<String, String>,
+    override val instance: BlueprintSpecInstanceImpl?
 ) : BlueprintSpecBuild
 
 @Serializable
-internal sealed class BlueprintSpecImageImpl {
+internal sealed class BlueprintSpecImageImpl : BlueprintSpecImage {
     @Serializable
-    data class Identifier(override val id: String) :
-        BlueprintSpecImageImpl(), BlueprintSpecImage.Identifier
+    @SerialName("identifier")
+    data class Identifier(override val id: String) : BlueprintSpecImage.Identifier,
+        BlueprintSpecImageImpl()
 
     @Serializable
-    data class Ref(override val ref: String, override val tag: String) :
-        BlueprintSpecImageImpl(), BlueprintSpecImage.Ref
+    @SerialName("ref")
+    data class Ref(override val ref: String, override val tag: String) : BlueprintSpecImage.Ref,
+        BlueprintSpecImageImpl()
 
     @Serializable
-    data class Multiple(override val images: List<Ref>) :
-        BlueprintSpecImageImpl(), BlueprintSpecImage.Multiple
+    @SerialName("multiple")
+    data class Multiple(override val images: List<Ref>) : BlueprintSpecImage.Multiple,
+        BlueprintSpecImageImpl()
 }
 
 @Serializable
-internal data class BlueprintSpecInstanceImpl(override val name: String? = null) : BlueprintSpecInstance
+internal data class BlueprintSpecInstanceImpl(
+    override val name: String
+) : BlueprintSpecInstance

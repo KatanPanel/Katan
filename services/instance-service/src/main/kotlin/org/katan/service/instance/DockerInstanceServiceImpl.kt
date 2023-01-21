@@ -293,8 +293,8 @@ internal class DockerInstanceServiceImpl(
     override suspend fun createInstance(blueprint: Blueprint, host: String?, port: Int?): UnitInstance {
         val instanceId = idService.generate()
         val spec = blueprintService.getSpec(blueprint.id.value)
-        val generatedName = generateContainerName(instanceId, spec.build.instance?.name)
-        val image = (spec.build.image as BlueprintSpecImage.Identifier).id
+        val generatedName = generateContainerName(instanceId, spec.build?.instance?.name)
+        val image = (spec.build?.image as BlueprintSpecImage.Identifier).id
 
         // TODO add support to more image types
         requireNotNull(image) { "Only single spec image is supported" }

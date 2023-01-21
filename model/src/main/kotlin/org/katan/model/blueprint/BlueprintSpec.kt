@@ -6,9 +6,9 @@ interface BlueprintSpec {
 
     val version: String
 
-    val remote: BlueprintSpecRemote
+    val remote: BlueprintSpecRemote?
 
-    val build: BlueprintSpecBuild
+    val build: BlueprintSpecBuild?
 
     val options: BlueprintSpecOptions
 }
@@ -53,7 +53,7 @@ interface BlueprintSpecInstance {
     val name: String?
 }
 
-sealed interface BlueprintSpecImage {
+interface BlueprintSpecImage {
     interface Identifier : BlueprintSpecImage {
         val id: String
     }

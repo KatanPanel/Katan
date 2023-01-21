@@ -25,7 +25,7 @@ class ReadTest {
         )
         val root = Property(
             qualifiedName = "root",
-            kind = PropertyKind.Struct(Any::class)
+            kind = PropertyKind.Struct
         )
 
         val result = withParserTest(listOf(root, nested)) {
@@ -58,7 +58,7 @@ class ReadTest {
             listOf(
                 Property(
                     qualifiedName = "root",
-                    kind = PropertyKind.Struct(Any::class)
+                    kind = PropertyKind.Struct
                 ),
                 Property(
                     qualifiedName = "root.nested-1",
@@ -66,7 +66,7 @@ class ReadTest {
                 ),
                 Property(
                     qualifiedName = "root.nested-2",
-                    kind = PropertyKind.Struct(Any::class)
+                    kind = PropertyKind.Struct
                 ),
                 Property(
                     qualifiedName = "root.nested-2.nested-2-1",
@@ -91,7 +91,7 @@ class ReadTest {
     }
 
     @Test
-    fun `numeric list`() {
+    fun `accept number in numeric list`() {
         val input = """
             root = [1, 2, 3, 4]
         """.trimIndent()
@@ -119,7 +119,7 @@ class ReadTest {
     }
 
     @Test
-    fun `literals list`() {
+    fun `accept string in literals list`() {
         val input = """
             root = ["a", "b", "c"]
         """.trimIndent()
@@ -148,7 +148,7 @@ class ReadTest {
     }
 
     @Test
-    fun `null list`() {
+    fun `accept null in null list`() {
         val input = """
             root = [null, null, null]
         """.trimIndent()
@@ -171,6 +171,128 @@ class ReadTest {
                     add(null)
                     add(null)
                     add(null)
+                }
+            },
+            actual = result
+        )
+    }
+
+    @Test
+    fun `accept number in mixed numeric and literal`() {
+        val input = """
+            value = 1
+        """.trimIndent()
+
+        val result = withParserTest(
+            listOf(
+                Property(
+                    qualifiedName = "value",
+                    kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal)
+                )
+            )
+        ) {
+            read(input)
+        }
+
+        assertEquals(
+            expected = buildJsonObject {
+                put("value", 1)
+            },
+            actual = result
+        )
+    }
+
+    @Test
+    fun `accept string in mixed numeric and literal`() {
+        val input = """
+            value = "1"
+        """.trimIndent()
+
+        val result = withParserTest(
+            listOf(
+                Property(
+                    qualifiedName = "value",
+                    kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal)
+                )
+            )
+        ) {
+            read(input)
+        }
+
+        assertEquals(
+            expected = buildJsonObject {
+                put("value", "1")
+            },
+            actual = result
+        )
+    }
+
+    @Test
+    fun `accept list in multiple of struct with mixed kind`() {
+        val input = """
+            data = [{
+                a = "test 1"
+                b = 1
+            }, {
+                a = "test 2",
+                b = "2"
+            }, {
+                a = "test 3",
+                b {
+                  c = true
+                }
+            }]
+        """.trimIndent()
+
+        val result = withParserTest(
+            listOf(
+                Property(
+                    qualifiedName = "data",
+                    kind = PropertyKind.Multiple(PropertyKind.Struct)
+                ),
+                Property(
+                    qualifiedName = "data.a",
+                    kind = PropertyKind.Literal
+                ),
+                Property(
+                    qualifiedName = "data.b",
+                    kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal, PropertyKind.Struct)
+                ),
+                Property(
+                    qualifiedName = "data.b.c",
+                    kind = PropertyKind.TrueOrFalse
+                )
+            )
+        ) {
+            read(input)
+        }
+
+        assertEquals(
+            expected = buildJsonObject {
+                putJsonArray("data") {
+                    add(
+                        buildJsonObject {
+                            put("a", "test 1")
+                            put("b", 1)
+                        }
+                    )
+                    add(
+                        buildJsonObject {
+                            put("a", "test 2")
+                            put("b", "2")
+                        }
+                    )
+                    add(
+                        buildJsonObject {
+                            put("a", "test 3")
+                            put(
+                                "b",
+                                buildJsonObject {
+                                    put("c", true)
+                                }
+                            )
+                        }
+                    )
                 }
             },
             actual = result
