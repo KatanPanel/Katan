@@ -6,13 +6,13 @@ import io.ktor.client.request.get
 import org.katan.model.blueprint.BlueprintSpec
 import org.katan.service.blueprint.BlueprintSpecNotFound
 import org.katan.service.blueprint.UnsupportedBlueprintSpecSource
-import org.katan.service.blueprint.parser.Parser
+import org.katan.service.blueprint.parser.BlueprintParser
 import java.nio.channels.UnresolvedAddressException
 
 @JvmInline
 value class RemoteBlueprintSpecSource(val url: String) : BlueprintSpecSource
 
-internal class RemoteBlueprintSpecProvider(val httpClient: HttpClient, val parser: Parser) :
+internal class RemoteBlueprintSpecProvider(val httpClient: HttpClient, val parser: BlueprintParser) :
     BlueprintSpecProvider {
 
     override val id: String get() = "remote"

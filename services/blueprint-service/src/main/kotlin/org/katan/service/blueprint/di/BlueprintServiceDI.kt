@@ -4,7 +4,7 @@ import org.katan.http.importHttpModule
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.blueprint.BlueprintServiceImpl
 import org.katan.service.blueprint.http.BlueprintHttpModule
-import org.katan.service.blueprint.parser.Parser
+import org.katan.service.blueprint.parser.BlueprintParser
 import org.katan.service.blueprint.provider.BlueprintSpecProvider
 import org.katan.service.blueprint.provider.CombinedBlueprintSpecProvider
 import org.katan.service.blueprint.provider.RemoteBlueprintSpecProvider
@@ -35,6 +35,6 @@ val blueprintServiceDI: Module = module {
         )
     }
     single {
-        Parser()
+        BlueprintParser()
     }
 }
