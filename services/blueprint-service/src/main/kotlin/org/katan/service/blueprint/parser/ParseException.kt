@@ -13,12 +13,6 @@ internal open class BlueprintSpecPropertyParseException(
     cause: Throwable? = null
 ) : BlueprintSpecParseException(message, cause)
 
-internal class RequiredPropertyException(property: Property, message: String?) :
-    BlueprintSpecPropertyParseException(property, message)
-
-internal class BlankPropertyException(property: Property, message: String?) :
-    BlueprintSpecPropertyParseException(property, message)
-
 internal class NoMatchesForMixedProperty(message: String?, property: Property) :
     BlueprintSpecPropertyParseException(property, message)
 
