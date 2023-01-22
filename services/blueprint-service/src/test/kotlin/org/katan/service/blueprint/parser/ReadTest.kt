@@ -19,16 +19,16 @@ class ReadTest {
             }
         """.trimIndent()
 
-        val nested = Property(
-            qualifiedName = "root.nested",
-            kind = PropertyKind.Numeric
-        )
-        val root = Property(
-            qualifiedName = "root",
-            kind = PropertyKind.Struct
-        )
-
-        val result = withParserTest(listOf(root, nested)) {
+        val result = withParserTest(
+            Property(
+                qualifiedName = "root",
+                kind = PropertyKind.Struct
+            ),
+            Property(
+                qualifiedName = "root.nested",
+                kind = PropertyKind.Numeric
+            )
+        ) {
             read(input)
         }
 
@@ -55,23 +55,21 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
-            listOf(
-                Property(
-                    qualifiedName = "root",
-                    kind = PropertyKind.Struct
-                ),
-                Property(
-                    qualifiedName = "root.nested-1",
-                    kind = PropertyKind.Numeric
-                ),
-                Property(
-                    qualifiedName = "root.nested-2",
-                    kind = PropertyKind.Struct
-                ),
-                Property(
-                    qualifiedName = "root.nested-2.nested-2-1",
-                    kind = PropertyKind.Literal
-                )
+            Property(
+                qualifiedName = "root",
+                kind = PropertyKind.Struct
+            ),
+            Property(
+                qualifiedName = "root.nested-1",
+                kind = PropertyKind.Numeric
+            ),
+            Property(
+                qualifiedName = "root.nested-2",
+                kind = PropertyKind.Struct
+            ),
+            Property(
+                qualifiedName = "root.nested-2.nested-2-1",
+                kind = PropertyKind.Literal
             )
         ) {
             read(input)
@@ -97,11 +95,9 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
-            listOf(
-                Property(
-                    qualifiedName = "root",
-                    kind = PropertyKind.Multiple(PropertyKind.Numeric)
-                )
+            Property(
+                qualifiedName = "root",
+                kind = PropertyKind.Multiple(PropertyKind.Numeric)
             )
         ) {
             read(input)
@@ -125,11 +121,9 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
-            listOf(
-                Property(
-                    qualifiedName = "root",
-                    kind = PropertyKind.Multiple(PropertyKind.Literal)
-                )
+            Property(
+                qualifiedName = "root",
+                kind = PropertyKind.Multiple(PropertyKind.Literal)
             )
         ) {
             read(input)
@@ -154,11 +148,9 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
-            listOf(
-                Property(
-                    qualifiedName = "root",
-                    kind = PropertyKind.Multiple(PropertyKind.Null)
-                )
+            Property(
+                qualifiedName = "root",
+                kind = PropertyKind.Multiple(PropertyKind.Null)
             )
         ) {
             read(input)
@@ -184,11 +176,9 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
-            listOf(
-                Property(
-                    qualifiedName = "value",
-                    kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal)
-                )
+            Property(
+                qualifiedName = "value",
+                kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal)
             )
         ) {
             read(input)
@@ -209,11 +199,9 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
-            listOf(
-                Property(
-                    qualifiedName = "value",
-                    kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal)
-                )
+            Property(
+                qualifiedName = "value",
+                kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal)
             )
         ) {
             read(input)
@@ -245,23 +233,25 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
-            listOf(
-                Property(
-                    qualifiedName = "data",
-                    kind = PropertyKind.Multiple(PropertyKind.Struct)
-                ),
-                Property(
-                    qualifiedName = "data.a",
-                    kind = PropertyKind.Literal
-                ),
-                Property(
-                    qualifiedName = "data.b",
-                    kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal, PropertyKind.Struct)
-                ),
-                Property(
-                    qualifiedName = "data.b.c",
-                    kind = PropertyKind.TrueOrFalse
+            Property(
+                qualifiedName = "data",
+                kind = PropertyKind.Multiple(PropertyKind.Struct)
+            ),
+            Property(
+                qualifiedName = "data.a",
+                kind = PropertyKind.Literal
+            ),
+            Property(
+                qualifiedName = "data.b",
+                kind = PropertyKind.Mixed(
+                    PropertyKind.Numeric,
+                    PropertyKind.Literal,
+                    PropertyKind.Struct
                 )
+            ),
+            Property(
+                qualifiedName = "data.b.c",
+                kind = PropertyKind.TrueOrFalse
             )
         ) {
             read(input)

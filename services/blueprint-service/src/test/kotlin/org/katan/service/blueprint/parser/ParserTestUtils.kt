@@ -7,8 +7,8 @@ internal inline fun <R> withParserTest(crossinline block: BlueprintParser.() -> 
 }
 
 internal inline fun <R> withParserTest(
-    supportedProperties: List<Property>,
+    vararg supportedProperties: Property,
     crossinline block: BlueprintParser.() -> R
 ): R {
-    return block(BlueprintParser(supportedProperties))
+    return block(BlueprintParser(supportedProperties.toList()))
 }

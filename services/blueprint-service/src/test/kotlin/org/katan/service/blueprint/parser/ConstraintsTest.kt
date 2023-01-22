@@ -17,7 +17,7 @@ class ConstraintsTest {
         )
 
         val exception = assertFailsWith<ConstraintViolationException> {
-            withParserTest(listOf(property)) {
+            withParserTest(property) {
                 read(input)
             }
         }
@@ -40,7 +40,7 @@ class ConstraintsTest {
         )
 
         try {
-            withParserTest(listOf(property)) {
+            withParserTest(property) {
                 read(input)
             }
         } catch (e: BlueprintSpecPropertyParseException) {
