@@ -25,10 +25,6 @@ import kotlin.reflect.KClass
 // TODO detailed error diagnostics
 internal class BlueprintParser(private val supportedProperties: List<Property> = AllSupportedProperties) {
 
-    private val json: Json = Json {
-        ignoreUnknownKeys = false
-        isLenient = true
-    }
     private val parseOptions = ConfigParseOptions.defaults().setSyntax(ConfigSyntax.CONF)
     private val requiredProperties: List<Property> = supportedProperties.filter { property ->
         property.constraints.any { constraint -> constraint is RequiredPropertyConstraint }
@@ -40,6 +36,8 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         try {
             val config = ConfigFactory.parseString(input, parseOptions)
 
+            // TODO remove this and iterate over supported properties building a qualified name
+            //      allowing RequiredPropertyConstraint work properly :)
             for (requiredProperty in requiredProperties) {
                 if (config.hasPathOrNull(requiredProperty.qualifiedName)) {
                     continue
