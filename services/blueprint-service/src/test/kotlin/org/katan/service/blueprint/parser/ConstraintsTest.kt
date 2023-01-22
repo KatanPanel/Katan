@@ -1,27 +1,29 @@
 package org.katan.service.blueprint.parser
 
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.fail
 
 class ConstraintsTest {
 
-//    @Test
-//    fun `required property constraint for omitted node`() {
-//        val input = ""
-//        val property = Property(
-//            qualifiedName = "version",
-//            kind = PropertyKind.Literal,
-//            constraints = listOf(RequiredPropertyConstraint)
-//        )
-//
-//        val exception = assertFailsWith<ConstraintViolationException> {
-//            withParserTest(listOf(property)) {
-//                read(input)
-//            }
-//        }
-//
-//        assertEquals(exception.constraint, RequiredPropertyConstraint)
-//    }
+    @Test
+    fun `required property constraint for omitted node`() {
+        val input = ""
+        val property = Property(
+            qualifiedName = "version",
+            kind = PropertyKind.Literal,
+            constraints = listOf(RequiredPropertyConstraint)
+        )
+
+        val exception = assertFailsWith<ConstraintViolationException> {
+            withParserTest(listOf(property)) {
+                read(input)
+            }
+        }
+
+        assertEquals(exception.constraint, RequiredPropertyConstraint)
+    }
 
     @Test
     fun `required property constraint for null node`() {

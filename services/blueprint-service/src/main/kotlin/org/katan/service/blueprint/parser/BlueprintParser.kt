@@ -30,12 +30,23 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         isLenient = true
     }
     private val parseOptions = ConfigParseOptions.defaults().setSyntax(ConfigSyntax.CONF)
+    private val requiredProperties: List<Property> = supportedProperties.filter { property ->
+        property.constraints.any { constraint -> constraint is RequiredPropertyConstraint }
+    }
 
     internal fun read(input: String): JsonObject {
         val output = mutableMapOf<String, JsonElement>()
 
         try {
             val config = ConfigFactory.parseString(input, parseOptions)
+
+            for (requiredProperty in requiredProperties) {
+                if (config.hasPathOrNull(requiredProperty.qualifiedName)) {
+                    continue
+                }
+
+                validate(requiredProperty, null, null, listOf(RequiredPropertyConstraint))
+            }
 
             // Iterate over supported properties because some root level properties have required
             // constraints. Unknown nodes are purposefully ignored.
@@ -119,8 +130,8 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         return transform(value)
     }
 
-    private fun validate(property: Property, actualKind: KClass<out PropertyKind>?, value: Any?) {
-        for (constraint in property.constraints) {
+    private fun validate(property: Property, actualKind: KClass<out PropertyKind>?, value: Any?, constraints: Iterable<PropertyConstraint> = property.constraints) {
+        for (constraint in constraints) {
             try {
                 constraint.check(property, actualKind, value)
             } catch (e: IllegalStateException) {
@@ -232,6 +243,7 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
                 ref = element.string("ref"),
                 tag = element.string("tag")
             )
+
             is JsonArray -> BlueprintSpecImageImpl.Multiple(
                 images = element.map { child ->
                     if (child !is JsonObject) {
@@ -244,9 +256,11 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
                     )
                 }
             )
+
             is JsonPrimitive -> BlueprintSpecImageImpl.Identifier(
                 id = element.content
             )
+
             else -> error("Unsupported type")
         }
     }
