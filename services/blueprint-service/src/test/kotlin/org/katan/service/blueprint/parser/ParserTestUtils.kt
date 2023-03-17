@@ -1,9 +1,9 @@
 package org.katan.service.blueprint.parser
 
-private val parser = BlueprintParser()
+import kotlinx.serialization.json.JsonObject
 
 internal inline fun <R> withParserTest(crossinline block: BlueprintParser.() -> R): R {
-    return block(parser)
+    return block(BlueprintParser())
 }
 
 internal inline fun <R> withParserTest(
@@ -12,3 +12,6 @@ internal inline fun <R> withParserTest(
 ): R {
     return block(BlueprintParser(supportedProperties.toList()))
 }
+
+internal fun withParserTest(input: String, vararg supportedProperties: Property): JsonObject =
+    BlueprintParser(supportedProperties.toList()).read(input)

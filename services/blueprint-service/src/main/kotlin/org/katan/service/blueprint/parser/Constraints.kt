@@ -26,3 +26,9 @@ internal object NotBlankPropertyConstraint : PropertyConstraint {
         check(value.isNotBlank()) { "${property.qualifiedName} cannot be blank" }
     }
 }
+
+internal object EnvironmentVariableConstraint : PropertyConstraint {
+    override fun check(property: Property, actualKind: KClass<out PropertyKind>?, value: Any?) {
+        // TODO
+    }
+}

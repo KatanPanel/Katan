@@ -15,9 +15,7 @@ class ParserTest {
         )
 
         assertFailsWith<NoMatchesForMixedProperty> {
-            withParserTest(listOf(property)) {
-                read(input)
-            }
+            withParserTest(input, property)
         }
     }
 }

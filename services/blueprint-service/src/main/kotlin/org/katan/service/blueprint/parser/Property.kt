@@ -1,6 +1,5 @@
 package org.katan.service.blueprint.parser
 
-import org.katan.service.blueprint.parser.PropertyKind.Literal
 import org.katan.service.blueprint.parser.PropertyKind.Mixed
 import org.katan.service.blueprint.parser.PropertyKind.Multiple
 import kotlin.reflect.KClass
@@ -13,7 +12,7 @@ internal data class Property(
     val constraints: List<PropertyConstraint> = listOf()
 ) {
 
-    val name: String get() = qualifiedName.substringAfterLast(PROPERTY_NAME_SEPARATOR)
+    val nameStructure: List<String> get() = qualifiedName.split(PROPERTY_NAME_SEPARATOR)
 
     fun supports(kind: KClass<out PropertyKind>): Boolean {
         return supports(this.kind, kind)
@@ -52,44 +51,11 @@ internal val AllSupportedProperties: List<Property> = listOf(
     Properties.Entrypoint,
     Properties.Image,
     Properties.ImageReference,
-    Properties.ImageTag
+    Properties.ImageTag,
+    Properties.Instance,
+    Properties.InstanceName,
+    Properties.Options,
+    Properties.OptionsId,
+    Properties.OptionsType,
+    Properties.OptionsEnv
 )
-
-internal object Properties {
-    val Name = Property(
-        qualifiedName = "name",
-        kind = Literal,
-        constraints = listOf(RequiredPropertyConstraint, NotBlankPropertyConstraint)
-    )
-    val Version = Property(
-        qualifiedName = "version",
-        kind = Literal,
-        constraints = listOf(RequiredPropertyConstraint, NotBlankPropertyConstraint)
-    )
-    val Build = Property(
-        qualifiedName = "build",
-        kind = PropertyKind.Struct
-    )
-    val Entrypoint = Property(
-        qualifiedName = "build.entrypoint",
-        kind = Literal
-    )
-    val Image = Property(
-        qualifiedName = "build.image",
-        kind = Mixed(
-            Literal,
-            Multiple(PropertyKind.Struct)
-        ),
-        constraints = listOf(RequiredPropertyConstraint)
-    )
-    val ImageReference = Property(
-        qualifiedName = "build.image.ref",
-        kind = Literal,
-        constraints = listOf(RequiredPropertyConstraint)
-    )
-    val ImageTag = Property(
-        qualifiedName = "build.image.tag",
-        kind = Literal,
-        constraints = listOf(RequiredPropertyConstraint)
-    )
-}

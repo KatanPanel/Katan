@@ -9,7 +9,6 @@ import com.typesafe.config.ConfigSyntax
 import com.typesafe.config.ConfigValue
 import com.typesafe.config.ConfigValueType
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -191,10 +190,7 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         return
     }
 
-    private fun checkPropertyAndNodeKindEquality(
-        kind: KClass<out PropertyKind>,
-        nodeType: ConfigValueType
-    ) {
+    private fun checkPropertyAndNodeKindEquality(kind: KClass<out PropertyKind>, nodeType: ConfigValueType) {
         val targetNodeType = nodeValueTypeFromKind(kind)
         if (nodeType != targetNodeType) {
             error("Wrong value type. Expected: $targetNodeType, given: $nodeType")

@@ -20,6 +20,7 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
+            input,
             Property(
                 qualifiedName = "root",
                 kind = PropertyKind.Struct
@@ -28,9 +29,7 @@ class ReadTest {
                 qualifiedName = "root.nested",
                 kind = PropertyKind.Numeric
             )
-        ) {
-            read(input)
-        }
+        )
 
         assertEquals(
             expected = buildJsonObject {
@@ -43,7 +42,7 @@ class ReadTest {
     }
 
     @Test
-    fun `deep nested struct`() {
+    fun `multi-level nested struct`() {
         val input = """
             root {
                 nested-1 = 1
@@ -55,6 +54,7 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
+            input,
             Property(
                 qualifiedName = "root",
                 kind = PropertyKind.Struct
@@ -71,9 +71,7 @@ class ReadTest {
                 qualifiedName = "root.nested-2.nested-2-1",
                 kind = PropertyKind.Literal
             )
-        ) {
-            read(input)
-        }
+        )
 
         assertEquals(
             expected = buildJsonObject {
@@ -89,19 +87,15 @@ class ReadTest {
     }
 
     @Test
-    fun `accept number in numeric list`() {
+    fun `number in list of numeric`() {
         val input = """
             root = [1, 2, 3, 4]
         """.trimIndent()
 
         val result = withParserTest(
-            Property(
-                qualifiedName = "root",
-                kind = PropertyKind.Multiple(PropertyKind.Numeric)
-            )
-        ) {
-            read(input)
-        }
+            input,
+            Property("root", PropertyKind.Multiple(PropertyKind.Numeric))
+        )
 
         assertEquals(
             expected = buildJsonObject {
@@ -115,19 +109,15 @@ class ReadTest {
     }
 
     @Test
-    fun `accept string in literals list`() {
+    fun `string in list of literals`() {
         val input = """
             root = ["a", "b", "c"]
         """.trimIndent()
 
         val result = withParserTest(
-            Property(
-                qualifiedName = "root",
-                kind = PropertyKind.Multiple(PropertyKind.Literal)
-            )
-        ) {
-            read(input)
-        }
+            input,
+            Property("root", PropertyKind.Multiple(PropertyKind.Literal))
+        )
 
         assertEquals(
             expected = buildJsonObject {
@@ -142,19 +132,15 @@ class ReadTest {
     }
 
     @Test
-    fun `accept null in null list`() {
+    fun `null in list of nulls`() {
         val input = """
             root = [null, null, null]
         """.trimIndent()
 
         val result = withParserTest(
-            Property(
-                qualifiedName = "root",
-                kind = PropertyKind.Multiple(PropertyKind.Null)
-            )
-        ) {
-            read(input)
-        }
+            input,
+            Property("root", PropertyKind.Multiple(PropertyKind.Null))
+        )
 
         assertEquals(
             expected = buildJsonObject {
@@ -170,19 +156,21 @@ class ReadTest {
     }
 
     @Test
-    fun `accept number in mixed numeric and literal`() {
+    fun `number in mixed of numeric and literal`() {
         val input = """
             value = 1
         """.trimIndent()
 
         val result = withParserTest(
+            input,
             Property(
-                qualifiedName = "value",
-                kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal)
+                "value",
+                PropertyKind.Mixed(
+                    PropertyKind.Numeric,
+                    PropertyKind.Literal
+                )
             )
-        ) {
-            read(input)
-        }
+        )
 
         assertEquals(
             expected = buildJsonObject {
@@ -193,19 +181,21 @@ class ReadTest {
     }
 
     @Test
-    fun `accept string in mixed numeric and literal`() {
+    fun `string in mixed of numeric and literal`() {
         val input = """
             value = "1"
         """.trimIndent()
 
         val result = withParserTest(
+            input,
             Property(
-                qualifiedName = "value",
-                kind = PropertyKind.Mixed(PropertyKind.Numeric, PropertyKind.Literal)
+                "value",
+                PropertyKind.Mixed(
+                    PropertyKind.Numeric,
+                    PropertyKind.Literal
+                )
             )
-        ) {
-            read(input)
-        }
+        )
 
         assertEquals(
             expected = buildJsonObject {
@@ -216,7 +206,7 @@ class ReadTest {
     }
 
     @Test
-    fun `accept list in multiple of struct with mixed kind`() {
+    fun `multiple of struct with mixed kind`() {
         val input = """
             data = [{
                 a = "test 1"
@@ -233,6 +223,7 @@ class ReadTest {
         """.trimIndent()
 
         val result = withParserTest(
+            input,
             Property(
                 qualifiedName = "data",
                 kind = PropertyKind.Multiple(PropertyKind.Struct)
@@ -253,9 +244,7 @@ class ReadTest {
                 qualifiedName = "data.b.c",
                 kind = PropertyKind.TrueOrFalse
             )
-        ) {
-            read(input)
-        }
+        )
 
         assertEquals(
             expected = buildJsonObject {
@@ -284,6 +273,35 @@ class ReadTest {
                         }
                     )
                 }
+            },
+            actual = result
+        )
+    }
+
+    @Test
+    fun `unnamed struct in struct of structs`() {
+        val input = """
+            data {
+                "A" {
+                    key = 1
+                }
+            }
+        """.trimIndent()
+
+        val result = withParserTest(
+            input,
+            Property("data", PropertyKind.Struct),
+            Property("data.*", PropertyKind.Struct),
+            Property("data.*.key", PropertyKind.Literal)
+        )
+        assertEquals(
+            expected = buildJsonObject {
+                put(
+                    "A",
+                    buildJsonObject {
+                        put("key", 1)
+                    }
+                )
             },
             actual = result
         )
