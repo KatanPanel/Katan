@@ -16,7 +16,6 @@ include(
     "configuration",
     "events-dispatcher",
     "crypto",
-    "docker-client",
     "http:http-shared",
     "http:http-server",
     "http:http-test",

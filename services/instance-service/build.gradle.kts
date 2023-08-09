@@ -1,7 +1,6 @@
 dependencies {
     implementation(projects.configuration)
     implementation(projects.eventsDispatcher)
-    implementation(projects.dockerClient)
     implementation(projects.configuration)
     implementation(projects.http.httpShared)
     implementation(projects.services.idService)

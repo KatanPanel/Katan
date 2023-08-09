@@ -1,10 +1,6 @@
-@file:Suppress("UnstableApiUsage", "DSL_SCOPE_VIOLATION")
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.atomicfu)
+    alias(libs.plugins.kotlin.atomicfu) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kotlinter) apply false
 }
@@ -13,14 +9,10 @@ repositories {
     mavenCentral()
 }
 
-atomicfuCompilerPlugin {
-    isJvmIrTransformationEnabled = true
-}
+group = "org.katan"
+version = "0.1.0-SNAPSHOT"
 
 subprojects {
-    group = "org.katan"
-    version = "0.1.0-SNAPSHOT"
-
     apply(plugin = rootProject.libs.plugins.kotlin.jvm.get().pluginId)
     apply(plugin = rootProject.libs.plugins.kotlin.serialization.get().pluginId)
     apply(plugin = rootProject.libs.plugins.kotlinter.get().pluginId)
@@ -40,13 +32,5 @@ subprojects {
         implementation(rootProject.libs.ktx.datetime)
         implementation(rootProject.libs.log4j.core)
         testImplementation(rootProject.libs.kotlin.test)
-    }
-
-    tasks {
-        withType<KotlinCompile> {
-            kotlinOptions {
-                jvmTarget = "11"
-            }
-        }
     }
 }
