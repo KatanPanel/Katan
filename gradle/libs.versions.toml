@@ -1,8 +1,8 @@
 [versions]
-kotlin = "1.8.0"
-ktx-serialization = "1.4.1"
-ktx-coroutines = "1.6.4"
-ktx-atomicfu = "0.19.0"
+kotlin = "1.9.0"
+ktx-serialization = "1.6.0-RC"
+ktx-coroutines = "1.7.3"
+ktx-atomicfu = "0.21.0"
 ktx-datetime = "0.4.0"
 exposed = "0.41.1"
 koin = "3.3.2"
@@ -13,7 +13,7 @@ snowflake-id = "0.0.1"
 docker-java = "3.2.13"
 postgresql = "42.4.0"
 javaJwt = "4.0.0"
-yoki = "0.0.1-SNAPSHOT"
+yoki = "0.1.1"
 bcprov = "1.71"
 jedis = "4.2.0"
 hibernate-validator = "8.0.0.CR3"
@@ -67,8 +67,7 @@ exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "e
 exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 javaJwt = { module = "com.auth0:java-jwt", version.ref = "javaJwt" }
-yoki-core = { module = "org.katan:yoki-core", version.ref = "yoki" }
-yoki-engine-docker = { module = "org.katan:yoki-engine-docker", version.ref = "yoki" }
+yoki = { module = "me.devnatan:yoki", version.ref = "yoki" }
 bcprov = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bcprov" }
 jedis = { module = "redis.clients:jedis", version.ref = "jedis" }
 expressly = { module = "org.glassfish.expressly:expressly", version.ref = "expressly" }

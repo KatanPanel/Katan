@@ -1,5 +1,3 @@
-@file:Suppress("DSL_SCOPE_VIOLATION")
-
 plugins {
     application
     alias(libs.plugins.shadowjar)
@@ -15,7 +13,6 @@ dependencies {
     implementation(projects.eventsDispatcher)
     implementation(projects.http.httpServer)
     implementation(projects.http.httpClient)
-    implementation(projects.dockerClient)
     implementation(projects.services.idService)
     implementation(projects.services.unitService)
     implementation(projects.services.accountService)
