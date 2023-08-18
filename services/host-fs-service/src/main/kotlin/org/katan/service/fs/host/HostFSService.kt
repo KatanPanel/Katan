@@ -1,12 +1,11 @@
 package org.katan.service.fs.host
 
-import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.command.InspectVolumeResponse
-import com.github.dockerjava.api.exception.DockerException
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Instant
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toKotlinInstant
+import me.devnatan.yoki.Yoki
+import me.devnatan.yoki.models.volume.Volume
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
@@ -29,10 +28,7 @@ import java.nio.file.attribute.FileTime
 import kotlin.streams.asSequence
 import kotlin.system.exitProcess
 
-internal class HostFSService(
-    private val dockerClient: DockerClient,
-    private val config: KatanConfig
-) : FSService {
+internal class HostFSService(private val dockerClient: Yoki, private val config: KatanConfig) : FSService {
 
     companion object {
         private val logger: Logger = LogManager.getLogger(HostFSService::class.java)
@@ -53,30 +49,34 @@ internal class HostFSService(
     }
 
     private fun findFsRoot(): String? {
-        val info = try {
-            dockerClient.infoCmd().exec()
-        } catch (e: DockerException) {
-            logger.error("Failed to execute Docker info command to fetch file system root", e)
-            exitProcess(1)
-        }
-
-        return info.dockerRootDir?.let {
-            buildString {
-                append(it)
-                append(File.separatorChar)
-                append("volumes")
-            }
-        }
+        return "volumes"
+//        val info = try {
+//            dockerClient.system.ping()
+//            dockerClient.infoCmd().exec()
+//        } catch (e: DockerException) {
+//            logger.error("Failed to execute Docker info command to fetch file system root", e)
+//            exitProcess(1)
+//        }
+//
+//        return info.dockerRootDir?.let {
+//            buildString {
+//                append(it)
+//                append(File.separatorChar)
+//                append("volumes")
+//            }
+//        }
     }
 
     override suspend fun getFile(bucket: String?, destination: String, path: String): VirtualFile? {
         val volume = if (bucket != null) {
-            getVolumeOrNull(bucket) ?: throw BucketNotFoundException(bucket)
+            runCatching { dockerClient.volumes.inspect(bucket) }
+                .onFailure { throw BucketNotFoundException(bucket) }
+                .getOrThrow()
         } else {
             null
         }
 
-        val base = File(if (volume == null) fsRoot else buildFile(volume.name, volume.mountpoint))
+        val base = File(if (volume == null) fsRoot else buildFile(volume.name, volume.mountPoint))
         val file = File(base, File.separator + path)
 
         return when {
@@ -109,10 +109,10 @@ internal class HostFSService(
         val volume = getVolumeOrNull(bucket) ?: return null
 
         return BucketImpl(
-            path = volume.mountpoint,
+            path = volume.mountPoint,
             name = volume.name,
             isLocal = volume.driver == "local",
-            createdAt = (volume.rawValues["CreatedAt"] as? String)?.let { Instant.parse(it) }
+            createdAt = volume.createdAt?.toInstant()
         )
     }
 
@@ -150,12 +150,8 @@ internal class HostFSService(
         return file.toDomain(base)
     }
 
-    private suspend fun getVolumeOrNull(name: String): InspectVolumeResponse? {
-        return withContext(IO) {
-            runCatching {
-                dockerClient.inspectVolumeCmd(name).exec()
-            }.getOrNull()
-        }
+    private suspend fun getVolumeOrNull(name: String): Volume? {
+        return runCatching { dockerClient.volumes.inspect(name) }.getOrNull()
     }
 
     private fun buildFile(volumeName: String, mountpoint: String): String {
