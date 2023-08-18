@@ -2,6 +2,7 @@ package org.katan.event
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
@@ -33,14 +34,13 @@ inline fun <reified T : Any> EventScope.listen(): Flow<T> {
 }
 
 /** Basic EventScope implementation **/
-internal class EventScopeImpl : EventScope {
+internal class EventScopeImpl : EventScope, CoroutineScope by CoroutineScope(Dispatchers.IO + SupervisorJob()) {
 
     companion object {
         private val logger: Logger = LogManager.getLogger(EventScopeImpl::class.java)
     }
 
     private val publisher = MutableSharedFlow<Any>(extraBufferCapacity = 1)
-    override val coroutineContext: CoroutineContext = Dispatchers.Unconfined
 
     override fun <T : Any> listen(eventType: KClass<T>): Flow<T> {
         @Suppress("UNCHECKED_CAST")
