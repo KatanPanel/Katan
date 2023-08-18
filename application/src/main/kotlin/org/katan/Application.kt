@@ -34,7 +34,7 @@ private object Application {
     @JvmStatic
     fun main(args: Array<String>) {
         val di = initDI()
-        val debug = if (di.koin.get<KatanConfig>().also(::println).isDevelopment) {
+        val debug = if (di.koin.get<KatanConfig>().isDevelopment) {
             DEBUG_PROPERTY_VALUE_ON
         } else {
             DEBUG_PROPERTY_VALUE_AUTO
