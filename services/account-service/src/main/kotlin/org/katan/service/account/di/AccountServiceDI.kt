@@ -15,6 +15,6 @@ val accountServiceDI: Module = module {
         AccountsRepositoryImpl(database = get())
     }
     single<AccountService> {
-        AccountServiceImpl(idService = get(), accountsRepository = get(), saltedHash = get())
+        AccountServiceImpl(idService = get(), accountsRepository = get(), saltedHash = get(), eventsDispatcher = get())
     }
 }

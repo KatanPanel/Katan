@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
 interface EventScope : CoroutineScope {

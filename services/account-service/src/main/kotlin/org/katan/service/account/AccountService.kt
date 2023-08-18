@@ -17,7 +17,7 @@ interface AccountService {
 
     suspend fun getAccountAndHash(username: String): Pair<Account, String>?
 
-    suspend fun createAccount(username: String, displayName: String, email: String, password: String): Account
+    suspend fun createAccount(username: String, displayName: String?, email: String, password: String): Account
 
     suspend fun deleteAccount(id: Snowflake)
 }
@@ -26,7 +26,7 @@ internal class AccountServiceImpl(
     private val idService: IdService,
     private val accountsRepository: AccountsRepository,
     private val saltedHash: SaltedHash,
-    private val eventsDispatcher: EventScope,
+    private val eventsDispatcher: EventScope
 ) : AccountService {
 
     override suspend fun getAccount(id: Snowflake): Account? {
@@ -47,7 +47,7 @@ internal class AccountServiceImpl(
 
     override suspend fun createAccount(
         username: String,
-        displayName: String,
+        displayName: String?,
         email: String,
         password: String
     ): Account {

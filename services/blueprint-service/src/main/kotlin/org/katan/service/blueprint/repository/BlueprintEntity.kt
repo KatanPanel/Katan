@@ -1,6 +1,7 @@
 package org.katan.service.blueprint.repository
 
 import kotlinx.datetime.Instant
+import org.katan.model.Snowflake
 
 interface BlueprintEntity {
 
@@ -14,5 +15,5 @@ interface BlueprintEntity {
 
     var updatedAt: Instant?
 
-    fun getId(): Long
+    fun getId(): Snowflake
 }

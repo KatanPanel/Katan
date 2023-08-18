@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.katan.service.account.http
 
 import io.ktor.resources.Resource
@@ -9,5 +11,5 @@ internal class AccountRoutes {
 
     @Serializable
     @Resource("")
-    internal class Register(@Suppress("unused") val parent: AccountRoutes = AccountRoutes())
+    internal class Register(val parent: AccountRoutes = AccountRoutes())
 }

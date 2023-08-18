@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
 
 internal object BlueprintTable : LongIdTable("blueprints") {
@@ -30,7 +31,7 @@ internal class BlueprintEntityImpl(id: EntityID<Long>) : LongEntity(id), Bluepri
     override var createdAt: Instant by BlueprintTable.createdAt
     override var updatedAt: Instant? by BlueprintTable.updatedAt
 
-    override fun getId(): Long = id.value
+    override fun getId(): Snowflake = id.value
 }
 
 internal class BlueprintRepositoryImpl(private val database: Database) : BlueprintRepository {
@@ -55,7 +56,7 @@ internal class BlueprintRepositoryImpl(private val database: Database) : Bluepri
 
     override suspend fun create(blueprint: Blueprint) {
         return newSuspendedTransaction(db = database) {
-            BlueprintEntityImpl.new(blueprint.id.value) {
+            BlueprintEntityImpl.new(blueprint.id) {
                 name = blueprint.name
                 version = blueprint.version
                 imageId = blueprint.imageId

@@ -238,7 +238,7 @@ internal class DockerInstanceServiceImpl(
 
     override suspend fun createInstance(blueprint: Blueprint, host: String?, port: Int?): UnitInstance {
         val instanceId = idService.generate()
-        val spec = blueprintService.getSpec(blueprint.id.value)
+        val spec = blueprintService.getSpec(blueprint.id)
         val generatedName = generateContainerName(instanceId, spec.build?.instance?.name)
         val image = (spec.build?.image as BlueprintSpecImage.Identifier).id
 
@@ -459,7 +459,7 @@ internal class DockerInstanceServiceImpl(
             status = toStatus(status),
             connection = networkService.createConnection(host, port),
             runtime = containerId?.let { buildRuntime(it) },
-            blueprintId = Snowflake(blueprintId)
+            blueprintId = blueprintId
         )
     }
 

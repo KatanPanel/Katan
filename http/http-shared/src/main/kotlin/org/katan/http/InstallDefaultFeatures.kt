@@ -7,6 +7,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.application.log
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.autohead.AutoHeadResponse
 import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -21,6 +22,7 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
 import io.ktor.util.logging.error
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.katan.http.response.HttpError
@@ -31,16 +33,16 @@ import org.slf4j.event.Level
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
+@OptIn(ExperimentalSerializationApi::class)
 fun Application.installDefaultFeatures(isDevelopmentMode: Boolean) {
     install(Routing)
     install(Resources)
     install(DefaultHeaders)
     install(AutoHeadResponse)
     install(DataConversion) {
-        @Suppress("RemoveExplicitTypeArguments")
         convert<Snowflake> {
-            decode { values -> Snowflake(values.first().toLong()) }
-            encode { snowflake -> listOf(snowflake.value.toString()) }
+            decode { values -> values.first().toLong() }
+            encode { snowflake -> listOf(snowflake.toString()) }
         }
     }
     install(CallLogging) {
@@ -51,27 +53,11 @@ fun Application.installDefaultFeatures(isDevelopmentMode: Boolean) {
         json(
             Json {
                 ignoreUnknownKeys = true
-                @Suppress("OPT_IN_USAGE")
                 explicitNulls = false
             }
         )
     }
     install(StatusPages) {
-        exception<HttpException> { call, exception ->
-            if (isDevelopmentMode) {
-                call.application.log.error(exception)
-            }
-
-            call.respond(
-                status = exception.status,
-                message = HttpError(
-                    code = exception.code,
-                    message = exception.message.orEmpty(),
-                    details = exception.details
-                )
-            )
-        }
-
         exception<ValidationException> { call, exception ->
             call.respond(
                 status = HttpStatusCode.UnprocessableEntity,
@@ -83,6 +69,25 @@ fun Application.installDefaultFeatures(isDevelopmentMode: Boolean) {
             call.respond(
                 status = HttpStatusCode.UnprocessableEntity,
                 message = HttpError.Generic(exception.localizedMessage)
+            )
+        }
+
+        exception<BadRequestException> { call, exception ->
+            call.respond(
+                status = HttpStatusCode.UnprocessableEntity,
+                message = HttpError.Generic(exception.localizedMessage)
+            )
+        }
+
+        exception<HttpException> { call, exception ->
+            if (isDevelopmentMode) call.application.log.error(exception)
+            call.respond(
+                status = exception.status,
+                message = HttpError(
+                    code = exception.code,
+                    message = exception.message.orEmpty(),
+                    details = exception.details
+                )
             )
         }
 

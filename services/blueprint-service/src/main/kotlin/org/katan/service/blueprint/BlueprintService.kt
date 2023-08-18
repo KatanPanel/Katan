@@ -3,7 +3,6 @@ package org.katan.service.blueprint
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
 import org.katan.model.blueprint.BlueprintSpec
 import org.katan.service.blueprint.model.BlueprintImpl
@@ -67,12 +66,12 @@ internal class BlueprintServiceImpl(
 
     override suspend fun importBlueprint(source: BlueprintSpecSource): BlueprintSpec {
         val spec = blueprintSpecProvider.provide(source)
-        val id = Snowflake(idService.generate())
+        val id = idService.generate()
 
         fsService.uploadFile(
             bucket = null,
             destination = ROOT,
-            name = id.value.toString(),
+            name = id.toString(),
             contents = json.encodeToString(spec as BlueprintSpecImpl).encodeToByteArray()
         )
 
@@ -81,7 +80,7 @@ internal class BlueprintServiceImpl(
 
     private fun toModel(entity: BlueprintEntity): Blueprint = with(entity) {
         BlueprintImpl(
-            id = Snowflake(getId()),
+            id = getId(),
             name = name,
             version = version,
             imageId = imageId,

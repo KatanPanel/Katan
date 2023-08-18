@@ -1,9 +1,5 @@
 package org.katan.config
 
-private const val ENV = "ENV"
-private const val DEVELOPMENT = "dev"
-private const val PRODUCTION = "prod"
-
 data class KatanConfig internal constructor(
     val env: String = env(ENV, DEVELOPMENT),
     val version: String = env("VERSION") ?: "Unknown",
@@ -24,7 +20,11 @@ data class KatanConfig internal constructor(
     val isDevelopment: Boolean = env == DEVELOPMENT
 ) {
 
-    private companion object {
+    public companion object {
+        public const val ENV = "ENV"
+        public const val DEVELOPMENT = "dev"
+        public const val PRODUCTION = "prod"
+
         private fun env(name: String): String? = System.getenv(name)
 
         private fun env(name: String, defaultValue: String) = System.getenv(name) ?: defaultValue

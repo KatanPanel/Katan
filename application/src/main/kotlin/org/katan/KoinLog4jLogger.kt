@@ -1,8 +1,7 @@
 package org.katan
 
 import org.apache.logging.log4j.LogManager
-import org.katan.config.KatanConfig.Companion.DEVELOPMENT
-import org.katan.config.KatanConfig.Companion.ENV
+import org.katan.config.KatanConfig
 import org.koin.core.Koin
 import org.koin.core.logger.Level
 import org.koin.core.logger.MESSAGE
@@ -23,9 +22,9 @@ internal class KoinLog4jLogger : KoinLogger(logLevel) {
         @JvmStatic
         val logLevel: KoinLogLevel
             get() {
-                val isDevelopmentMode = runCatching { System.getenv(ENV) }
+                val isDevelopmentMode = runCatching { System.getenv(KatanConfig.ENV) }
                     .getOrNull()
-                    .orEmpty() == DEVELOPMENT
+                    .orEmpty() == KatanConfig.DEVELOPMENT
 
                 return if (isDevelopmentMode) {
                     KoinLogLevel.DEBUG

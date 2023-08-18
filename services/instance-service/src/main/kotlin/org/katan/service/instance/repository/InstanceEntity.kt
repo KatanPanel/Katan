@@ -1,12 +1,14 @@
 package org.katan.service.instance.repository
 
+import org.katan.model.Snowflake
+
 interface InstanceEntity {
 
     var updatePolicy: String
 
     var containerId: String?
 
-    var blueprintId: Long
+    var blueprintId: Snowflake
 
     var host: String?
 
@@ -14,5 +16,5 @@ interface InstanceEntity {
 
     var status: String
 
-    fun getId(): Long
+    fun getId(): Snowflake
 }

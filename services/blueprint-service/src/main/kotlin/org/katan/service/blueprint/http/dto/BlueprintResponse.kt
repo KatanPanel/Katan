@@ -16,7 +16,7 @@ internal data class BlueprintResponse(
 ) {
 
     constructor(blueprint: Blueprint) : this(
-        id = blueprint.id.value.toString(),
+        id = blueprint.id.toString(),
         name = blueprint.name,
         version = blueprint.version,
         imageId = blueprint.imageId,

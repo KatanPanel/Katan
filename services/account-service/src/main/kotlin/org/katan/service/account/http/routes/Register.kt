@@ -2,14 +2,13 @@ package org.katan.service.account.http.routes
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.request.receive
 import io.ktor.server.resources.post
 import io.ktor.server.routing.Route
 import jakarta.validation.Validator
 import org.katan.http.response.HttpError
+import org.katan.http.response.receiveValidating
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
-import org.katan.http.response.validateOrThrow
 import org.katan.service.account.AccountConflictException
 import org.katan.service.account.AccountService
 import org.katan.service.account.http.AccountRoutes
@@ -23,8 +22,7 @@ internal fun Route.register() {
     val validator by inject<Validator>()
 
     post<AccountRoutes.Register> {
-        val req = call.receive<RegisterRequest>()
-        validator.validateOrThrow(req)
+        val req = call.receiveValidating<RegisterRequest>(validator)
 
         val account = try {
             accountService.createAccount(

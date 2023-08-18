@@ -14,25 +14,24 @@ internal data class RegisterRequest(
         max = 32,
         message = "Username must have a minimum length of {min} and at least {max} characters"
     )
-    val username: String,
+    val username: String = "",
 
     @SerialName("display-name")
-    @field:NotBlank(message = "Display name cannot be blank")
     @field:Size(
         min = 2,
         max = 32,
-        message = "Username must have a minimum length of {min} and at least {max} characters"
+        message = "Display name must have a minimum length of {min} and at least {max} characters"
     )
-    val displayName: String,
+    val displayName: String? = null,
 
     @field:NotBlank(message = "Email cannot be blank")
     @field:Email
-    val email: String,
+    val email: String = "",
 
     @field:NotBlank(message = "Password cannot be blank")
     @field:Size(
         min = 8,
         message = "Password must have a minimum length of 8"
     )
-    val password: String
+    val password: String = ""
 )
