@@ -33,47 +33,46 @@ private object Application {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val di = startKoin {
-            logger(KoinLog4jLogger())
-            modules(
-                configDI,
-                cryptoDI,
-                httpServerDI,
-                eventsDispatcherDI,
-                idServiceDI,
-                accountServiceDI,
-                unitServiceDI,
-                networkServiceDI,
-                instanceServiceDI,
-                cacheServiceDI,
-                databaseServiceDI,
-                hostFsServiceDI,
-                httpClientDI,
-                blueprintServiceDI,
-                authServiceDI
-            )
+        val di = initDI()
+        val debug = if (di.koin.get<KatanConfig>().also(::println).isDevelopment) {
+            DEBUG_PROPERTY_VALUE_ON
+        } else {
+            DEBUG_PROPERTY_VALUE_AUTO
         }
+        System.setProperty(DEBUG_PROPERTY_NAME, debug)
+        start()
+    }
 
-        // enables coroutines debug logs if it's in development mode
-        System.setProperty(
-            DEBUG_PROPERTY_NAME,
-            if (di.koin.get<KatanConfig>().isDevelopment) {
-                DEBUG_PROPERTY_VALUE_ON
-            } else {
-                DEBUG_PROPERTY_VALUE_AUTO
-            }
-        )
-
+    private fun start() {
         val katan = Katan()
-
         Runtime.getRuntime().addShutdownHook(
             Thread {
                 katan.close()
             }
         )
-
         runBlocking(CoroutineName(Katan::class.jvmName)) {
             katan.start()
         }
+    }
+
+    private fun initDI() = startKoin {
+        logger(KoinLog4jLogger())
+        modules(
+            configDI,
+            cryptoDI,
+            httpServerDI,
+            eventsDispatcherDI,
+            idServiceDI,
+            accountServiceDI,
+            unitServiceDI,
+            networkServiceDI,
+            instanceServiceDI,
+            cacheServiceDI,
+            databaseServiceDI,
+            hostFsServiceDI,
+            httpClientDI,
+            blueprintServiceDI,
+            authServiceDI
+        )
     }
 }
