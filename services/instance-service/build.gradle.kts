@@ -13,5 +13,6 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.feature.resources)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.yoki)
     testImplementation(projects.http.httpTest)
 }

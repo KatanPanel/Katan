@@ -1,26 +1,20 @@
 package org.katan.service.instance
 
-import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.async.ResultCallback
-import com.github.dockerjava.api.exception.NotFoundException
-import com.github.dockerjava.api.model.Frame
-import com.github.dockerjava.api.model.PullResponseItem
-import com.github.dockerjava.api.model.Statistics
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.onFailure
-import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.withContext
-import kotlinx.datetime.Instant
+import me.devnatan.yoki.Yoki
+import me.devnatan.yoki.models.exec.ExecCreateOptions
+import me.devnatan.yoki.models.exec.ExecStartOptions
+import me.devnatan.yoki.models.image.ImagePull
+import me.devnatan.yoki.resource.container.create
+import me.devnatan.yoki.resource.container.exec
+import me.devnatan.yoki.resource.container.remove
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
@@ -41,7 +35,6 @@ import org.katan.service.instance.internal.DockerEventScope
 import org.katan.service.instance.repository.InstanceEntity
 import org.katan.service.instance.repository.InstanceRepository
 import org.katan.service.network.NetworkService
-import java.io.Closeable
 import kotlin.reflect.jvm.jvmName
 
 /**
@@ -53,7 +46,7 @@ internal class DockerInstanceServiceImpl(
     private val idService: IdService,
     private val networkService: NetworkService,
     private val blueprintService: BlueprintService,
-    private val dockerClient: DockerClient,
+    private val dockerClient: Yoki,
     private val instanceRepository: InstanceRepository,
     private val config: KatanConfig
 ) : InstanceService,
@@ -80,116 +73,81 @@ internal class DockerInstanceServiceImpl(
 
     override suspend fun getInstanceLogs(id: Long): Flow<String> {
         val instance = getInstance(id)
-
         if (instance.runtime == null) {
             throw InstanceUnreachableRuntimeException()
         }
 
-        // TODO handle docker client calls properly
-        return callbackFlow {
-            dockerClient.logContainerCmd(instance.containerId!!)
-                .withStdOut(true)
-                .withFollowStream(true)
-                .withTimestamps(true)
-                .exec(object : ResultCallback.Adapter<Frame>() {
-                    override fun onStart(stream: Closeable?) {
-                        logger.info("started logs streaming")
-                    }
-
-                    override fun onNext(value: Frame) {
-                        trySendBlocking("${value.streamType} ${value.payload.decodeToString()}")
-                            .onFailure {
-                                // TODO handle downstream unavailability properly
-                                logger.error("Downstream closed", it)
-                            }
-                    }
-
-                    override fun onError(error: Throwable) {
-                        cancel(CancellationException("Docker API error", error))
-                    }
-
-                    override fun onComplete() {
-                        logger.info("completed logs streaming")
-                        channel.close()
-                    }
-                })
-
-            awaitClose()
-        }
+        return flow { }
+        // TODO get container logs
+//         TODO handle docker client calls properly
+//        return callbackFlow {
+//            dockerClient.logContainerCmd(instance.containerId!!)
+//                .withStdOut(true)
+//                .withFollowStream(true)
+//                .withTimestamps(true)
+//                .exec(object : ResultCallback.Adapter<Frame>() {
+//                    override fun onStart(stream: Closeable?) {
+//                        logger.info("started logs streaming")
+//                    }
+//
+//                    override fun onNext(value: Frame) {
+//                        trySendBlocking("${value.streamType} ${value.payload.decodeToString()}")
+//                            .onFailure {
+//                                // TODO handle downstream unavailability properly
+//                                logger.error("Downstream closed", it)
+//                            }
+//                    }
+//
+//                    override fun onError(error: Throwable) {
+//                        cancel(CancellationException("Docker API error", error))
+//                    }
+//
+//                    override fun onComplete() {
+//                        logger.info("completed logs streaming")
+//                        channel.close()
+//                    }
+//                })
+//
+//            awaitClose()
+//        }
     }
 
     override suspend fun runInstanceCommand(id: Long, command: String) {
         val instance = getInstance(id)
+        val cid = instance.containerId ?: throw InstanceUnreachableRuntimeException()
+        val eid = dockerClient.containers.exec(
+            container = cid,
+            options = ExecCreateOptions().apply {
+                this.command = command.split(" ")
+                tty = true
+                attachStdin = false
+                attachStdout = false
+                attachStderr = false
+            }
+        )
 
-        if (instance.containerId == null) {
-            throw InstanceUnreachableRuntimeException()
-        }
-
-        val cmd = command.split(" ")
-
-        // TODO handle docker client calls properly
-        val execId = withContext(IO) {
-            dockerClient.execCreateCmd(instance.containerId!!)
-                .withCmd(*cmd.toTypedArray())
-                .withTty(false)
-                .withAttachStdin(false)
-                .withAttachStdout(false)
-                .withAttachStderr(false)
-                .withTty(true)
-                .exec()
-                .id
-        }
-
-        dockerClient.execStartCmd(execId).withDetach(true)
-            .exec(object : ResultCallback.Adapter<Frame>() {})
+        dockerClient.exec.start(
+            id = eid,
+            options = ExecStartOptions().apply {
+                detach = true
+            }
+        )
     }
 
     override suspend fun streamInternalStats(id: Long): Flow<InstanceInternalStats> {
         val instance = getInstance(id)
         val runtime = instance.runtime ?: throw InstanceUnreachableRuntimeException()
 
+        // TODO implement /containers/:id/stats on Yoki
         // TODO handle docker client calls properly
-        return callbackFlow {
-            dockerClient.statsCmd(runtime.id).withNoStream(false)
-                .exec(object : ResultCallback.Adapter<Statistics>() {
-                    override fun onStart(stream: Closeable?) {
-                        logger.info("started stats streaming")
-                    }
-
-                    override fun onNext(value: Statistics) {
-                        val result = toInternalStats(value) ?: return
-                        trySendBlocking(result)
-                            .onFailure {
-                                // TODO handle downstream unavailability properly
-                                logger.error("Downstream closed", it)
-                            }
-                    }
-
-                    override fun onError(error: Throwable) {
-                        error.printStackTrace()
-                        cancel(CancellationException("Docker API error", error))
-                    }
-
-                    override fun onComplete() {
-                        logger.info("completed stats streaming")
-                        channel.close()
-                    }
-                })
-
-            awaitClose()
-        }
+        return flow { }
     }
 
     override suspend fun deleteInstance(instance: UnitInstance) {
-        require(instance is DockerUnitInstanceImpl)
-
-        // TODO fix coroutine scope of both runtime remove and repository delete
         instanceRepository.delete(instance.id)
-        withContext(IO) {
-            dockerClient.removeContainerCmd(instance.containerId!!)
-                .withRemoveVolumes(true)
-                .withForce(true)
-                .exec()
+        dockerClient.containers.remove(instance.containerId!!) {
+            removeAnonymousVolumes = true
+            force = true
         }
     }
 
@@ -198,9 +156,7 @@ internal class DockerInstanceServiceImpl(
             "Unit instance is already running, cannot be started again, stop it first"
         }
 
-        withContext(IO) {
-            dockerClient.startContainerCmd(containerId).exec()
-        }
+        dockerClient.containers.start(containerId)
     }
 
     private suspend fun stopInstance(containerId: String, currentStatus: InstanceStatus) {
@@ -208,26 +164,22 @@ internal class DockerInstanceServiceImpl(
             "Unit instance is not running, cannot be stopped"
         }
 
-        withContext(IO) {
-            dockerClient.stopContainerCmd(containerId).exec()
-        }
+        dockerClient.containers.stop(containerId)
     }
 
     private suspend fun killInstance(containerId: String) {
-        withContext(IO) {
-            dockerClient.killContainerCmd(containerId).exec()
-        }
+        dockerClient.containers.kill(containerId)
     }
 
     private suspend fun restartInstance(instance: UnitInstance) {
+        val cid = instance.containerId ?: throw InstanceUnreachableRuntimeException()
+
         // container will be deleted so restart command will fail
-        if (tryUpdateImage(instance.containerId!!, instance.updatePolicy)) {
+        if (tryUpdateImage(cid, instance.updatePolicy)) {
             return
         }
 
-        withContext(IO) {
-            dockerClient.restartContainerCmd(instance.containerId!!).exec()
-        }
+        dockerClient.containers.restart(cid)
     }
 
     private suspend fun tryUpdateImage(
@@ -241,11 +193,7 @@ internal class DockerInstanceServiceImpl(
 
         logger.debug("Trying to update container image")
 
-        val inspect = withContext(IO) {
-            dockerClient.inspectContainerCmd(containerId).exec()
-        } ?: throw RuntimeException("Failed to inspect container: $containerId")
-
-        val currImage = inspect.config.image ?: return false
+        val currImage = dockerClient.containers.inspect(containerId).image
 
         // fast path -- version-specific tag
         if (currImage.substringAfterLast(":") == "latest") {
@@ -253,9 +201,7 @@ internal class DockerInstanceServiceImpl(
         }
 
         logger.debug("Removing old image \"$currImage\"...")
-        withContext(IO) {
-            dockerClient.removeImageCmd(currImage).exec()
-        }
+        dockerClient.containers.remove(currImage)
 
         pullContainerImage(currImage).collect {
             logger.debug("Pulling image... $it")
@@ -296,22 +242,19 @@ internal class DockerInstanceServiceImpl(
         val generatedName = generateContainerName(instanceId, spec.build?.instance?.name)
         val image = (spec.build?.image as BlueprintSpecImage.Identifier).id
 
-        // TODO add support to more image types
-        requireNotNull(image) { "Only single spec image is supported" }
-
         // we'll try to create the container using the given image if the image is not available,
         // it will pull the image and then try to create the container again
+        val cid = createContainer(instanceId, image, generatedName)
         return try {
-            val containerId = createContainer(instanceId, image, generatedName)
             resumeCreateInstance(
                 instanceId = instanceId,
                 blueprintId = blueprint.id,
-                containerId = containerId,
+                containerId = cid,
                 host = host,
                 port = port,
                 status = InstanceStatus.Created
             )
-        } catch (e: NotFoundException) {
+        } catch (e: InstanceNotFoundException) {
             var status: InstanceStatus = InstanceStatus.ImagePullNeeded
             val instance = registerInstance(instanceId, blueprint.id, status)
 
@@ -356,7 +299,7 @@ internal class DockerInstanceServiceImpl(
             null
         }
 
-        logger.debug("Connected $instanceId to ${config.dockerNetwork} @ $connection")
+        logger.debug("Connected {} to {} @ {}", instanceId, config.dockerNetwork, connection)
 
         // fallback instance can set if instance was not created asynchronously
         if (fallbackInstance == null) {
@@ -435,13 +378,15 @@ internal class DockerInstanceServiceImpl(
      * Creates a Docker container using the given [image] suspending the coroutine until the
      * container creation workflow is completed.
      */
-    private fun createContainer(instanceId: Long, image: String, name: String): String {
+    private suspend fun createContainer(instanceId: Long, image: String, name: String): String {
         logger.debug("Creating container with ($image) to $instanceId...")
-        return dockerClient.createContainerCmd(image)
-            .withName(name)
-            .withTty(false)
-            .withLabels(createDefaultContainerLabels(instanceId))
-            .exec().id
+        return dockerClient.containers.create {
+            this.image = image
+            this.name = name
+            // TODO force tty to false
+//            this.tt
+            labels = createDefaultContainerLabels(instanceId)
+        }
     }
 
     private fun createDefaultContainerLabels(instanceId: Long): Map<String, String> =
@@ -450,70 +395,52 @@ internal class DockerInstanceServiceImpl(
     /**
      * Pulls a Docker image from suspending the current coroutine until that image pulls completely.
      */
-    private suspend fun pullContainerImage(image: String): Flow<String> {
-        return callbackFlow {
-            dockerClient.pullImageCmd(image)
-                .exec(object : ResultCallback.Adapter<PullResponseItem>() {
-                    override fun onNext(value: PullResponseItem) {
-                        trySendBlocking(value.toString())
-                            .onFailure {
-                                // TODO handle downstream unavailability properly
-                                logger.error("Downstream closed", it)
-                            }
-                    }
-
-                    override fun onError(error: Throwable) {
-                        cancel(CancellationException("Docker API error", error))
-                    }
-
-                    override fun onComplete() {
-                        channel.close()
-                    }
-                })
-
-            awaitClose()
-        }
-    }
+    private suspend fun pullContainerImage(image: String): Flow<String> =
+        dockerClient.images.pull(image).map(ImagePull::toString)
 
     private suspend fun buildRuntime(containerId: String): InstanceRuntime? {
-        val inspect = withContext(IO) {
-            dockerClient.inspectContainerCmd(containerId).exec()
-        } ?: return null
-
-        val networkSettings = inspect.networkSettings
-        val state = inspect.state
+        val inspection = dockerClient.containers.inspect(containerId)
+//        val networkSettings = inspection.networkSettings
+        val state = inspection.state
 
         return InstanceRuntimeImpl(
-            id = inspect.id,
+            id = inspection.id,
             network = InstanceRuntimeNetworkImpl(
-                ipV4Address = networkSettings.ipAddress,
-                hostname = inspect.config.hostName,
-                networks = networkSettings.networks.map { (name, settings) ->
-                    InstanceRuntimeSingleNetworkImpl(
-                        id = settings.networkID ?: "",
-                        name = name,
-                        ipv4Address = settings.ipamConfig?.ipv4Address?.ifBlank { null },
-                        ipv6Address = settings.ipamConfig?.ipv6Address?.ifBlank { null }
-                    )
-                }
+                ipV4Address = "",
+                hostname = null,
+                networks = emptyList()
+                // TODO missing properties
+//                ipV4Address = networkSettings.ipAddress,
+//                hostname = inspection.config.hostName,
+//                networks = networkSettings.networks.map { (name, settings) ->
+//                    InstanceRuntimeSingleNetworkImpl(
+//                        id = settings.networkID ?: "",
+//                        name = name,
+//                        ipv4Address = settings.ipamConfig?.ipv4Address?.ifBlank { null },
+//                        ipv6Address = settings.ipamConfig?.ipv6Address?.ifBlank { null }
+//                    )
+//                }
             ),
-            platform = inspect.platform?.ifBlank { null },
-            exitCode = state.exitCodeLong ?: 0,
-            pid = state.pidLong ?: 0,
-            startedAt = state.startedAt?.let { Instant.parse(it) },
-            finishedAt = state.finishedAt?.let { Instant.parse(it) },
+            platform = inspection.platform.ifBlank { null },
+            exitCode = state.exitCode ?: 0,
+            pid = state.pid ?: 0,
+            startedAt = state.startedAt,
+            finishedAt = state.finishedAt,
             error = state.error?.ifBlank { null },
-            status = state.status!!,
-            fsPath = inspect.config.volumes?.keys?.firstOrNull(),
-            outOfMemory = state.oomKilled ?: false,
-            mounts = inspect.mounts?.map { mount ->
-                InstanceRuntimeMountImpl(
-                    type = (mount.rawValues["Type"] as? String) ?: "volume",
-                    target = mount.name.orEmpty(),
-                    destination = mount.destination?.path.orEmpty(),
-                    readonly = !(mount.rw ?: false)
-                )
-            }.orEmpty()
+            status = state.status.value,
+            fsPath = null,
+            // TODO missing properties
+//            fsPath = inspection.config.keys.firstOrNull(),
+            outOfMemory = state.oomKilled,
+            mounts = emptyList()
+//            mounts = inspection.mouts?.map { mount ->
+//                InstanceRuntimeMountImpl(
+//                    type = (mount.rawValues["Type"] as? String) ?: "volume",
+//                    target = mount.name.orEmpty(),
+//                    destination = mount.destination?.path.orEmpty(),
+//                    readonly = !(mount.rw ?: false)
+//                )
+//            }.orEmpty()
         )
     }
 
@@ -556,26 +483,26 @@ internal class DockerInstanceServiceImpl(
         }
     }
 
-    private fun toInternalStats(statistics: Statistics): InstanceInternalStats? {
-        val pid = statistics.pidsStats.current ?: return null
-        val mem = statistics.memoryStats!!
-        val cpu = statistics.cpuStats!!
-        val last = statistics.preCpuStats
-
-        return InstanceInternalStatsImpl(
-            pid = pid,
-            memoryUsage = mem.usage!!,
-            memoryMaxUsage = mem.maxUsage!!,
-            memoryLimit = mem.limit!!,
-            memoryCache = mem.stats!!.cache!!,
-            cpuUsage = cpu.cpuUsage!!.totalUsage!!,
-            perCpuUsage = cpu.cpuUsage!!.percpuUsage!!.toLongArray(),
-            systemCpuUsage = cpu.systemCpuUsage!!,
-            onlineCpus = cpu.onlineCpus!!,
-            lastCpuUsage = last.cpuUsage?.totalUsage,
-            lastPerCpuUsage = last.cpuUsage?.percpuUsage?.toLongArray(),
-            lastSystemCpuUsage = last.systemCpuUsage,
-            lastOnlineCpus = last.onlineCpus
-        )
-    }
+//    private fun toInternalStats(statistics: Statistics): InstanceInternalStats? {
+//        val pid = statistics.pidsStats.current ?: return null
+//        val mem = statistics.memoryStats!!
+//        val cpu = statistics.cpuStats!!
+//        val last = statistics.preCpuStats
+//
+//        return InstanceInternalStatsImpl(
+//            pid = pid,
+//            memoryUsage = mem.usage!!,
+//            memoryMaxUsage = mem.maxUsage!!,
+//            memoryLimit = mem.limit!!,
+//            memoryCache = mem.stats!!.cache!!,
+//            cpuUsage = cpu.cpuUsage!!.totalUsage!!,
+//            perCpuUsage = cpu.cpuUsage!!.percpuUsage!!.toLongArray(),
+//            systemCpuUsage = cpu.systemCpuUsage!!,
+//            onlineCpus = cpu.onlineCpus!!,
+//            lastCpuUsage = last.cpuUsage?.totalUsage,
+//            lastPerCpuUsage = last.cpuUsage?.percpuUsage?.toLongArray(),
+//            lastSystemCpuUsage = last.systemCpuUsage,
+//            lastOnlineCpus = last.onlineCpus
+//        )
+//    }
 }

@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.config.di.configDI
 import org.katan.crypto.di.cryptoDI
-import org.katan.docker.di.dockerClientDI
 import org.katan.event.di.eventsDispatcherDI
 import org.katan.http.client.di.httpClientDI
 import org.katan.http.server.di.httpServerDI
@@ -48,7 +47,6 @@ private object Application {
                 instanceServiceDI,
                 cacheServiceDI,
                 databaseServiceDI,
-                dockerClientDI,
                 hostFsServiceDI,
                 httpClientDI,
                 blueprintServiceDI,

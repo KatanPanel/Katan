@@ -1,22 +1,22 @@
 package org.katan.service.network
 
-import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.model.Network
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
+import me.devnatan.yoki.Yoki
+import me.devnatan.yoki.YokiException
+import me.devnatan.yoki.models.network.Network
+import me.devnatan.yoki.resource.NetworkNotFoundException
+import me.devnatan.yoki.resource.network.create
 import org.apache.logging.log4j.LogManager
 import org.katan.model.io.HostPort
 import org.katan.model.io.InvalidNetworkAssignmentException
 import org.katan.model.io.NetworkConnectionFailed
 import org.katan.model.io.UnknownNetworkException
 
-internal class DockerNetworkServiceImpl(
-    private val dockerClient: DockerClient
-) : NetworkService {
+internal class DockerNetworkServiceImpl(private val dockerClient: Yoki) : NetworkService {
 
     companion object {
         private const val ALL_INTERFACES = "0.0.0.0"
-
         private const val MACVLAN_DRIVER = "macvlan"
         internal const val HOST_DRIVER = "host"
 
@@ -33,13 +33,13 @@ internal class DockerNetworkServiceImpl(
         host: String?,
         port: Short?
     ): HostPort {
-        val network = withContext(IO) {
-            getNetwork(network)
-        }.getOrElse {
+        val network = runCatching {
+            withContext(IO) { dockerClient.networks.inspect(network) }
+        }.recoverCatching {
             tryCreateNetwork(network)
-        }
+        }.getOrThrow()
 
-        if (network.internal) {
+        if (network.isInternal) {
             throw InvalidNetworkAssignmentException("Internal networks cannot be connected to")
         }
 
@@ -54,39 +54,18 @@ internal class DockerNetworkServiceImpl(
             MACVLAN_DRIVER -> applyMacvlanIpAddress()
         }
 
-        runCatching {
+        try {
             withContext(IO) {
-                connectToNetwork(network.id, instance)
+                dockerClient.networks.connectContainer(
+                    id = network.id,
+                    container = instance
+                )
             }
-        }.recover { cause ->
-            throw NetworkConnectionFailed(network.id, cause)
-        }.getOrThrow()
+        } catch (exception: YokiException) {
+            throw NetworkConnectionFailed(network.id, exception)
+        }
 
         return createConnection(host, port)
-    }
-
-    /**
-     * Returns an [Result] of [Network] for the given network [id].
-     *
-     * @param id The network id.
-     */
-    private fun getNetwork(id: String): Result<Network> {
-        return runCatching {
-            dockerClient.inspectNetworkCmd().withNetworkId(id).exec()
-        }
-    }
-
-    /**
-     * Connects an [instance] to a [network].
-     *
-     * @param network The network id.
-     * @param instance The instance id (internal container identifier).
-     */
-    private fun connectToNetwork(network: String, instance: String) {
-        dockerClient.connectToNetworkCmd()
-            .withContainerId(instance)
-            .withNetworkId(network)
-            .exec()
     }
 
     /**
@@ -97,11 +76,11 @@ internal class DockerNetworkServiceImpl(
      */
     private suspend fun tryCreateNetwork(name: String): Network {
         val created = createNetwork(name)
-        val network = withContext(IO) { getNetwork(name) }
-
-        return network.recover {
+        return try {
+            dockerClient.networks.inspect(name)
+        } catch (e: NetworkNotFoundException) {
             throw UnknownNetworkException(created)
-        }.getOrThrow()
+        }
     }
 
     /**
@@ -111,12 +90,7 @@ internal class DockerNetworkServiceImpl(
      */
     private suspend fun createNetwork(name: String): String {
         logger.debug("Creating network {}...", name)
-
-        return withContext(IO) {
-            dockerClient.createNetworkCmd().withName(name)
-                .exec()
-                .id
-        }
+        return dockerClient.networks.create { this.name = name }.id
     }
 
     /**

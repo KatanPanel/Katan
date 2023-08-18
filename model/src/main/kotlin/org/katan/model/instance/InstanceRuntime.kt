@@ -8,9 +8,9 @@ interface InstanceRuntime {
 
     val status: String
 
-    val exitCode: Long
+    val exitCode: Int
 
-    val pid: Long
+    val pid: Int
 
     val outOfMemory: Boolean
 
