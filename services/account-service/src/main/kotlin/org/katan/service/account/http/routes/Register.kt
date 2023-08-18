@@ -12,7 +12,6 @@ import org.katan.http.response.respondError
 import org.katan.service.account.AccountConflictException
 import org.katan.service.account.AccountService
 import org.katan.service.account.http.AccountRoutes
-import org.katan.service.account.http.dto.AccountResponse
 import org.katan.service.account.http.dto.RegisterRequest
 import org.katan.service.account.http.dto.RegisterResponse
 import org.koin.ktor.ext.inject
@@ -23,7 +22,6 @@ internal fun Route.register() {
 
     post<AccountRoutes.Register> {
         val req = call.receiveValidating<RegisterRequest>(validator)
-
         val account = try {
             accountService.createAccount(
                 username = req.username,
@@ -35,6 +33,6 @@ internal fun Route.register() {
             respondError(HttpError.AccountLoginConflict, HttpStatusCode.Conflict)
         }
 
-        respond(RegisterResponse(AccountResponse(account)))
+        respond(RegisterResponse(account))
     }
 }
