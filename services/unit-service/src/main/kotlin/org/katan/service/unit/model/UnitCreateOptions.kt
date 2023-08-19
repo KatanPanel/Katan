@@ -2,7 +2,7 @@ package org.katan.service.unit.model
 
 import org.katan.model.Snowflake
 
-data class UnitCreateOptions(
+public data class UnitCreateOptions(
     val name: String,
     val blueprintId: Snowflake,
     val image: String,
@@ -12,5 +12,5 @@ data class UnitCreateOptions(
     val actorId: Snowflake?
 ) {
 
-    data class Network(val host: String?, val port: Int?)
+    public data class Network(val host: String?, val port: Int?)
 }
