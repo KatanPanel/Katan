@@ -69,6 +69,9 @@ expressly = { module = "org.glassfish.expressly:expressly", version.ref = "expre
 hibernateValidator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "hibernate-validator" }
 hibernateValidator-cdi = { module = "org.hibernate.validator:hibernate-validator-cdi", version.ref = "hibernate-validator" }
 
+[bundles]
+exposed = ["exposed-core", "exposed-dao", "exposed-jdbc", "exposed-kotlin-datetime"]
+
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-atomicfu = { id = "org.jetbrains.kotlin.plugin.atomicfu", version.ref = "kotlin" }

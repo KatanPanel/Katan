@@ -1,5 +1,6 @@
 package org.katan.model.instance
 
+import kotlinx.datetime.Instant
 import org.katan.model.Snowflake
 import org.katan.model.io.HostPort
 import org.katan.model.unit.ImageUpdatePolicy
@@ -18,4 +19,6 @@ interface UnitInstance {
     val runtime: InstanceRuntime?
 
     val blueprintId: Snowflake
+
+    val createdAt: Instant
 }

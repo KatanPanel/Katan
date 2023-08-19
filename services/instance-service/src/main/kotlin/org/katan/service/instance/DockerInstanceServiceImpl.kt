@@ -8,9 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import me.devnatan.yoki.Yoki
 import me.devnatan.yoki.models.exec.ExecCreateOptions
 import me.devnatan.yoki.models.exec.ExecStartOptions
@@ -42,7 +41,7 @@ import kotlin.reflect.jvm.jvmName
  * the Docker events listener.
  */
 internal class DockerInstanceServiceImpl(
-    eventsDispatcher: EventScope,
+    private val eventsDispatcher: EventScope,
     private val idService: IdService,
     private val networkService: NetworkService,
     private val blueprintService: BlueprintService,
@@ -201,7 +200,7 @@ internal class DockerInstanceServiceImpl(
         dockerClient.containers.remove(currImage)
 
         dockerClient.images.pull(currImage).collect {
-            logger.debug("Pulling image... $it")
+            logger.debug("Pulling image... {}", it)
         }
         return true
     }
@@ -213,20 +212,13 @@ internal class DockerInstanceServiceImpl(
     }
 
     // TODO check for parameters invalid property types
-    override suspend fun updateInstanceStatus(
-        instance: UnitInstance,
-        code: InstanceUpdateCode
-    ) {
+    override suspend fun updateInstanceStatus(instance: UnitInstance, code: InstanceUpdateCode) {
         val containerId = requireNotNull(instance.containerId) {
             "Cannot update non-initialized instance container"
         }
 
         when (code) {
-            InstanceUpdateCode.Start -> startInstance(
-                containerId,
-                instance.status
-            )
-
+            InstanceUpdateCode.Start -> startInstance(containerId, instance.status)
             InstanceUpdateCode.Stop -> stopInstance(containerId, instance.status)
             InstanceUpdateCode.Restart -> restartInstance(instance)
             InstanceUpdateCode.Kill -> killInstance(containerId)
@@ -256,6 +248,7 @@ internal class DockerInstanceServiceImpl(
                 containerId = null,
                 connection = null
             )
+
             setupInstanceAsync(
                 instanceId = instance.id,
                 instanceName = generatedName,
@@ -268,7 +261,20 @@ internal class DockerInstanceServiceImpl(
 
     private fun setupInstanceAsync(instanceId: Snowflake, instanceName: String, options: CreateInstanceOptions) =
         launch(Dispatchers.Default) {
-            pullImageForInstanceAsync(options.image).collect { status -> updateInstance(instanceId, status) }
+            dockerClient.images.pull(options.image)
+                .onCompletion { error ->
+                    val status = if (error != null) {
+                        InstanceStatus.ImagePullFailed
+                    } else {
+                        InstanceStatus.ImagePullCompleted
+                    }
+
+                    logger.debug("Image {} pull completed.", options.image)
+                    updateInstance(instanceId, status)
+                }
+                .catch { error -> logger.error("Failed to pull image: ${options.image}", error) }
+                .collect { pull -> logger.debug("Pulling image {}: {}", options.image, pull) }
+
             val container = createContainer(instanceId, options.image, instanceName)
             val connection = connectInstance(container, options.host, options.port)
 
@@ -280,23 +286,6 @@ internal class DockerInstanceServiceImpl(
 
     private fun statusFromConnection(connection: HostPort?): InstanceStatus =
         if (connection == null) InstanceStatus.NetworkAssignmentFailed else InstanceStatus.Created
-
-    private fun pullImageForInstanceAsync(image: String): Flow<InstanceStatus> = flow {
-        dockerClient.images.pull(image)
-            .catch { error -> logger.error("Failed to pull image: $image", error) }
-            .onStart { emit(InstanceStatus.ImagePullInProgress) }
-            .onCompletion { error ->
-                val status = if (error != null) {
-                    InstanceStatus.ImagePullFailed
-                } else {
-                    InstanceStatus.ImagePullCompleted
-                }
-
-                logger.debug("Image $image pull completed.")
-                emit(status)
-            }
-            .onEach { pull -> logger.error("Pulling $image...: $pull") }
-    }
 
     private suspend fun connectInstance(
         containerId: String,
@@ -332,10 +321,18 @@ internal class DockerInstanceServiceImpl(
             containerId = containerId,
             connection = connection,
             runtime = containerId?.let { buildRuntime(it) },
-            blueprintId = blueprintId
+            blueprintId = blueprintId,
+            createdAt = Clock.System.now()
         )
 
         instanceRepository.create(instance)
+        eventsDispatcher.dispatch(
+            InstanceCreatedEvent(
+                instanceId = instance.id,
+                blueprintId = instance.blueprintId,
+                createdAt = instance.createdAt
+            )
+        )
         return instance
     }
 
@@ -344,17 +341,11 @@ internal class DockerInstanceServiceImpl(
             .replace("{id}", instanceId.toString())
             .replace("{node}", config.nodeId.toString())
 
-    /**
-     * Creates a Docker container using the given [image] suspending the coroutine until the
-     * container creation workflow is completed.
-     */
     private suspend fun createContainer(instanceId: Snowflake, image: String, name: String): String {
         logger.debug("Creating container with $image to $instanceId...")
         return dockerClient.containers.create {
             this.image = image
             this.name = name
-            // TODO force tty to false
-//            this.tt
             labels = createDefaultContainerLabels(instanceId)
         }
     }
@@ -423,7 +414,8 @@ internal class DockerInstanceServiceImpl(
             status = toStatus(status),
             connection = networkService.createConnection(host, port),
             runtime = containerId?.let { buildRuntime(it) },
-            blueprintId = blueprintId
+            blueprintId = blueprintId,
+            createdAt = createdAt
         )
     }
 

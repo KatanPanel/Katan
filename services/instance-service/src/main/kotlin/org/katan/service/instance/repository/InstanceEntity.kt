@@ -1,8 +1,11 @@
 package org.katan.service.instance.repository
 
+import kotlinx.datetime.Instant
 import org.katan.model.Snowflake
 
 interface InstanceEntity {
+
+    fun getId(): Snowflake
 
     var updatePolicy: String
 
@@ -16,5 +19,5 @@ interface InstanceEntity {
 
     var status: String
 
-    fun getId(): Snowflake
+    var createdAt: Instant
 }

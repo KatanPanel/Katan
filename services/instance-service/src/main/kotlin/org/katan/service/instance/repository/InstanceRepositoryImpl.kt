@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.instance.UnitInstance
@@ -13,11 +14,12 @@ import org.katan.model.instance.UnitInstance
 internal object UnitInstanceTable : LongIdTable("instances") {
 
     val imageUpdatePolicy = varchar("image_update_policy", length = 64)
-    val containerId = varchar("container_id", length = 255).nullable()
-    val blueprintId = long("blueprint_id")
+    val containerId = varchar("cid", length = 255).nullable()
+    val blueprintId = long("bid")
     val host = varchar("host", length = 255).nullable()
     val port = short("port").nullable()
     val status = varchar("status", length = 255)
+    val createdAt = timestamp("created_at")
 }
 
 internal class UnitInstanceEntity(id: EntityID<Long>) : LongEntity(id), InstanceEntity {
@@ -29,6 +31,7 @@ internal class UnitInstanceEntity(id: EntityID<Long>) : LongEntity(id), Instance
     override var host by UnitInstanceTable.host
     override var port by UnitInstanceTable.port
     override var status by UnitInstanceTable.status
+    override var createdAt by UnitInstanceTable.createdAt
 
     override fun getId() = id.value
 }
