@@ -4,29 +4,23 @@ import org.bouncycastle.crypto.generators.OpenBSDBCrypt
 import java.security.SecureRandom
 import java.util.Random
 
+private const val SALT_LENGTH = 16
+private const val HASH_COST = 12
+
 /**
  * Bcrypt salted hash implementation.
  */
-internal class BcryptHash : SaltedHash {
-
-    companion object {
-        private val rand: Random = SecureRandom()
-    }
+internal object BcryptHash : SaltedHash {
 
     override val name: String = "Bcrypt"
-    override val saltLength: Int = 16
+    override val saltLength: Int = SALT_LENGTH
+    private val random: Random = SecureRandom()
 
-    private fun generateSalt(): ByteArray {
-        return ByteArray(saltLength).also {
-            rand.nextBytes(it)
-        }
+    private fun generateSalt(): ByteArray = ByteArray(saltLength).also { bytes ->
+        random.nextBytes(bytes)
     }
 
-    override fun hash(value: CharArray): String {
-        return OpenBSDBCrypt.generate(value, generateSalt(), 12)
-    }
+    override fun hash(value: CharArray): String = OpenBSDBCrypt.generate(value, generateSalt(), HASH_COST)
 
-    override fun compare(value: CharArray, hash: String): Boolean {
-        return OpenBSDBCrypt.checkPassword(hash, value)
-    }
+    override fun compare(value: CharArray, hash: String): Boolean = OpenBSDBCrypt.checkPassword(hash, value)
 }

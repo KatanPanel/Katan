@@ -1,6 +1,7 @@
 package org.katan.service.account
 
 import kotlinx.datetime.Clock
+import org.katan.crypto.Hash
 import org.katan.crypto.SaltedHash
 import org.katan.event.EventsDispatcher
 import org.katan.model.Snowflake
@@ -25,7 +26,7 @@ interface AccountService {
 internal class AccountServiceImpl(
     private val idService: IdService,
     private val accountsRepository: AccountsRepository,
-    private val saltedHash: SaltedHash,
+    private val hashAlgorithm: Hash,
     private val eventsDispatcher: EventsDispatcher
 ) : AccountService {
 
@@ -67,7 +68,7 @@ internal class AccountServiceImpl(
             avatar = null
         )
 
-        val hash = saltedHash.hash(password.toCharArray())
+        val hash = hashAlgorithm.hash(password.toCharArray())
         accountsRepository.addAccount(account, hash)
         eventsDispatcher.dispatch(AccountCreatedEvent(account.id))
         return account

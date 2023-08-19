@@ -1,12 +1,18 @@
 package org.katan.crypto
 
 /**
- * Represents an unsalted hashing algorithm.
+ * An unsalted hashing algorithm.
  *
  * It is used to apply hashing functions to input and also to  [compare] values that have already
  * been applied to hashing functions. See [SaltedHash] for salted hashes.
  */
 public interface Hash {
+
+    public companion object {
+
+        public val SHA1: Hash = SHA1Hash
+        public val Bcrypt: Hash = BcryptHash
+    }
 
     /**
      * Returns the name of the hashing algorithm.

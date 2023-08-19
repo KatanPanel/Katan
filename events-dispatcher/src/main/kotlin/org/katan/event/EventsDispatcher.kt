@@ -48,14 +48,11 @@ internal class EventsDispatcherImpl :
 
     override fun <T : Any> listen(eventType: KClass<T>): Flow<T> {
         @Suppress("UNCHECKED_CAST")
-        return publisher.filter { eventType.isInstance(it) } as Flow<T>
+        return publisher.filter { event -> eventType.isInstance(event) } as Flow<T>
     }
 
     override fun dispatch(event: Any) {
-        if (!publisher.tryEmit(event)) {
-            logger.warn("Failed to emit event: $event")
-        } else {
-            logger.trace(event.toString())
-        }
+        publisher.tryEmit(event)
+        logger.trace(event.toString())
     }
 }

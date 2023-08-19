@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
 import org.katan.config.configDI
 import org.katan.crypto.cryptoDI
-import org.katan.event.di.eventsDispatcherDI
+import org.katan.event.eventsDispatcherDI
 import org.katan.http.client.di.httpClientDI
 import org.katan.http.server.httpServerDI
 import org.katan.service.account.di.accountServiceDI

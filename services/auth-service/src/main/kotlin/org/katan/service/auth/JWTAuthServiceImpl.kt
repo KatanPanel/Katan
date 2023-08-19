@@ -12,7 +12,7 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
-import org.katan.crypto.SaltedHash
+import org.katan.crypto.Hash
 import org.katan.model.account.Account
 import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.AuthenticationException
@@ -24,7 +24,7 @@ import kotlin.time.Duration.Companion.hours
 
 internal class JWTAuthServiceImpl(
     private val accountService: AccountService,
-    private val saltedHash: SaltedHash
+    private val hashAlgorithm: Hash
 ) : AuthService {
 
     companion object {
@@ -40,7 +40,7 @@ internal class JWTAuthServiceImpl(
         }
 
         return runCatching {
-            saltedHash.compare(input, hash)
+            hashAlgorithm.compare(input, hash)
         }.recoverCatching { exception ->
             throw SecurityException("Could not decrypt data.", exception)
         }.getOrThrow()

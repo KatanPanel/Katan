@@ -1,5 +1,6 @@
 package org.katan.service.account.di
 
+import org.katan.crypto.Hash
 import org.katan.http.importHttpModule
 import org.katan.service.account.AccountService
 import org.katan.service.account.AccountServiceImpl
@@ -15,6 +16,11 @@ val accountServiceDI: Module = module {
         AccountsRepositoryImpl(database = get())
     }
     single<AccountService> {
-        AccountServiceImpl(idService = get(), accountsRepository = get(), saltedHash = get(), eventsDispatcher = get())
+        AccountServiceImpl(
+            idService = get(),
+            accountsRepository = get(),
+            hashAlgorithm = Hash.Bcrypt,
+            eventsDispatcher = get()
+        )
     }
 }
