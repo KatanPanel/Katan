@@ -38,9 +38,14 @@ internal class Katan : KoinComponent {
             newSuspendedTransaction(db = database) {
                 runCatching {
                     database.connector()
-                }.onFailure { exception ->
+                }.onFailure { error ->
                     // TODO detailed error message about how to establish a database connection
-                    logger.error("Unable to establish database connection.", exception)
+                    if (config.isDevelopment) {
+                        logger.error("Unable to establish database connection.", error)
+                    } else {
+                        logger.debug("Unable to establish database connection.")
+                    }
+
                     exitProcess(0)
                 }
             }
