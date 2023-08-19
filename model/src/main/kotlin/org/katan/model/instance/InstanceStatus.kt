@@ -1,46 +1,44 @@
 package org.katan.model.instance
 
-sealed class InstanceStatus(
-    val value: String,
-    val isInitialStatus: Boolean = false,
-    val isRuntimeStatus: Boolean = false
+public sealed class InstanceStatus(
+    public val value: String,
+    public val isInitialStatus: Boolean = false,
+    public val isRuntimeStatus: Boolean = false
 ) {
-    object Created : InstanceStatus("created")
-    object NetworkAssignmentFailed : InstanceStatus("network-assignment-failed")
-    object Unavailable : InstanceStatus("unavailable")
-    object Unknown : InstanceStatus("unknown")
-    object ImagePullInProgress : InstanceStatus("image-pull", isInitialStatus = true)
-    object ImagePullNeeded : InstanceStatus("image-pull-needed", isInitialStatus = true)
-    object ImagePullFailed : InstanceStatus("image-pull-failed", isInitialStatus = true)
-    object ImagePullCompleted : InstanceStatus("image-pull-completed", isInitialStatus = true)
-    object Dead : InstanceStatus("dead", isRuntimeStatus = true)
-    object Paused : InstanceStatus("paused", isRuntimeStatus = true)
-    object Exited : InstanceStatus("exited", isRuntimeStatus = true)
-    object Running : InstanceStatus("running", isRuntimeStatus = true)
-    object Stopped : InstanceStatus("stopped", isRuntimeStatus = true)
-    object Starting : InstanceStatus("starting", isRuntimeStatus = true)
-    object Removing : InstanceStatus("removing", isRuntimeStatus = true)
-    object Stopping : InstanceStatus("stopping", isRuntimeStatus = true)
-    object Restarting : InstanceStatus("restarting", isRuntimeStatus = true)
+    public data object Created : InstanceStatus("created")
+    public data object NetworkAssignmentFailed : InstanceStatus("network-assignment-failed")
+    public data object Unavailable : InstanceStatus("unavailable")
+    public data object Unknown : InstanceStatus("unknown")
+    public data object ImagePullInProgress : InstanceStatus("image-pull", isInitialStatus = true)
+    public data object ImagePullNeeded : InstanceStatus("image-pull-needed", isInitialStatus = true)
+    public data object ImagePullFailed : InstanceStatus("image-pull-failed", isInitialStatus = true)
+    public data object ImagePullCompleted : InstanceStatus("image-pull-completed", isInitialStatus = true)
+    public data object Dead : InstanceStatus("dead", isRuntimeStatus = true)
+    public data object Paused : InstanceStatus("paused", isRuntimeStatus = true)
+    public data object Exited : InstanceStatus("exited", isRuntimeStatus = true)
+    public data object Running : InstanceStatus("running", isRuntimeStatus = true)
+    public data object Stopped : InstanceStatus("stopped", isRuntimeStatus = true)
+    public data object Starting : InstanceStatus("starting", isRuntimeStatus = true)
+    public data object Removing : InstanceStatus("removing", isRuntimeStatus = true)
+    public data object Stopping : InstanceStatus("stopping", isRuntimeStatus = true)
+    public data object Restarting : InstanceStatus("restarting", isRuntimeStatus = true)
 }
 
-sealed class InstanceUpdateCode(val name: String, val code: Int) {
+public sealed class InstanceUpdateCode(public val name: String, public val code: Int) {
 
-    object Start : InstanceUpdateCode("start", 1)
-    object Stop : InstanceUpdateCode("stop", 2)
-    object Restart : InstanceUpdateCode("restart", 3)
-    object Kill : InstanceUpdateCode("kill", 4)
+    public object Start : InstanceUpdateCode("start", 1)
+    public object Stop : InstanceUpdateCode("stop", 2)
+    public object Restart : InstanceUpdateCode("restart", 3)
+    public object Kill : InstanceUpdateCode("kill", 4)
 
-    companion object {
+    public companion object {
 
         private val mappings: Map<Int, InstanceUpdateCode> by lazy {
             listOf(Start, Stop, Restart, Kill).associateBy { it.code }
         }
 
         @JvmStatic
-        fun getByCode(code: Int): InstanceUpdateCode? {
-            return mappings[code]
-        }
+        public fun getByCode(code: Int): InstanceUpdateCode? = mappings[code]
     }
 
     override fun toString(): String {

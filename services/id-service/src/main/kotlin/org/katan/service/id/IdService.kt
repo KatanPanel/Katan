@@ -2,9 +2,9 @@ package org.katan.service.id
 
 import org.katan.model.Snowflake
 
-interface IdService {
+public interface IdService {
 
-    suspend fun generate(): Snowflake
+    public suspend fun generate(): Snowflake
 
-    suspend fun parse(input: String): Snowflake
+    public suspend fun parse(input: String): Snowflake
 }

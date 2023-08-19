@@ -8,10 +8,10 @@ package org.katan.crypto
  *
  * By using salt, hash methods from this interface are generally safer.
  */
-interface SaltedHash : Hash {
+public interface SaltedHash : Hash {
 
     /**
      * Returns the length of the salt that will be used in the hashing process for that algorithm.
      */
-    val saltLength: Int
+    public val saltLength: Int
 }

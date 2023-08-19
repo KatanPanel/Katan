@@ -1,10 +1,15 @@
 plugins {
     application
     alias(libs.plugins.shadowjar)
+    alias(libs.plugins.kotlin)
 }
 
 application {
     mainClass.set("org.katan.Application")
+}
+
+repositories {
+    mavenCentral()
 }
 
 dependencies {
@@ -23,9 +28,11 @@ dependencies {
     implementation(projects.services.databaseService)
     implementation(projects.services.hostFsService)
     implementation(projects.services.blueprintService)
-    implementation(libs.jedis)
-    implementation(libs.exposed.core)
     implementation(libs.yoki)
+    implementation(libs.log4j.core)
+    implementation(libs.koin.core)
+    implementation(libs.ktx.coroutines.core)
+    implementation(libs.exposed.core)
 }
 
 tasks {

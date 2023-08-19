@@ -1,28 +1,28 @@
 package org.katan.model.instance
 
-interface InstanceInternalStats {
+public interface InstanceInternalStats {
 
-    val pid: Long
-    val memoryUsage: Long
-    val memoryMaxUsage: Long
-    val memoryLimit: Long
-    val memoryCache: Long
-    val cpuUsage: Long
-    val perCpuUsage: LongArray
-    val systemCpuUsage: Long
-    val onlineCpus: Long
-    val lastCpuUsage: Long?
-    val lastPerCpuUsage: LongArray?
-    val lastSystemCpuUsage: Long?
-    val lastOnlineCpus: Long?
+    public val pid: Long
+    public val memoryUsage: Long
+    public val memoryMaxUsage: Long
+    public val memoryLimit: Long
+    public val memoryCache: Long
+    public val cpuUsage: Long
+    public val perCpuUsage: LongArray
+    public val systemCpuUsage: Long
+    public val onlineCpus: Long
+    public val lastCpuUsage: Long?
+    public val lastPerCpuUsage: LongArray?
+    public val lastSystemCpuUsage: Long?
+    public val lastOnlineCpus: Long?
 }
 
-fun InstanceInternalStats.getMemoryUsagePercentage(): Float {
+public fun InstanceInternalStats.getMemoryUsagePercentage(): Float {
     val usedMemory = memoryUsage - memoryCache
     return (usedMemory.toFloat() / memoryLimit.toFloat()) * 100.0F
 }
 
-fun InstanceInternalStats.getCpuUsagePercentage(): Float {
+public fun InstanceInternalStats.getCpuUsagePercentage(): Float {
     if (lastCpuUsage == null || lastSystemCpuUsage == null) {
         return 0.0F
     }
@@ -33,6 +33,6 @@ fun InstanceInternalStats.getCpuUsagePercentage(): Float {
     return (cpuUsageDiff.toFloat() / sysCpuUsageDiff.toFloat()) * onlineCpus * 100.0F
 }
 
-fun InstanceInternalStats.getCpuUsagePercentage(usage: Long): Float {
+public fun InstanceInternalStats.getCpuUsagePercentage(usage: Long): Float {
     return (usage.toFloat() / cpuUsage) * 100.0F
 }

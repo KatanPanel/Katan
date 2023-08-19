@@ -5,20 +5,20 @@ import org.katan.model.Snowflake
 import org.katan.model.io.HostPort
 import org.katan.model.unit.ImageUpdatePolicy
 
-interface UnitInstance {
-    val id: Long
+public interface UnitInstance {
+    public val id: Snowflake
 
-    val status: InstanceStatus
+    public val status: InstanceStatus
 
-    val containerId: String?
+    public val containerId: String?
 
-    val updatePolicy: ImageUpdatePolicy
+    public val updatePolicy: ImageUpdatePolicy
 
-    val connection: HostPort?
+    public val connection: HostPort?
 
-    val runtime: InstanceRuntime?
+    public val runtime: InstanceRuntime?
 
-    val blueprintId: Snowflake
+    public val blueprintId: Snowflake
 
-    val createdAt: Instant
+    public val createdAt: Instant
 }

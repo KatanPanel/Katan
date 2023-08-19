@@ -5,20 +5,20 @@ package org.katan.model.unit.auditlog
  *
  * @see AuditLogEntry
  */
-interface AuditLogChange {
+public interface AuditLogChange {
 
     /**
      * Name of the affected entity by this change.
      */
-    val key: String
+    public val key: String
 
     /**
      * The old value of the key.
      */
-    val oldValue: String?
+    public val oldValue: String?
 
     /**
      * The new value of the key.
      */
-    val newValue: String?
+    public val newValue: String?
 }

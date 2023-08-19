@@ -1,4 +1,4 @@
-package org.katan.http.server.di
+package org.katan.http.server
 
 import jakarta.validation.Validation
 import jakarta.validation.Validator

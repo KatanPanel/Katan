@@ -1,6 +1,6 @@
 package org.katan.model.io
 
-interface Directory : VirtualFile {
+public interface Directory : VirtualFile {
 
-    val children: List<VirtualFile>
+    public val children: List<VirtualFile>
 }

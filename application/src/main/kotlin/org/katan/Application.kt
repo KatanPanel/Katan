@@ -9,24 +9,23 @@ import me.devnatan.yoki.Yoki
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
-import org.katan.config.di.configDI
-import org.katan.crypto.di.cryptoDI
+import org.katan.config.configDI
+import org.katan.crypto.cryptoDI
 import org.katan.event.di.eventsDispatcherDI
 import org.katan.http.client.di.httpClientDI
-import org.katan.http.server.di.httpServerDI
+import org.katan.http.server.httpServerDI
 import org.katan.service.account.di.accountServiceDI
 import org.katan.service.auth.authServiceDI
 import org.katan.service.blueprint.blueprintServiceDI
-import org.katan.service.db.di.databaseServiceDI
-import org.katan.service.fs.host.di.hostFsServiceDI
-import org.katan.service.id.di.idServiceDI
+import org.katan.service.db.databaseServiceDI
+import org.katan.service.fs.host.hostFsServiceDI
+import org.katan.service.id.idServiceDI
 import org.katan.service.instance.instanceServiceDI
-import org.katan.service.network.di.networkServiceDI
+import org.katan.service.network.networkServiceDI
 import org.katan.service.unit.unitServiceDI
-import org.katan.services.cache.di.cacheServiceDI
+import org.katan.services.cache.cacheServiceDI
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
-import kotlin.reflect.jvm.jvmName
 
 @Suppress("UNUSED")
 private object Application {
@@ -52,7 +51,7 @@ private object Application {
                 katan.close()
             }
         )
-        runBlocking(CoroutineName(Katan::class.jvmName)) {
+        runBlocking(CoroutineName("Katan")) {
             katan.start()
         }
     }

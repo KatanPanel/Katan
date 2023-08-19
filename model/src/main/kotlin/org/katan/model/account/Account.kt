@@ -1,34 +1,35 @@
 package org.katan.model.account
 
 import kotlinx.datetime.Instant
+import org.katan.model.Snowflake
 
-interface Account {
+public interface Account {
 
     /**
      * The unique ID of this account.
      */
-    val id: Long
+    public val id: Snowflake
 
     /**
      * User-provided username of this account.
      */
-    val username: String
+    public val username: String
 
-    val email: String
+    public val email: String
 
-    val displayName: String?
+    public val displayName: String?
 
     /**
      * The instant this account was registered.
      */
-    val createdAt: Instant
+    public val createdAt: Instant
 
-    val updatedAt: Instant
+    public val updatedAt: Instant
 
     /**
      * The last instant this account was logged in.
      */
-    val lastLoggedInAt: Instant?
+    public val lastLoggedInAt: Instant?
 
-    val avatar: Long?
+    public val avatar: Snowflake?
 }

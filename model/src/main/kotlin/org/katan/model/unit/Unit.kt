@@ -2,8 +2,9 @@ package org.katan.model.unit
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
+import org.katan.model.Snowflake
 
-typealias KUnit = Unit
+public typealias KUnit = Unit
 
 /**
  * "Unit" is what we call game servers running in the cloud.
@@ -11,7 +12,7 @@ typealias KUnit = Unit
  * Specifications of a unit vary between version and cluster as each cluster has its versions and
  * specifications for a unit.
  */
-interface Unit {
+public interface Unit {
 
     /**
      * The globally unique ID for this unit.
@@ -21,7 +22,7 @@ interface Unit {
      *
      * This is the internal id of this unit on the network.
      */
-    val id: Long
+    public val id: Snowflake
 
     /**
      * External id for this unit.
@@ -31,12 +32,12 @@ interface Unit {
      *
      * This id can be changed at any time at the user's request and is not restricted in any way.
      */
-    val externalId: String?
+    public val externalId: String?
 
     /**
      * Node ID where this unit is located.
      */
-    val nodeId: Int
+    public val nodeId: Int
 
     /**
      * The name of this unit.
@@ -46,7 +47,7 @@ interface Unit {
      * identification that can be deferred by the user if necessary, then it is applied restrictions
      * and constraints so that it adapts to these communication channels.
      */
-    val name: String
+    public val name: String
 
     /**
      * Display name of this unit.
@@ -87,19 +88,19 @@ interface Unit {
     /**
      * The instant this unit was created.
      */
-    val createdAt: Instant
+    public val createdAt: Instant
 
     /**
      * The last instant this unit was updated.
      */
-    val updatedAt: Instant
+    public val updatedAt: Instant
 
     /**
      * The time when this unit was deleted.
      *
      * The value of this property is null if this unit has never been removed.
      */
-    val deletedAt: Instant?
+    public val deletedAt: Instant?
 
     /**
      * Instance of this unit.
@@ -108,7 +109,7 @@ interface Unit {
      * separated from the main object of the unit because it is an object of extremely mutable
      * object, that is, its data changes constantly.
      */
-    val instanceId: Long?
+    public val instanceId: Snowflake?
 
     /**
      * Current status of this unit.
@@ -116,23 +117,22 @@ interface Unit {
      * The drive's status is not its internal status, the internal status is described by the unit's
      * internal information that is accessed through its instance.
      */
-    val status: UnitStatus
+    public val status: UnitStatus
 }
 
 @Serializable
-enum class UnitStatus(val value: String) {
+public enum class UnitStatus(public val value: String) {
     Unknown("unknown"),
     Created("created"),
     MissingInstance("missing-instance"),
     CreatingInstance("creating-instance"),
     Ready("ready");
 
-    companion object {
+    public companion object {
+
         @JvmStatic
-        fun getByValue(value: String): UnitStatus {
-            return values().firstOrNull {
-                it.value.equals(value, ignoreCase = false)
-            } ?: Unknown
-        }
+        public fun getByValue(value: String): UnitStatus = entries.firstOrNull {
+            it.value.equals(value, ignoreCase = false)
+        } ?: Unknown
     }
 }

@@ -8,11 +8,8 @@ internal data class ServerInfoResponse(
     @SerialName("development-mode") val developmentMode: Boolean,
     val version: String,
     val build: ServerInfoBuild,
-    @SerialName("node-id") val nodeId: Int
+    @SerialName("node-id") val nodeId: Int,
 )
 
 @Serializable
-internal data class ServerInfoBuild(
-    val commit: String,
-    val branch: String
-)
+internal data class ServerInfoBuild(val commit: String, val branch: String)

@@ -2,13 +2,13 @@ package org.katan.model.io
 
 import kotlinx.datetime.Instant
 
-interface Bucket {
+public interface Bucket {
 
-    val path: String
+    public val path: String
 
-    val name: String
+    public val name: String
 
-    val isLocal: Boolean
+    public val isLocal: Boolean
 
-    val createdAt: Instant?
+    public val createdAt: Instant?
 }

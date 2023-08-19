@@ -9,28 +9,22 @@ import redis.clients.jedis.Protocol
 import redis.clients.jedis.UnifiedJedis
 import java.io.Closeable
 
-internal class RedisCacheServiceImpl(
-    private val config: KatanConfig
-) : CacheService, Closeable {
+internal class RedisCacheService(private val config: KatanConfig) : CacheService, Closeable {
 
     companion object {
-        private val logger = LogManager.getLogger(RedisCacheServiceImpl::class.java)
+
+        private val logger = LogManager.getLogger(RedisCacheService::class.java)
     }
 
     private var client: UnifiedJedis? = null
 
-    override suspend fun get(key: String): String {
-        return pool { resource -> resource.get(key) }
-    }
+    override suspend fun get(key: String): String = pool { resource -> resource.get(key) }
 
-    override suspend fun set(key: String, value: String): String {
-        return pool { resource -> resource.set(key, value) }
-    }
+    override suspend fun set(key: String, value: String): String = pool { resource -> resource.set(key, value) }
 
     private inline fun <T> pool(block: (UnifiedJedis) -> T): T {
-        if (client == null) {
+        if (client == null)
             client = initClient()
-        }
 
         return client!!.use(block)
     }
@@ -78,6 +72,6 @@ internal class RedisCacheServiceImpl(
 
     override fun close() {
         client?.close()
-        logger.info("Redis client closed.")
+        logger.debug("Redis client closed.")
     }
 }

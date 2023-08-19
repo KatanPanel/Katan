@@ -1,66 +1,66 @@
 package org.katan.model.blueprint
 
-interface BlueprintSpec {
+public interface BlueprintSpec {
 
-    val name: String
+    public val name: String
 
-    val version: String
+    public val version: String
 
-    val remote: BlueprintSpecRemote?
+    public val remote: BlueprintSpecRemote?
 
-    val build: BlueprintSpecBuild?
+    public val build: BlueprintSpecBuild?
 
-    val options: List<BlueprintSpecOption>
+    public val options: List<BlueprintSpecOption>
 }
 
-interface BlueprintSpecOption {
+public interface BlueprintSpecOption {
 
-    val id: String
+    public val id: String
 
-    val name: String
+    public val name: String
 
-    val type: List<String>
+    public val type: List<String>
 
-    val env: String?
+    public val env: String?
 
-    val defaultValue: String?
+    public val defaultValue: String?
 }
 
-interface BlueprintSpecRemote {
+public interface BlueprintSpecRemote {
 
-    val origin: String
+    public val origin: String
 }
 
-interface BlueprintSpecBuild {
+public interface BlueprintSpecBuild {
 
-    val image: BlueprintSpecImage
+    public val image: BlueprintSpecImage
 
-    val entrypoint: String
+    public val entrypoint: String
 
-    val env: Map<String, String>
+    public val env: Map<String, String>
 
-    val instance: BlueprintSpecInstance?
+    public val instance: BlueprintSpecInstance?
 }
 
-interface BlueprintSpecInstance {
+public interface BlueprintSpecInstance {
 
-    val name: String?
+    public val name: String?
 }
 
-interface BlueprintSpecImage {
-    interface Identifier : BlueprintSpecImage {
+public interface BlueprintSpecImage {
+    public interface Identifier : BlueprintSpecImage {
 
-        val id: String
+        public val id: String
     }
 
-    interface Ref : BlueprintSpecImage {
+    public interface Ref : BlueprintSpecImage {
 
-        val ref: String
-        val tag: String
+        public val ref: String
+        public val tag: String
     }
 
-    interface Multiple : BlueprintSpecImage {
+    public interface Multiple : BlueprintSpecImage {
 
-        val images: List<Ref>
+        public val images: List<Ref>
     }
 }

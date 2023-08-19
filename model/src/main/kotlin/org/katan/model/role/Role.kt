@@ -1,24 +1,25 @@
 package org.katan.model.role
 
 import org.katan.model.PermissionsHolder
+import org.katan.model.Snowflake
 
 /**
  * Roles are a set of permissions attached to a group of accounts.
  */
-interface Role : PermissionsHolder {
+public interface Role : PermissionsHolder {
 
     /**
      * The unique id of this role in.
      */
-    val id: Long
+    public val id: Snowflake
 
     /**
      * The unique name of this role.
      */
-    val name: String
+    public val name: String
 
     /**
      * The position of this role.
      */
-    val position: Int
+    public val position: Int
 }

@@ -2,60 +2,60 @@ package org.katan.model.instance
 
 import kotlinx.datetime.Instant
 
-interface InstanceRuntime {
+public interface InstanceRuntime {
 
-    val id: String
+    public val id: String
 
-    val status: String
+    public val status: String
 
-    val exitCode: Int
+    public val exitCode: Int
 
-    val pid: Int
+    public val pid: Int
 
-    val outOfMemory: Boolean
+    public val outOfMemory: Boolean
 
-    val error: String?
+    public val error: String?
 
-    val startedAt: Instant?
+    public val startedAt: Instant?
 
-    val finishedAt: Instant?
+    public val finishedAt: Instant?
 
-    val platform: String?
+    public val platform: String?
 
-    val fsPath: String?
+    public val fsPath: String?
 
-    val network: InstanceRuntimeNetwork
+    public val network: InstanceRuntimeNetwork
 
-    val mounts: List<InstanceRuntimeMount>
+    public val mounts: List<InstanceRuntimeMount>
 }
 
-interface InstanceRuntimeNetwork {
+public interface InstanceRuntimeNetwork {
 
-    val ipV4Address: String
+    public val ipV4Address: String
 
-    val hostname: String?
+    public val hostname: String?
 
-    val networks: List<InstanceRuntimeSingleNetwork>
+    public val networks: List<InstanceRuntimeSingleNetwork>
 }
 
-interface InstanceRuntimeSingleNetwork {
+public interface InstanceRuntimeSingleNetwork {
 
-    val id: String
+    public val id: String
 
-    val name: String
+    public val name: String
 
-    val ipv4Address: String?
+    public val ipv4Address: String?
 
-    val ipv6Address: String?
+    public val ipv6Address: String?
 }
 
-interface InstanceRuntimeMount {
+public interface InstanceRuntimeMount {
 
-    val type: String
+    public val type: String
 
-    val target: String
+    public val target: String
 
-    val destination: String
+    public val destination: String
 
-    val readonly: Boolean
+    public val readonly: Boolean
 }

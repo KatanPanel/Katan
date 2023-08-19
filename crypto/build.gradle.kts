@@ -1,6 +1,15 @@
+plugins {
+    alias(libs.plugins.kotlin)
+}
+
+repositories {
+    mavenCentral()
+}
+
 dependencies {
-    implementation(libs.bcprov)
     implementation(projects.model)
+    implementation(libs.bcprov)
+    implementation(libs.koin.core)
 }
 
 configurations {
@@ -8,4 +17,8 @@ configurations {
         exclude(module = "bcpkix-jdk15on")
         exclude(module = "bcprov-jdk15on")
     }
+}
+
+kotlin {
+    explicitApi()
 }

@@ -9,10 +9,8 @@ internal class SnowflakeIdServiceImpl(config: KatanConfig) : IdService {
 
     private val generator = SnowflakeIdGenerator.createDefault(config.nodeId)
 
-    override suspend fun generate(): Snowflake {
-        return suspendCoroutine {
-            it.resumeWith(runCatching { generator.next() })
-        }
+    override suspend fun generate(): Snowflake = suspendCoroutine {
+        it.resumeWith(runCatching { generator.next() })
     }
 
     override suspend fun parse(input: String): Snowflake {

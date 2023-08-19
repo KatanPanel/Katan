@@ -1,3 +1,11 @@
+plugins {
+    alias(libs.plugins.kotlin)
+}
+
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     compileOnly(projects.http.httpShared)
     api(libs.ktor.client.feature.resources)

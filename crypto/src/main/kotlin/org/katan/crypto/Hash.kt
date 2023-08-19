@@ -6,12 +6,12 @@ package org.katan.crypto
  * It is used to apply hashing functions to input and also to  [compare] values that have already
  * been applied to hashing functions. See [SaltedHash] for salted hashes.
  */
-interface Hash {
+public interface Hash {
 
     /**
      * Returns the name of the hashing algorithm.
      */
-    val name: String
+    public val name: String
 
     /**
      * Creates a hash for the specific input ([value]), that can be compared later using the
@@ -20,7 +20,7 @@ interface Hash {
      * @param value The input.
      * @return The input with the hashing function applied.
      */
-    fun hash(value: CharArray): String
+    public fun hash(value: CharArray): String
 
     /**
      * Checks whether the [value] is valid for the specified [hash].
@@ -28,5 +28,5 @@ interface Hash {
      * @param value The input.
      * @param hash The hash (obtained through [Hash.hash])
      */
-    fun compare(value: CharArray, hash: String): Boolean
+    public fun compare(value: CharArray, hash: String): Boolean
 }

@@ -2,24 +2,24 @@ package org.katan.model.io
 
 import kotlinx.datetime.Instant
 
-interface VirtualFile {
+public interface VirtualFile {
 
-    val name: String
+    public val name: String
 
-    val relativePath: String
+    public val relativePath: String
 
-    val absolutePath: String
+    public val absolutePath: String
 
-    val size: Long
+    public val size: Long
 
-    val isDirectory: Boolean
+    public val isDirectory: Boolean
 
-    val isHidden: Boolean
+    public val isHidden: Boolean
 
-    val createdAt: Instant?
+    public val createdAt: Instant?
 
-    val modifiedAt: Instant?
+    public val modifiedAt: Instant?
 }
 
-val VirtualFile.extension: String
+public val VirtualFile.extension: String
     get() = name.substringAfterLast(".", "")

@@ -2,9 +2,9 @@ package org.katan.model.unit.auditlog
 
 import org.katan.model.account.Account
 
-interface AuditLog {
+public interface AuditLog {
 
-    val entries: List<AuditLogEntry>
+    public val entries: List<AuditLogEntry>
 
-    val actors: List<Account>
+    public val actors: List<Account>
 }

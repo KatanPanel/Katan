@@ -11,16 +11,16 @@ package org.katan.model
  * using Bitwise Operations, the total permissions value can be determined by [Int.or]-ing together
  * each individual value and flags can be checked using [Int.and] operations.
  */
-typealias Permission = UInt
+public typealias Permission = UInt
 
 /**
  * A permission-holding entity whose specific permissions are required to perform certain actions in
  * its lifecycle.
  */
-interface PermissionsHolder {
+public interface PermissionsHolder {
 
     /**
      * Permissions bit set of this entity.
      */
-    val permissions: Permission
+    public val permissions: Permission
 }

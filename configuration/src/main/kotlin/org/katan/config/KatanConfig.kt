@@ -1,6 +1,6 @@
 package org.katan.config
 
-data class KatanConfig internal constructor(
+public data class KatanConfig internal constructor(
     val env: String = env(ENV, DEVELOPMENT),
     val version: String = env("VERSION") ?: "Unknown",
     val gitBranch: String? = env("GIT_BRANCH"),
@@ -21,9 +21,9 @@ data class KatanConfig internal constructor(
 ) {
 
     public companion object {
-        public const val ENV = "ENV"
-        public const val DEVELOPMENT = "dev"
-        public const val PRODUCTION = "prod"
+        public const val ENV: String = "ENV"
+        public const val DEVELOPMENT: String = "dev"
+        public const val PRODUCTION: String = "prod"
 
         private fun env(name: String): String? = System.getenv(name)
 

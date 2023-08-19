@@ -2,11 +2,11 @@ package org.katan.model.io
 
 import org.katan.model.KatanException
 
-open class NetworkException(message: String?, cause: Throwable? = null) : KatanException(message, cause)
+public open class NetworkException(message: String?, cause: Throwable? = null) : KatanException(message, cause)
 
-class InvalidNetworkAssignmentException(message: String) : NetworkException(message)
+public class InvalidNetworkAssignmentException(message: String) : NetworkException(message)
 
-class UnknownNetworkException(val network: String) : NetworkException(network)
+public class UnknownNetworkException(public val network: String) : NetworkException(network)
 
-class NetworkConnectionFailed(val network: String, cause: Throwable? = null) :
+public class NetworkConnectionFailed(public val network: String, cause: Throwable? = null) :
     NetworkException(network, cause)

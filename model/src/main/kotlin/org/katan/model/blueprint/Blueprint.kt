@@ -3,13 +3,13 @@ package org.katan.model.blueprint
 import kotlinx.datetime.Instant
 import org.katan.model.Snowflake
 
-interface Blueprint {
+public interface Blueprint {
 
-    val id: Snowflake
+    public val id: Snowflake
 
-    val createdAt: Instant
+    public val createdAt: Instant
 
-    val updatedAt: Instant
+    public val updatedAt: Instant
 
-    val spec: BlueprintSpec
+    public val spec: BlueprintSpec
 }

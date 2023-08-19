@@ -23,10 +23,9 @@ class WebSocketManager : CoroutineScope by CoroutineScope(
 ) {
 
     companion object {
+
         private val logger = LogManager.getLogger(WebSocketManager::class.java)
-        val json = Json {
-            ignoreUnknownKeys = true
-        }
+        val json = Json { ignoreUnknownKeys = true }
     }
 
     private val sessions = Collections.synchronizedSet<WebSocketSession>(linkedSetOf())

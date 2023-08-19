@@ -1,6 +1,7 @@
 package org.katan.model.unit.auditlog
 
 import kotlinx.datetime.Instant
+import org.katan.model.Snowflake
 
 /**
  * An audit log entry represents a single event action indicated by a action type that can container
@@ -8,42 +9,42 @@ import kotlinx.datetime.Instant
  *
  * The structure of an entry's changes will be different depending on its type.
  */
-interface AuditLogEntry {
+public interface AuditLogEntry {
 
     /**
      * The unique ID of this audit log entry.
      */
-    val id: Long
+    public val id: Snowflake
 
     /**
      * ID of the affected entity.
      */
-    val targetId: Long
+    public val targetId: Snowflake
 
     /**
      * ID of the account or external application that made the changes.
      */
-    val actorId: Long?
+    public val actorId: Snowflake?
 
     /**
      * The type of event occurred.
      */
-    val event: AuditLogEvent
+    public val event: AuditLogEvent
 
     /**
      * Reason for the changes.
      */
-    val reason: String?
+    public val reason: String?
 
     /**
      * Changes made to the affected entity.
      */
-    val changes: List<AuditLogChange>
+    public val changes: List<AuditLogChange>
 
     /**
      * Additional data for certain event types.
      */
-    val additionalData: String?
+    public val additionalData: String?
 
-    val createdAt: Instant
+    public val createdAt: Instant
 }

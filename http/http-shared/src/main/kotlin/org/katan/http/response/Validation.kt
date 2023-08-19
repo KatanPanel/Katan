@@ -26,10 +26,6 @@ internal data class ValidationException(
     val data: ValidationErrorResponse
 ) : RuntimeException()
 
-suspend inline fun <reified T : Any> ApplicationCall.receiveValidating(validator: Validator): T {
-    return receiveNullable<T>()?.also(validator::validateOrThrow).let(::requireNotNull)
-}
-
 fun Validator.validateOrThrow(value: Any) {
     val violations = validate(value)
     if (violations.isEmpty()) {

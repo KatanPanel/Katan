@@ -1,3 +1,6 @@
 package org.katan.model.io
 
-data class HostPort(val host: String, val port: Short)
+import kotlinx.serialization.Serializable
+
+@Serializable
+public data class HostPort(public val host: String, public val port: Short)

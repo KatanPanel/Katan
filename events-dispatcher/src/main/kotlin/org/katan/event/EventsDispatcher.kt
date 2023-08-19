@@ -10,27 +10,27 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import kotlin.reflect.KClass
 
-interface EventsDispatcher : CoroutineScope {
+public interface EventsDispatcher : CoroutineScope {
 
     /**
      * Dispatches an event.
      *
      * @param event The event to be dispatched.
      */
-    fun dispatch(event: Any)
+    public fun dispatch(event: Any)
 
     /**
      * Listens as Flow for an event of the given type.
      *
      * @param eventType Type of the event to listen to.
      */
-    fun <T : Any> listen(eventType: KClass<T>): Flow<T>
+    public fun <T : Any> listen(eventType: KClass<T>): Flow<T>
 }
 
 /**
  * Listens as Flow for an event of the given type.
  */
-inline fun <reified T : Any> EventsDispatcher.listen(): Flow<T> {
+public inline fun <reified T : Any> EventsDispatcher.listen(): Flow<T> {
     return listen(T::class)
 }
 
@@ -40,6 +40,7 @@ internal class EventsDispatcherImpl :
     CoroutineScope by CoroutineScope(Dispatchers.IO + SupervisorJob()) {
 
     companion object {
+
         private val logger: Logger = LogManager.getLogger(EventsDispatcherImpl::class.java)
     }
 

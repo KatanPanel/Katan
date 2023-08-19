@@ -10,10 +10,3 @@ class HttpException(
     val status: HttpStatusCode,
     cause: Throwable?
 ) : RuntimeException(message, cause)
-
-interface WithHttpError {
-
-    val httpError: HttpError
-
-    val status: HttpStatusCode
-}

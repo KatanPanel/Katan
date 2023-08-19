@@ -1,3 +1,12 @@
+plugins {
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     implementation(projects.configuration)
     implementation(projects.eventsDispatcher)
@@ -7,6 +16,7 @@ dependencies {
     implementation(projects.services.networkService)
     implementation(projects.services.fsService)
     implementation(projects.services.blueprintService)
+    implementation(projects.model)
     implementation(libs.hibernateValidator)
     implementation(libs.bundles.exposed)
     implementation(libs.koin.ktor)
@@ -14,5 +24,6 @@ dependencies {
     implementation(libs.ktor.server.feature.resources)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.yoki)
+    implementation(libs.log4j.core)
     testImplementation(projects.http.httpTest)
 }
