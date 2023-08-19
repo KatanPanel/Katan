@@ -10,6 +10,7 @@ import org.katan.http.test.createTestClient
 import org.katan.http.test.withTestApplication
 import org.katan.service.unit.http.UnitRoutes
 import org.katan.service.unit.http.dto.CreateUnitRequest
+import org.katan.service.unit.http.dto.UnitResponse
 import org.katan.service.unit.http.routes.createUnit
 import org.koin.test.KoinTest
 import kotlin.test.Test
@@ -35,10 +36,9 @@ class CreateUnitTest : KoinTest {
             )
         }
 
-        val body = request.body<CreateUnitResponse>()
+        val body = request.body<UnitResponse>()
         assertEquals(HttpStatusCode.Created, request.status)
-        assertEquals(propName, body.unit.name)
-//        assertEquals(propName, body.dockerImage)
+        assertEquals(propName, body.name)
     }
 
     @Test
