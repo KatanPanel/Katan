@@ -1,4 +1,4 @@
-package org.katan.service.instance
+package org.katan.service.instance.model
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -29,8 +29,11 @@ import org.katan.model.io.HostPort
 import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.id.IdService
+import org.katan.service.instance.InstanceCreatedEvent
+import org.katan.service.instance.InstanceNotFoundException
+import org.katan.service.instance.InstanceService
+import org.katan.service.instance.InstanceUnreachableRuntimeException
 import org.katan.service.instance.internal.DockerEventScope
-import org.katan.service.instance.model.CreateInstanceOptions
 import org.katan.service.instance.repository.InstanceEntity
 import org.katan.service.instance.repository.InstanceRepository
 import org.katan.service.network.NetworkService

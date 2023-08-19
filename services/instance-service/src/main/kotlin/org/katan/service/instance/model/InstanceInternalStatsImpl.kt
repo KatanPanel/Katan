@@ -1,4 +1,4 @@
-package org.katan.service.instance
+package org.katan.service.instance.model
 
 import org.katan.model.instance.InstanceInternalStats
 

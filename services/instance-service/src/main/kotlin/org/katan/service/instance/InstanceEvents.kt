@@ -1,3 +1,5 @@
+// ktlint-disable filename
+
 package org.katan.service.instance
 
 import kotlinx.datetime.Instant

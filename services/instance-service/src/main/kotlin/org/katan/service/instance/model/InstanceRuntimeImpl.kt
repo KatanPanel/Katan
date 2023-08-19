@@ -1,4 +1,4 @@
-package org.katan.service.instance
+package org.katan.service.instance.model
 
 import kotlinx.datetime.Instant
 import org.katan.model.instance.InstanceRuntime
