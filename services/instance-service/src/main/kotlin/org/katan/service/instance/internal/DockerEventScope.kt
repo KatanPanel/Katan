@@ -7,13 +7,13 @@ import kotlinx.coroutines.launch
 import me.devnatan.yoki.Yoki
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.katan.event.EventScope
+import org.katan.event.EventsDispatcher
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.jvm.jvmName
 
 internal class DockerEventScope(
     private val client: Yoki,
-    private val eventsDispatcher: EventScope,
+    private val eventsDispatcher: EventsDispatcher,
     coroutineContext: CoroutineContext
 ) : CoroutineScope by CoroutineScope(coroutineContext + SupervisorJob() + CoroutineName(DockerEventScope::class.jvmName)) {
 

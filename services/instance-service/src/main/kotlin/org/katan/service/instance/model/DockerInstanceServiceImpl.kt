@@ -18,7 +18,7 @@ import me.devnatan.yoki.resource.container.remove
 import me.devnatan.yoki.resource.image.ImageNotFoundException
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
-import org.katan.event.EventScope
+import org.katan.event.EventsDispatcher
 import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceRuntime
@@ -44,7 +44,7 @@ import kotlin.reflect.jvm.jvmName
  * the Docker events listener.
  */
 internal class DockerInstanceServiceImpl(
-    private val eventsDispatcher: EventScope,
+    private val eventsDispatcher: EventsDispatcher,
     private val idService: IdService,
     private val networkService: NetworkService,
     private val blueprintService: BlueprintService,

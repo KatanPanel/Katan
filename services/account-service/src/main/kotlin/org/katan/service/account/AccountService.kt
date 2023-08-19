@@ -2,7 +2,7 @@ package org.katan.service.account
 
 import kotlinx.datetime.Clock
 import org.katan.crypto.SaltedHash
-import org.katan.event.EventScope
+import org.katan.event.EventsDispatcher
 import org.katan.model.Snowflake
 import org.katan.model.account.Account
 import org.katan.service.account.repository.AccountEntity
@@ -26,7 +26,7 @@ internal class AccountServiceImpl(
     private val idService: IdService,
     private val accountsRepository: AccountsRepository,
     private val saltedHash: SaltedHash,
-    private val eventsDispatcher: EventScope
+    private val eventsDispatcher: EventsDispatcher
 ) : AccountService {
 
     override suspend fun getAccount(id: Snowflake): Account? {

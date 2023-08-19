@@ -10,17 +10,19 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import kotlin.reflect.KClass
 
-interface EventScope : CoroutineScope {
+interface EventsDispatcher : CoroutineScope {
 
     /**
      * Dispatches an event.
+     *
+     * @param event The event to be dispatched.
      */
-    fun dispatch(
-        event: Any
-    )
+    fun dispatch(event: Any)
 
     /**
      * Listens as Flow for an event of the given type.
+     *
+     * @param eventType Type of the event to listen to.
      */
     fun <T : Any> listen(eventType: KClass<T>): Flow<T>
 }
@@ -28,15 +30,17 @@ interface EventScope : CoroutineScope {
 /**
  * Listens as Flow for an event of the given type.
  */
-inline fun <reified T : Any> EventScope.listen(): Flow<T> {
+inline fun <reified T : Any> EventsDispatcher.listen(): Flow<T> {
     return listen(T::class)
 }
 
 /** Basic EventScope implementation **/
-internal class EventScopeImpl : EventScope, CoroutineScope by CoroutineScope(Dispatchers.IO + SupervisorJob()) {
+internal class EventsDispatcherImpl :
+    EventsDispatcher,
+    CoroutineScope by CoroutineScope(Dispatchers.IO + SupervisorJob()) {
 
     companion object {
-        private val logger: Logger = LogManager.getLogger(EventScopeImpl::class.java)
+        private val logger: Logger = LogManager.getLogger(EventsDispatcherImpl::class.java)
     }
 
     private val publisher = MutableSharedFlow<Any>(extraBufferCapacity = 1)

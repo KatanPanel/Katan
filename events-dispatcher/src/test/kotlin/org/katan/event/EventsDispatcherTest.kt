@@ -13,49 +13,49 @@ import kotlin.test.assertTrue
 data class TestEvent<T>(val value: T)
 
 @ExperimentalCoroutinesApi
-class EventScopeTest {
+class EventsDispatcherTest {
 
     @Test
     fun `listen to a publication of a primitive type`() = runTest {
-        val eventScope: EventScope = EventScopeImpl()
+        val eventsDispatcher: EventsDispatcher = EventsDispatcherImpl()
         val received = mutableListOf<Int>()
 
-        eventScope.listen<Int>().onEach {
+        eventsDispatcher.listen<Int>().onEach {
             received.add(it)
         }.launchIn(TestScope(UnconfinedTestDispatcher()))
 
         assertTrue(received.isEmpty())
-        eventScope.dispatch(3)
+        eventsDispatcher.dispatch(3)
 
         assertEquals(listOf(3), received)
     }
 
     @Test
     fun `listen to a publication of a data class`() = runTest {
-        val eventScope: EventScope = EventScopeImpl()
+        val eventsDispatcher: EventsDispatcher = EventsDispatcherImpl()
         val received = mutableListOf<TestEvent<String>>()
 
-        eventScope.listen<TestEvent<String>>().onEach {
+        eventsDispatcher.listen<TestEvent<String>>().onEach {
             received.add(it)
         }.launchIn(TestScope(UnconfinedTestDispatcher()))
 
         assertTrue(received.isEmpty())
-        eventScope.dispatch(TestEvent("abc"))
+        eventsDispatcher.dispatch(TestEvent("abc"))
 
         assertEquals(listOf(TestEvent("abc")), received)
     }
 
     @Test
     fun `ignore publication of non-listened type`() = runTest {
-        val eventScope: EventScope = EventScopeImpl()
+        val eventsDispatcher: EventsDispatcher = EventsDispatcherImpl()
         val received = mutableListOf<String>()
 
-        eventScope.listen<String>().onEach {
+        eventsDispatcher.listen<String>().onEach {
             received.add(it)
         }.launchIn(TestScope(UnconfinedTestDispatcher()))
 
         assertTrue(received.isEmpty())
-        eventScope.dispatch(TestEvent("abc"))
+        eventsDispatcher.dispatch(TestEvent("abc"))
 
         assertTrue(received.isEmpty())
     }
