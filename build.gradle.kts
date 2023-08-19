@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.atomicfu) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kotlinter) apply false
+    alias(libs.plugins.detekt)
 }
 
 repositories {

@@ -19,6 +19,7 @@ hibernate-validator = "8.0.0.CR3"
 expressly = "5.0.0"
 plugin-shadowjar = "7.1.2"
 plugin-kotlinter = "3.13.0"
+detekt = "1.23.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -78,3 +79,4 @@ kotlin-atomicfu = { id = "org.jetbrains.kotlin.plugin.atomicfu", version.ref = "
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 shadowjar = { id = "com.github.johnrengelman.shadow", version.ref = "plugin-shadowjar" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "plugin-kotlinter" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
