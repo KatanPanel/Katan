@@ -2,6 +2,8 @@ plugins {
     application
     alias(libs.plugins.shadowjar)
     alias(libs.plugins.kotlin)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.kotlinter)
 }
 
 application {

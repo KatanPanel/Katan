@@ -17,9 +17,11 @@ public interface InstanceInternalStats {
     public val lastOnlineCpus: Long?
 }
 
+private const val MAX_PERCENTAGE = 100.0f
+
 public fun InstanceInternalStats.getMemoryUsagePercentage(): Float {
     val usedMemory = memoryUsage - memoryCache
-    return (usedMemory.toFloat() / memoryLimit.toFloat()) * 100.0F
+    return (usedMemory.toFloat() / memoryLimit.toFloat()) * MAX_PERCENTAGE
 }
 
 public fun InstanceInternalStats.getCpuUsagePercentage(): Float {
@@ -30,9 +32,9 @@ public fun InstanceInternalStats.getCpuUsagePercentage(): Float {
     val cpuUsageDiff = cpuUsage - lastCpuUsage!!
     val sysCpuUsageDiff = systemCpuUsage - lastSystemCpuUsage!!
 
-    return (cpuUsageDiff.toFloat() / sysCpuUsageDiff.toFloat()) * onlineCpus * 100.0F
+    return (cpuUsageDiff.toFloat() / sysCpuUsageDiff.toFloat()) * onlineCpus * MAX_PERCENTAGE
 }
 
 public fun InstanceInternalStats.getCpuUsagePercentage(usage: Long): Float {
-    return (usage.toFloat() / cpuUsage) * 100.0F
+    return (usage.toFloat() / cpuUsage) * MAX_PERCENTAGE
 }

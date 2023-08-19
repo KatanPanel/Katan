@@ -24,12 +24,13 @@ public sealed class InstanceStatus(
     public data object Restarting : InstanceStatus("restarting", isRuntimeStatus = true)
 }
 
+@Suppress("detekt.MagicNumber")
 public sealed class InstanceUpdateCode(public val name: String, public val code: Int) {
 
-    public object Start : InstanceUpdateCode("start", 1)
-    public object Stop : InstanceUpdateCode("stop", 2)
-    public object Restart : InstanceUpdateCode("restart", 3)
-    public object Kill : InstanceUpdateCode("kill", 4)
+    public object Start : InstanceUpdateCode(name = "start", code = 1)
+    public object Stop : InstanceUpdateCode(name = "stop", code = 2)
+    public object Restart : InstanceUpdateCode(name = "restart", code = 3)
+    public object Kill : InstanceUpdateCode(name = "kill", code = 4)
 
     public companion object {
 
