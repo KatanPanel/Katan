@@ -12,7 +12,6 @@ import org.koin.core.component.get
 import org.koin.core.component.inject
 import kotlin.system.exitProcess
 import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
 internal class Katan : KoinComponent {
@@ -35,7 +34,6 @@ internal class Katan : KoinComponent {
     private suspend fun checkDatabaseConnection() {
         val database = get<Database>()
 
-        @OptIn(ExperimentalTime::class)
         val duration = measureTime {
             newSuspendedTransaction(db = database) {
                 runCatching {

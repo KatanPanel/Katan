@@ -16,7 +16,7 @@ internal fun Route.importSpec() {
     val blueprintService by inject<BlueprintService>()
     val validator by inject<Validator>()
 
-    post<BlueprintRoutes.Spec> {
+    post<BlueprintRoutes.Import> {
         val req = call.receiveValidating<ImportBlueprintRequest>(validator)
         val spec = blueprintService.importBlueprint(req.url)
 

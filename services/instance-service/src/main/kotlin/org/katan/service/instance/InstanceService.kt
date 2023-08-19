@@ -1,10 +1,11 @@
 package org.katan.service.instance
 
 import kotlinx.coroutines.flow.Flow
-import org.katan.model.blueprint.Blueprint
+import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceUpdateCode
 import org.katan.model.instance.UnitInstance
+import org.katan.service.instance.model.CreateInstanceOptions
 
 interface InstanceService {
 
@@ -12,7 +13,7 @@ interface InstanceService {
 
     suspend fun deleteInstance(instance: UnitInstance)
 
-    suspend fun createInstance(blueprint: Blueprint, host: String?, port: Int?): UnitInstance
+    suspend fun createInstance(blueprintId: Snowflake, options: CreateInstanceOptions): UnitInstance
 
     suspend fun updateInstanceStatus(instance: UnitInstance, code: InstanceUpdateCode)
 

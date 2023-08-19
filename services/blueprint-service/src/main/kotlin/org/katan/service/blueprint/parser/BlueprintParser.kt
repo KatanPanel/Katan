@@ -42,7 +42,12 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
                     continue
                 }
 
-                validate(requiredProperty, null, null, listOf(RequiredPropertyConstraint))
+                validate(
+                    property = requiredProperty,
+                    actualKind = requiredProperty.kind::class,
+                    value = null,
+                    constraints = listOf(RequiredPropertyConstraint)
+                )
             }
 
             // Iterate over supported properties because some root level properties have required

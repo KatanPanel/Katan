@@ -1,14 +1,15 @@
 package org.katan.service.blueprint.repository
 
-import org.katan.model.blueprint.Blueprint
+import kotlinx.datetime.Instant
+import org.katan.model.Snowflake
 
 interface BlueprintRepository {
 
     suspend fun findAll(): List<BlueprintEntity>
 
-    suspend fun find(id: Long): BlueprintEntity?
+    suspend fun find(id: Snowflake): BlueprintEntity?
 
-    suspend fun create(blueprint: Blueprint)
+    suspend fun create(id: Snowflake, spec: ByteArray, createdAt: Instant)
 
-    suspend fun delete(id: Long)
+    suspend fun delete(id: Snowflake)
 }

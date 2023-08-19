@@ -22,15 +22,8 @@ internal class BlueprintRoutes {
     )
 
     @Serializable
-    @Resource("spec")
-    internal class Spec(
+    @Resource("import")
+    internal class Import(
         @Suppress("UNUSED") val parent: BlueprintRoutes = BlueprintRoutes()
-    )
-
-    @Serializable
-    @Resource("spec/{specId}")
-    internal class SpecById(
-        @Suppress("UNUSED") val parent: BlueprintRoutes = BlueprintRoutes(),
-        @field:MustBeSnowflake val specId: String
     )
 }

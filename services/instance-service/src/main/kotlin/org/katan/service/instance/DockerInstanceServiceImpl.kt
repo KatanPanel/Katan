@@ -2,36 +2,36 @@ package org.katan.service.instance
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import me.devnatan.yoki.Yoki
 import me.devnatan.yoki.models.exec.ExecCreateOptions
 import me.devnatan.yoki.models.exec.ExecStartOptions
-import me.devnatan.yoki.models.image.ImagePull
 import me.devnatan.yoki.resource.container.create
-import me.devnatan.yoki.resource.container.exec
 import me.devnatan.yoki.resource.container.remove
+import me.devnatan.yoki.resource.image.ImageNotFoundException
 import org.apache.logging.log4j.LogManager
 import org.katan.config.KatanConfig
 import org.katan.event.EventScope
 import org.katan.model.Snowflake
-import org.katan.model.blueprint.Blueprint
-import org.katan.model.blueprint.BlueprintSpecImage
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.instance.InstanceUpdateCode
 import org.katan.model.instance.UnitInstance
 import org.katan.model.io.HostPort
-import org.katan.model.io.NetworkException
 import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.id.IdService
 import org.katan.service.instance.internal.DockerEventScope
+import org.katan.service.instance.model.CreateInstanceOptions
 import org.katan.service.instance.repository.InstanceEntity
 import org.katan.service.instance.repository.InstanceRepository
 import org.katan.service.network.NetworkService
@@ -182,12 +182,9 @@ internal class DockerInstanceServiceImpl(
         dockerClient.containers.restart(cid)
     }
 
-    private suspend fun tryUpdateImage(
-        containerId: String,
-        imageUpdatePolicy: ImageUpdatePolicy
-    ): Boolean {
+    private suspend fun tryUpdateImage(containerId: String, updatePolicy: ImageUpdatePolicy): Boolean {
         // fast path -- ignore image update if policy is set to Never
-        if (imageUpdatePolicy == ImageUpdatePolicy.Never) {
+        if (updatePolicy == ImageUpdatePolicy.Never) {
             return false
         }
 
@@ -203,7 +200,7 @@ internal class DockerInstanceServiceImpl(
         logger.debug("Removing old image \"$currImage\"...")
         dockerClient.containers.remove(currImage)
 
-        pullContainerImage(currImage).collect {
+        dockerClient.images.pull(currImage).collect {
             logger.debug("Pulling image... $it")
         }
         return true
@@ -236,92 +233,98 @@ internal class DockerInstanceServiceImpl(
         }
     }
 
-    override suspend fun createInstance(blueprint: Blueprint, host: String?, port: Int?): UnitInstance {
+    override suspend fun createInstance(blueprintId: Snowflake, options: CreateInstanceOptions): UnitInstance {
+        val blueprint = blueprintService.getBlueprint(blueprintId)
         val instanceId = idService.generate()
-        val spec = blueprintService.getSpec(blueprint.id)
-        val generatedName = generateContainerName(instanceId, spec.build?.instance?.name)
-        val image = (spec.build?.image as BlueprintSpecImage.Identifier).id
+        val generatedName = generateContainerName(instanceId, blueprint.spec.build?.instance?.name)
 
-        // we'll try to create the container using the given image if the image is not available,
-        // it will pull the image and then try to create the container again
-        val cid = createContainer(instanceId, image, generatedName)
         return try {
-            resumeCreateInstance(
+            val containerId = createContainer(instanceId, options.image, generatedName)
+            val connection = connectInstance(containerId, options.host, options.port)
+            registerInstance(
                 instanceId = instanceId,
                 blueprintId = blueprint.id,
-                containerId = cid,
-                host = host,
-                port = port,
-                status = InstanceStatus.Created
-            )
-        } catch (e: InstanceNotFoundException) {
-            var status: InstanceStatus = InstanceStatus.ImagePullNeeded
-            val instance = registerInstance(instanceId, blueprint.id, status)
-
-            pullImageAndUpdateInstance(instanceId, image) { status = it }
-
-            val containerId = createContainer(instanceId, image, generatedName)
-            resumeCreateInstance(
-                instanceId = instanceId,
-                blueprintId = blueprint.id,
+                status = statusFromConnection(connection),
                 containerId = containerId,
-                host = host,
-                port = port,
-                status = status,
-                fallbackInstance = instance
+                connection = connection
             )
+        } catch (e: ImageNotFoundException) {
+            val instance = registerInstance(
+                instanceId = instanceId,
+                blueprintId = blueprint.id,
+                status = InstanceStatus.ImagePullNeeded,
+                containerId = null,
+                connection = null
+            )
+            setupInstanceAsync(
+                instanceId = instance.id,
+                instanceName = generatedName,
+                options = options
+            )
+
+            instance
         }
     }
 
-    private suspend fun resumeCreateInstance(
-        instanceId: Long,
-        blueprintId: Snowflake,
+    private fun setupInstanceAsync(instanceId: Snowflake, instanceName: String, options: CreateInstanceOptions) =
+        launch(Dispatchers.Default) {
+            pullImageForInstanceAsync(options.image).collect { status -> updateInstance(instanceId, status) }
+            val container = createContainer(instanceId, options.image, instanceName)
+            val connection = connectInstance(container, options.host, options.port)
+
+            instanceRepository.update(instanceId) {
+                this.containerId = containerId
+                this.status = statusFromConnection(connection).value
+            }
+        }
+
+    private fun statusFromConnection(connection: HostPort?): InstanceStatus =
+        if (connection == null) InstanceStatus.NetworkAssignmentFailed else InstanceStatus.Created
+
+    private fun pullImageForInstanceAsync(image: String): Flow<InstanceStatus> = flow {
+        dockerClient.images.pull(image)
+            .catch { error -> logger.error("Failed to pull image: $image", error) }
+            .onStart { emit(InstanceStatus.ImagePullInProgress) }
+            .onCompletion { error ->
+                val status = if (error != null) {
+                    InstanceStatus.ImagePullFailed
+                } else {
+                    InstanceStatus.ImagePullCompleted
+                }
+
+                logger.debug("Image $image pull completed.")
+                emit(status)
+            }
+            .onEach { pull -> logger.error("Pulling $image...: $pull") }
+    }
+
+    private suspend fun connectInstance(
         containerId: String,
         host: String?,
-        port: Int?,
-        status: InstanceStatus,
-        fallbackInstance: UnitInstance? = null
-    ): UnitInstance {
-        var finalStatus: InstanceStatus = status
-        logger.debug("Connecting $instanceId to ${config.dockerNetwork}...")
-
-        val connection = try {
-            networkService.connect(
+        port: Int?
+    ): HostPort? {
+        logger.debug("Connecting $containerId to ${config.dockerNetwork}...")
+        return runCatching {
+            val connection = networkService.connect(
                 network = config.dockerNetwork,
                 instance = containerId,
                 host = host,
                 port = port?.toShort()
             )
-        } catch (e: NetworkException) {
-            finalStatus = InstanceStatus.NetworkAssignmentFailed
-            fallbackInstance?.let { updateInstance(it.id, finalStatus) }
-            logger.error("Unable to connect the instance ($instanceId) to the network.", e)
-            null
-        }
-
-        logger.debug("Connected {} to {} @ {}", instanceId, config.dockerNetwork, connection)
-
-        // fallback instance can set if instance was not created asynchronously
-        if (fallbackInstance == null) {
-            return registerInstance(
-                instanceId = instanceId,
-                blueprintId = blueprintId,
-                status = finalStatus,
-                containerId = containerId,
-                connection = connection
-            )
-        }
-
-        return fallbackInstance
+            logger.debug("Connected {} to {} @ {}", containerId, config.dockerNetwork, connection)
+            connection
+        }.onFailure { error ->
+            logger.error("Unable to connect $containerId to the network ${config.dockerNetwork}", error)
+        }.getOrNull()
     }
 
     private suspend fun registerInstance(
         instanceId: Long,
         blueprintId: Snowflake,
         status: InstanceStatus,
-        containerId: String? = null,
-        connection: HostPort? = null
-    ): UnitInstance {
+        containerId: String?,
+        connection: HostPort?
+    ): DockerUnitInstanceImpl {
         val instance = DockerUnitInstanceImpl(
             id = instanceId,
             status = status,
@@ -336,50 +339,17 @@ internal class DockerInstanceServiceImpl(
         return instance
     }
 
-    private suspend fun pullImageAndUpdateInstance(
-        instanceId: Long,
-        image: String,
-        onUpdate: (InstanceStatus) -> Unit
-    ) = pullContainerImage(image).onStart {
-        with(InstanceStatus.ImagePullInProgress) {
-            onUpdate(this)
-            updateInstance(instanceId, this)
-        }
-        logger.debug("Image pull started")
-    }.onCompletion { error ->
-        val status =
-            if (error == null) InstanceStatus.ImagePullCompleted else InstanceStatus.ImagePullFailed
-
-        if (error != null) {
-            logger.error("Failed to pull image.", error)
-            error.printStackTrace()
-        }
-
-        onUpdate(status)
-        updateInstance(instanceId, status)
-        logger.debug("Image pull completed")
-    }.collect {
-        logger.debug("Pulling ($image): $it")
-    }
-
-    private fun generateContainerName(id: Long, name: String?): String {
-        if (name != null) {
-            return name.replace("{id}", id.toString())
-        }
-
-        return buildString {
-            append("katan")
-            append("-${config.nodeId}-")
-            append(id)
-        }
-    }
+    private fun generateContainerName(instanceId: Snowflake, nameFormat: String?): String =
+        (nameFormat ?: "katan-{node}-{id}")
+            .replace("{id}", instanceId.toString())
+            .replace("{node}", config.nodeId.toString())
 
     /**
      * Creates a Docker container using the given [image] suspending the coroutine until the
      * container creation workflow is completed.
      */
-    private suspend fun createContainer(instanceId: Long, image: String, name: String): String {
-        logger.debug("Creating container with ($image) to $instanceId...")
+    private suspend fun createContainer(instanceId: Snowflake, image: String, name: String): String {
+        logger.debug("Creating container with $image to $instanceId...")
         return dockerClient.containers.create {
             this.image = image
             this.name = name
@@ -391,12 +361,6 @@ internal class DockerInstanceServiceImpl(
 
     private fun createDefaultContainerLabels(instanceId: Long): Map<String, String> =
         mapOf("id" to BASE_LABEL + instanceId)
-
-    /**
-     * Pulls a Docker image from suspending the current coroutine until that image pulls completely.
-     */
-    private suspend fun pullContainerImage(image: String): Flow<String> =
-        dockerClient.images.pull(image).map(ImagePull::toString)
 
     private suspend fun buildRuntime(containerId: String): InstanceRuntime? {
         val inspection = dockerClient.containers.inspect(containerId)

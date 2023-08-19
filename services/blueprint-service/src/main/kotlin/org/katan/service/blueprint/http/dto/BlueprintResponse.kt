@@ -4,23 +4,20 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.model.blueprint.Blueprint
+import org.katan.service.blueprint.model.BlueprintSpecImpl
 
 @Serializable
 internal data class BlueprintResponse(
     val id: String,
-    val name: String,
-    val version: String,
-    @SerialName("image-id") val imageId: String,
     @SerialName("created-at") val createdAt: Instant,
-    @SerialName("updated-at") val updatedAt: Instant?
+    @SerialName("updated-at") val updatedAt: Instant,
+    @SerialName("spec") val spec: BlueprintSpecImpl
 ) {
 
     constructor(blueprint: Blueprint) : this(
         id = blueprint.id.toString(),
-        name = blueprint.name,
-        version = blueprint.version,
-        imageId = blueprint.imageId,
         createdAt = blueprint.createdAt,
-        updatedAt = blueprint.updatedAt
+        updatedAt = blueprint.updatedAt,
+        spec = blueprint.spec as BlueprintSpecImpl
     )
 }

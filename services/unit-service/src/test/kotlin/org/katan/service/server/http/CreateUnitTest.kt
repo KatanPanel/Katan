@@ -10,7 +10,6 @@ import org.katan.http.test.createTestClient
 import org.katan.http.test.withTestApplication
 import org.katan.service.unit.http.UnitRoutes
 import org.katan.service.unit.http.dto.CreateUnitRequest
-import org.katan.service.unit.http.dto.CreateUnitResponse
 import org.katan.service.unit.http.routes.createUnit
 import org.koin.test.KoinTest
 import kotlin.test.Test

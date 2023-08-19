@@ -25,6 +25,7 @@ dependencies {
     implementation(projects.services.blueprintService)
     implementation(libs.jedis)
     implementation(libs.exposed.core)
+    implementation(libs.yoki)
 }
 
 tasks {

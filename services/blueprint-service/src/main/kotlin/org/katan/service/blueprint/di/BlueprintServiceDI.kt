@@ -30,8 +30,7 @@ val blueprintServiceDI: Module = module {
         BlueprintServiceImpl(
             idService = get(),
             blueprintRepository = get(),
-            blueprintSpecProvider = get(),
-            fsService = get()
+            blueprintSpecProvider = get()
         )
     }
     single {

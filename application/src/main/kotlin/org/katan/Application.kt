@@ -5,6 +5,7 @@ import kotlinx.coroutines.DEBUG_PROPERTY_NAME
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_AUTO
 import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
 import kotlinx.coroutines.runBlocking
+import me.devnatan.yoki.Yoki
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
@@ -24,6 +25,8 @@ import org.katan.service.network.di.networkServiceDI
 import org.katan.service.unit.di.unitServiceDI
 import org.katan.services.cache.di.cacheServiceDI
 import org.koin.core.context.startKoin
+import org.koin.core.scope.get
+import org.koin.dsl.module
 import kotlin.reflect.jvm.jvmName
 
 @Suppress("UNUSED")
@@ -72,7 +75,17 @@ private object Application {
             hostFsServiceDI,
             httpClientDI,
             blueprintServiceDI,
-            authServiceDI
+            authServiceDI,
+            createDockerClientModule()
         )
+    }
+
+    private fun createDockerClientModule() = module {
+        single {
+            val config = get<KatanConfig>()
+            Yoki {
+                socketPath(config.dockerHost)
+            }
+        }
     }
 }

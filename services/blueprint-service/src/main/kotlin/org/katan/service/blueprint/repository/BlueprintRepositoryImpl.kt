@@ -8,28 +8,24 @@ import org.jetbrains.exposed.dao.id.LongIdTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.Snowflake
-import org.katan.model.blueprint.Blueprint
 
 internal object BlueprintTable : LongIdTable("blueprints") {
 
-    val name = varchar("name", length = 255)
-    val version = varchar("version", length = 255)
-    val imageId = varchar("image_id", length = 255)
     val createdAt = timestamp("created_at")
-    val updatedAt = timestamp("updated_at").nullable()
+    val updatedAt = timestamp("updated_at")
+    val content = blob("content")
 }
 
 internal class BlueprintEntityImpl(id: EntityID<Long>) : LongEntity(id), BlueprintEntity {
     companion object : LongEntityClass<BlueprintEntityImpl>(BlueprintTable)
 
-    override var name: String by BlueprintTable.name
-    override var version: String by BlueprintTable.version
-    override var imageId: String by BlueprintTable.imageId
     override var createdAt: Instant by BlueprintTable.createdAt
-    override var updatedAt: Instant? by BlueprintTable.updatedAt
+    override var updatedAt: Instant by BlueprintTable.updatedAt
+    override var content: ExposedBlob by BlueprintTable.content
 
     override fun getId(): Snowflake = id.value
 }
@@ -48,25 +44,23 @@ internal class BlueprintRepositoryImpl(private val database: Database) : Bluepri
         }
     }
 
-    override suspend fun find(id: Long): BlueprintEntity? {
+    override suspend fun find(id: Snowflake): BlueprintEntity? {
         return newSuspendedTransaction(db = database) {
             BlueprintEntityImpl.findById(id)
         }
     }
 
-    override suspend fun create(blueprint: Blueprint) {
+    override suspend fun create(id: Snowflake, spec: ByteArray, createdAt: Instant) {
         return newSuspendedTransaction(db = database) {
-            BlueprintEntityImpl.new(blueprint.id) {
-                name = blueprint.name
-                version = blueprint.version
-                imageId = blueprint.imageId
-                createdAt = blueprint.createdAt
-                updatedAt = blueprint.updatedAt
+            BlueprintEntityImpl.new(id) {
+                content = ExposedBlob(spec)
+                this.createdAt = createdAt
+                this.updatedAt = createdAt
             }
         }
     }
 
-    override suspend fun delete(id: Long) {
+    override suspend fun delete(id: Snowflake) {
         return newSuspendedTransaction(db = database) {
             BlueprintEntityImpl.findById(id)?.delete()
         }
