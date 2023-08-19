@@ -4,9 +4,7 @@ import org.katan.model.blueprint.BlueprintSpec
 import org.katan.service.blueprint.NoMatchingBlueprintSpecProviderException
 import org.katan.service.blueprint.UnsupportedBlueprintSpecSource
 
-internal data class CombinedBlueprintSpecProvider(
-    val providers: List<BlueprintSpecProvider>
-) : BlueprintSpecProvider {
+internal data class CombinedBlueprintSpecProvider(val providers: List<BlueprintSpecProvider>) : BlueprintSpecProvider {
 
     override val id: String
         get() = error("Cannot get id from CombinedBlueprintResourceProvider")

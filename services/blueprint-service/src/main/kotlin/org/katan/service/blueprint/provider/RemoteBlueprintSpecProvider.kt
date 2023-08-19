@@ -10,7 +10,7 @@ import org.katan.service.blueprint.parser.BlueprintParser
 import java.nio.channels.UnresolvedAddressException
 
 @JvmInline
-value class RemoteBlueprintSpecSource(val url: String) : BlueprintSpecSource
+internal value class RemoteBlueprintSpecSource(val url: String) : BlueprintSpecSource
 
 internal class RemoteBlueprintSpecProvider(val httpClient: HttpClient, val parser: BlueprintParser) :
     BlueprintSpecProvider {

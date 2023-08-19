@@ -16,7 +16,7 @@ import org.katan.http.client.di.httpClientDI
 import org.katan.http.server.di.httpServerDI
 import org.katan.service.account.di.accountServiceDI
 import org.katan.service.auth.di.authServiceDI
-import org.katan.service.blueprint.di.blueprintServiceDI
+import org.katan.service.blueprint.blueprintServiceDI
 import org.katan.service.db.di.databaseServiceDI
 import org.katan.service.fs.host.di.hostFsServiceDI
 import org.katan.service.id.di.idServiceDI

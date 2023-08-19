@@ -262,30 +262,29 @@ internal class DockerInstanceServiceImpl(
         }
     }
 
-    private fun setupInstanceAsync(instanceId: Snowflake, instanceName: String, options: CreateInstanceOptions) =
-        launch(Dispatchers.Default) {
-            dockerClient.images.pull(options.image)
-                .onCompletion { error ->
-                    val status = if (error != null) {
-                        InstanceStatus.ImagePullFailed
-                    } else {
-                        InstanceStatus.ImagePullCompleted
-                    }
-
-                    logger.debug("Image {} pull completed.", options.image)
-                    updateInstance(instanceId, status)
+    private fun setupInstanceAsync(instanceId: Snowflake, instanceName: String, options: CreateInstanceOptions) = launch(Dispatchers.Default) {
+        dockerClient.images.pull(options.image)
+            .onCompletion { error ->
+                val status = if (error != null) {
+                    InstanceStatus.ImagePullFailed
+                } else {
+                    InstanceStatus.ImagePullCompleted
                 }
-                .catch { error -> logger.error("Failed to pull image: ${options.image}", error) }
-                .collect { pull -> logger.debug("Pulling image {}: {}", options.image, pull) }
 
-            val container = createContainer(instanceId, options.image, instanceName)
-            val connection = connectInstance(container, options.host, options.port)
-
-            instanceRepository.update(instanceId) {
-                this.containerId = containerId
-                this.status = statusFromConnection(connection).value
+                logger.debug("Image {} pull completed.", options.image)
+                updateInstance(instanceId, status)
             }
+            .catch { error -> logger.error("Failed to pull image: ${options.image}", error) }
+            .collect { pull -> logger.debug("Pulling image {}: {}", options.image, pull) }
+
+        val container = createContainer(instanceId, options.image, instanceName)
+        val connection = connectInstance(container, options.host, options.port)
+
+        instanceRepository.update(instanceId) {
+            this.containerId = containerId
+            this.status = statusFromConnection(connection).value
         }
+    }
 
     private fun statusFromConnection(connection: HostPort?): InstanceStatus =
         if (connection == null) InstanceStatus.NetworkAssignmentFailed else InstanceStatus.Created

@@ -12,3 +12,7 @@ dependencies {
     implementation(libs.ktx.serialization.hocon)
     implementation(libs.ktx.serialization.json)
 }
+
+kotlin {
+    explicitApi()
+}

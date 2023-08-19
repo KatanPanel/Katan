@@ -16,16 +16,16 @@ import org.katan.service.blueprint.repository.BlueprintEntity
 import org.katan.service.blueprint.repository.BlueprintRepository
 import org.katan.service.id.IdService
 
-interface BlueprintService {
+public interface BlueprintService {
 
-    suspend fun listBlueprints(): List<Blueprint>
+    public suspend fun listBlueprints(): List<Blueprint>
 
-    suspend fun getBlueprint(id: Long): Blueprint
+    public suspend fun getBlueprint(id: Long): Blueprint
 
-    suspend fun importBlueprint(source: BlueprintSpecSource): BlueprintSpec
+    public suspend fun importBlueprint(source: BlueprintSpecSource): BlueprintSpec
 }
 
-suspend inline fun BlueprintService.importBlueprint(url: String) =
+internal suspend inline fun BlueprintService.importBlueprint(url: String) =
     importBlueprint(RemoteBlueprintSpecSource(url))
 
 internal class BlueprintServiceImpl(

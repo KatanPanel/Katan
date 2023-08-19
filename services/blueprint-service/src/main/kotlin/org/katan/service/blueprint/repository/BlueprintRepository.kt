@@ -3,7 +3,7 @@ package org.katan.service.blueprint.repository
 import kotlinx.datetime.Instant
 import org.katan.model.Snowflake
 
-interface BlueprintRepository {
+internal interface BlueprintRepository {
 
     suspend fun findAll(): List<BlueprintEntity>
 

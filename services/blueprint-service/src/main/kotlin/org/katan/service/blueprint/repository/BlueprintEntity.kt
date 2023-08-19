@@ -4,13 +4,13 @@ import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.katan.model.Snowflake
 
-interface BlueprintEntity {
+internal interface BlueprintEntity {
+
+    fun getId(): Snowflake
 
     var createdAt: Instant
 
     var updatedAt: Instant
 
     var content: ExposedBlob
-
-    fun getId(): Snowflake
 }
