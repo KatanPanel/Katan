@@ -33,4 +33,5 @@ subprojects {
         implementation(rootProject.libs.log4j.core)
         testImplementation(rootProject.libs.kotlin.test)
     }
+
 }

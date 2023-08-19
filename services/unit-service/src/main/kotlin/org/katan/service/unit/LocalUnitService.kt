@@ -1,15 +1,13 @@
 package org.katan.service.unit
 
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import org.katan.config.KatanConfig
+import org.katan.event.EventsDispatcher
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.UnitStatus
@@ -18,7 +16,6 @@ import org.katan.model.unit.auditlog.AuditLogChange
 import org.katan.model.unit.auditlog.AuditLogEvents
 import org.katan.model.unwrap
 import org.katan.service.account.AccountService
-import org.katan.service.blueprint.BlueprintService
 import org.katan.service.id.IdService
 import org.katan.service.instance.InstanceService
 import org.katan.service.instance.model.CreateInstanceOptions
@@ -31,33 +28,26 @@ import org.katan.service.unit.model.UnitUpdateOptions
 import org.katan.service.unit.repository.UnitEntity
 import org.katan.service.unit.repository.UnitRepository
 
-internal class LocalUnitServiceImpl(
+internal class LocalUnitService(
     private val config: KatanConfig,
     private val unitRepository: UnitRepository,
     private val idService: IdService,
     private val accountService: AccountService,
     private val instanceService: InstanceService,
-    private val blueprintService: BlueprintService
-) : UnitService,
-    CoroutineScope by CoroutineScope(SupervisorJob() + CoroutineName(LocalUnitServiceImpl::class.simpleName!!)) {
+    private val eventsDispatcher: EventsDispatcher
+) : UnitService, CoroutineScope by CoroutineScope(SupervisorJob()) {
 
-    private companion object {
-        private val logger: Logger = LogManager.getLogger(LocalUnitServiceImpl::class.java)
-    }
+    override suspend fun getUnits(): List<KUnit> =
+        unitRepository.listUnits().map { unit -> unit.toDomain() }
 
-    override suspend fun getUnits(): List<KUnit> {
-        return unitRepository.listUnits().map { it.toDomain() }
-    }
-
-    override suspend fun getUnit(id: Long): KUnit {
-        return unitRepository.findUnitById(id)?.toDomain() ?: throw UnitNotFoundException()
-    }
+    override suspend fun getUnit(id: Long): KUnit =
+        unitRepository.findUnitById(id)?.toDomain() ?: throw UnitNotFoundException()
 
     override suspend fun createUnit(options: UnitCreateOptions): KUnit {
-        val id = idService.generate()
+        val generatedId = idService.generate()
         val instance = instanceService.createInstance(
-            blueprintId = options.blueprintId,
-            options = CreateInstanceOptions(
+            options.blueprintId,
+            CreateInstanceOptions(
                 image = options.image,
                 host = options.network?.host,
                 port = options.network?.port
@@ -69,40 +59,25 @@ internal class LocalUnitServiceImpl(
             InstanceStatus.ImagePullNeeded -> UnitStatus.CreatingInstance
             else -> UnitStatus.Created
         }
-        val now = Clock.System.now()
-        val impl = createImpl(
-            id = id,
+        val createdAt = Clock.System.now()
+        val unit = UnitImpl(
+            id = generatedId,
             externalId = options.externalId,
+            nodeId = config.nodeId,
             name = options.name,
-            instant = now,
-            instanceId = instance.id,
-            status = status
+            createdAt = createdAt,
+            updatedAt = createdAt,
+            status = status,
+            deletedAt = null,
+            instanceId = instance.id
         )
 
-        unitRepository.createUnit(impl)
-        registerUnitCreateAuditLog(id, options.actorId, now)
+        unitRepository.createUnit(unit)
+        eventsDispatcher.dispatch(UnitCreatedEvent(unit.id, unit.name, unit.nodeId))
+        registerUnitCreateAuditLog(generatedId, options.actorId, Clock.System.now())
 
-        return impl
+        return unit
     }
-
-    private fun createImpl(
-        id: Long,
-        externalId: String?,
-        name: String,
-        instant: Instant,
-        instanceId: Long?,
-        status: UnitStatus
-    ): KUnit = UnitImpl(
-        id = id,
-        externalId = externalId,
-        nodeId = config.nodeId,
-        name = name,
-        createdAt = instant,
-        updatedAt = instant,
-        status = status,
-        deletedAt = null,
-        instanceId = instanceId
-    )
 
     private suspend fun registerUnitCreateAuditLog(
         targetId: Long,

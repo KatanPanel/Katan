@@ -1,10 +1,6 @@
 dependencies {
-    implementation(libs.koin.ktor)
-    implementation(libs.ktor.server.auth)
-    implementation(libs.ktor.server.feature.resources)
-    implementation(libs.bundles.exposed)
-    implementation(libs.hibernateValidator)
     implementation(projects.configuration)
+    implementation(projects.eventsDispatcher)
     implementation(projects.services.authService)
     implementation(projects.services.idService)
     implementation(projects.services.idService)
@@ -12,5 +8,14 @@ dependencies {
     implementation(projects.services.accountService)
     implementation(projects.services.blueprintService)
     implementation(projects.http.httpShared)
+    implementation(libs.koin.ktor)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.feature.resources)
+    implementation(libs.bundles.exposed)
+    implementation(libs.hibernateValidator)
     testImplementation(projects.http.httpTest)
+}
+
+kotlin {
+    explicitApi()
 }

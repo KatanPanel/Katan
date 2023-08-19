@@ -1,7 +1,6 @@
-package org.katan.service.instance.di
+package org.katan.service.instance
 
 import org.katan.http.importHttpModule
-import org.katan.service.instance.InstanceService
 import org.katan.service.instance.http.InstanceHttpModule
 import org.katan.service.instance.model.DockerInstanceServiceImpl
 import org.katan.service.instance.repository.InstanceRepository

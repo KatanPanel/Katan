@@ -20,12 +20,11 @@ import org.katan.service.blueprint.di.blueprintServiceDI
 import org.katan.service.db.di.databaseServiceDI
 import org.katan.service.fs.host.di.hostFsServiceDI
 import org.katan.service.id.di.idServiceDI
-import org.katan.service.instance.di.instanceServiceDI
+import org.katan.service.instance.instanceServiceDI
 import org.katan.service.network.di.networkServiceDI
-import org.katan.service.unit.di.unitServiceDI
+import org.katan.service.unit.unitServiceDI
 import org.katan.services.cache.di.cacheServiceDI
 import org.koin.core.context.startKoin
-import org.koin.core.scope.get
 import org.koin.dsl.module
 import kotlin.reflect.jvm.jvmName
 
