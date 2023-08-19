@@ -6,9 +6,7 @@ import kotlinx.serialization.Serializable
 import org.katan.model.account.Account
 
 @Serializable
-internal data class VerifyResponse(
-    val account: AccountResponse
-)
+internal data class VerifyResponse(val account: AccountResponse)
 
 @Serializable
 internal data class AccountResponse internal constructor(

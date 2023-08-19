@@ -9,11 +9,9 @@ internal class AuthResource {
 
     @Serializable
     @Resource("login")
-    internal class Login(@Suppress("unused") val parent: AuthResource = AuthResource())
+    internal class Login(val parent: AuthResource = AuthResource())
 
     @Serializable
     @Resource("")
-    internal class Verify(
-        @Suppress("unused") val parent: AuthResource = AuthResource()
-    )
+    internal class Verify(val parent: AuthResource = AuthResource())
 }

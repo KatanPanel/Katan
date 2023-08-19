@@ -10,3 +10,7 @@ dependencies {
     implementation(projects.http.httpShared)
     testImplementation(projects.http.httpTest)
 }
+
+kotlin {
+    explicitApi()
+}
