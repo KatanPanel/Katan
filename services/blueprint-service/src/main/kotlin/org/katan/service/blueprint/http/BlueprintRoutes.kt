@@ -2,6 +2,7 @@ package org.katan.service.blueprint.http
 
 import io.ktor.resources.Resource
 import kotlinx.serialization.Serializable
+import org.katan.model.Snowflake
 import org.katan.service.id.validation.MustBeSnowflake
 
 @Serializable
@@ -10,20 +11,16 @@ internal class BlueprintRoutes {
 
     @Serializable
     @Resource("")
-    internal class All(
-        @Suppress("UNUSED") val parent: BlueprintRoutes = BlueprintRoutes()
-    )
+    internal class All(val parent: BlueprintRoutes = BlueprintRoutes())
 
     @Serializable
     @Resource("{blueprintId}")
     internal class ById(
-        @Suppress("UNUSED") val parent: BlueprintRoutes = BlueprintRoutes(),
-        @field:MustBeSnowflake val blueprintId: String
+        val parent: BlueprintRoutes = BlueprintRoutes(),
+        @field:MustBeSnowflake val blueprintId: Snowflake
     )
 
     @Serializable
     @Resource("import")
-    internal class Import(
-        @Suppress("UNUSED") val parent: BlueprintRoutes = BlueprintRoutes()
-    )
+    internal class Import(val parent: BlueprintRoutes = BlueprintRoutes())
 }

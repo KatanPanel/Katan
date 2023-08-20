@@ -1,6 +1,7 @@
 package org.katan.service.unit.model
 
 import kotlinx.datetime.Instant
+import org.katan.model.Snowflake
 import org.katan.model.account.Account
 import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogChange
@@ -13,9 +14,9 @@ internal data class AuditLogImpl(
 ) : AuditLog
 
 internal data class AuditLogEntryImpl(
-    override val id: Long,
-    override val targetId: Long,
-    override val actorId: Long?,
+    override val id: Snowflake,
+    override val targetId: Snowflake,
+    override val actorId: Snowflake?,
     override val event: AuditLogEvent,
     override val reason: String?,
     override val changes: List<AuditLogChange>,

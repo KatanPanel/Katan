@@ -6,6 +6,7 @@ import org.katan.crypto.SaltedHash
 import org.katan.event.EventsDispatcher
 import org.katan.model.Snowflake
 import org.katan.model.account.Account
+import org.katan.model.toSnowflake
 import org.katan.service.account.repository.AccountEntity
 import org.katan.service.account.repository.AccountsRepository
 import org.katan.service.id.IdService
@@ -31,7 +32,7 @@ internal class AccountServiceImpl(
 ) : AccountService {
 
     override suspend fun getAccount(id: Snowflake): Account? {
-        return accountsRepository.findById(id)?.toDomain()
+        return accountsRepository.findById(id.value)?.toDomain()
     }
 
     override suspend fun getAccount(username: String): Account? {
@@ -75,20 +76,20 @@ internal class AccountServiceImpl(
     }
 
     override suspend fun deleteAccount(id: Snowflake) {
-        accountsRepository.deleteAccount(id)
+        accountsRepository.deleteAccount(id.value)
         eventsDispatcher.dispatch(AccountDeletedEvent(id))
     }
 
     private fun AccountEntity.toDomain(): Account {
         return AccountImpl(
-            id = id.value,
+            id = id.value.toSnowflake(),
             email = email,
             displayName = displayName,
             username = username,
             createdAt = createdAt,
             updatedAt = updatedAt,
             lastLoggedInAt = lastLoggedInAt,
-            avatar = avatar
+            avatar = avatar?.toSnowflake()
         )
     }
 }

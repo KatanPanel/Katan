@@ -22,3 +22,9 @@ public interface UnitInstance {
 
     public val createdAt: Instant
 }
+
+public val UnitInstance.containerIdOrThrow: String
+    get() = containerId ?: throw InstanceUnreachableRuntimeException()
+
+public val UnitInstance.runtimeOrThrow: InstanceRuntime
+    get() = runtime ?: throw InstanceUnreachableRuntimeException()

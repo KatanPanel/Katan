@@ -28,6 +28,7 @@ import kotlinx.serialization.json.Json
 import org.katan.http.response.HttpError
 import org.katan.http.response.ValidationException
 import org.katan.model.Snowflake
+import org.katan.model.toSnowflake
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
 import kotlin.time.Duration.Companion.seconds
@@ -41,7 +42,7 @@ fun Application.installDefaultFeatures(isDevelopmentMode: Boolean) {
     install(AutoHeadResponse)
     install(DataConversion) {
         convert<Snowflake> {
-            decode { values -> values.first().toLong() }
+            decode { values -> values.first().toLong().toSnowflake() }
             encode { snowflake -> listOf(snowflake.toString()) }
         }
     }

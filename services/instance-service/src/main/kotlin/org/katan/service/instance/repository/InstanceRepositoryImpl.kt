@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.katan.model.Snowflake
 import org.katan.model.instance.UnitInstance
 
 internal object UnitInstanceTable : LongIdTable("instances") {
@@ -33,7 +34,7 @@ internal class UnitInstanceEntity(id: EntityID<Long>) : LongEntity(id), Instance
     override var status by UnitInstanceTable.status
     override var createdAt by UnitInstanceTable.createdAt
 
-    override fun getId() = id.value
+    override fun getId(): Long = id.value
 }
 
 internal class InstanceRepositoryImpl(private val database: Database) : InstanceRepository {
@@ -44,18 +45,17 @@ internal class InstanceRepositoryImpl(private val database: Database) : Instance
         }
     }
 
-    override suspend fun findById(id: Long): InstanceEntity? {
-        return newSuspendedTransaction(db = database) {
-            UnitInstanceEntity.findById(id)
+    override suspend fun findById(id: Snowflake): InstanceEntity? =
+        newSuspendedTransaction(db = database) {
+            UnitInstanceEntity.findById(id.value)
         }
-    }
 
     override suspend fun create(instance: UnitInstance) {
-        return newSuspendedTransaction(db = database) {
-            UnitInstanceEntity.new(instance.id) {
+        newSuspendedTransaction(db = database) {
+            UnitInstanceEntity.new(instance.id.value) {
                 updatePolicy = instance.updatePolicy.id
                 containerId = instance.containerId
-                blueprintId = instance.blueprintId
+                blueprintId = instance.blueprintId.value
                 host = instance.connection?.host
                 port = instance.connection?.port
                 status = instance.status.value
@@ -63,15 +63,14 @@ internal class InstanceRepositoryImpl(private val database: Database) : Instance
         }
     }
 
-    override suspend fun delete(id: Long) {
+    override suspend fun delete(id: Snowflake) {
         newSuspendedTransaction(db = database) {
-            UnitInstanceEntity.findById(id)?.delete()
+            UnitInstanceEntity.findById(id.value)?.delete()
         }
     }
 
-    override suspend fun update(id: Long, update: InstanceEntity.() -> Unit): InstanceEntity? {
-        return newSuspendedTransaction(db = database) {
-            UnitInstanceEntity.findById(id)?.apply(update)
+    override suspend fun update(id: Snowflake, update: InstanceEntity.() -> Unit): InstanceEntity? =
+        newSuspendedTransaction(db = database) {
+            UnitInstanceEntity.findById(id.value)?.apply(update)
         }
-    }
 }

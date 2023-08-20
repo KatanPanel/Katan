@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlinter)
 }
 
 repositories {

@@ -7,7 +7,7 @@ import org.katan.http.response.HttpError
 import org.katan.http.response.respond
 import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
-import org.katan.service.instance.InstanceNotFoundException
+import org.katan.model.instance.InstanceNotFoundException
 import org.katan.service.instance.InstanceService
 import org.katan.service.instance.http.InstanceRoutes
 import org.katan.service.instance.http.dto.InstanceResponse
@@ -21,7 +21,7 @@ internal fun Route.getInstance() {
         validator.validateOrThrow(parameters)
 
         val instance = try {
-            instanceService.getInstance(parameters.instanceId.toLong())
+            instanceService.getInstance(parameters.instanceId)
         } catch (_: InstanceNotFoundException) {
             respondError(HttpError.UnknownInstance)
         }

@@ -10,6 +10,7 @@ import org.katan.http.websocket.respond
 import org.katan.http.websocket.stringData
 import org.katan.model.instance.getCpuUsagePercentage
 import org.katan.model.instance.getMemoryUsagePercentage
+import org.katan.model.toSnowflake
 import org.katan.service.instance.InstanceService
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -45,30 +46,33 @@ internal class StatsStreamingHandler :
     private val instanceService by inject<InstanceService>()
 
     override suspend fun WebSocketPacketContext.handle() {
-        val target = stringData(TARGET_ID)?.toLongOrNull() ?: return
+        val target = stringData(TARGET_ID)?.toLongOrNull()?.toSnowflake() ?: return
 
         instanceService.streamInternalStats(target).collect { stats ->
-            respond(
-                StatsStreamingResponse(
-                    InternalStatsResponse(
-                        memoryUsage = stats.memoryUsage,
-                        memoryUsagePercent = stats.getMemoryUsagePercentage(),
-                        memoryMaxUsage = stats.memoryMaxUsage,
-                        memoryLimit = stats.memoryLimit,
-                        memoryCache = stats.memoryCache,
-                        onlineCpus = stats.onlineCpus,
-                        lastOnlineCpus = stats.lastOnlineCpus,
-                        cpuUsage = stats.cpuUsage,
-                        cpuUsagePercent = stats.getCpuUsagePercentage(),
-                        lastCpuUsage = stats.lastCpuUsage,
-                        systemCpuUsage = stats.systemCpuUsage,
-                        lastSystemCpuUsage = stats.lastSystemCpuUsage,
-                        perCpuUsage = stats.perCpuUsage,
-                        perCpuUsagePercent = stats.perCpuUsage.map { stats.getCpuUsagePercentage(it) }.toFloatArray(),
-                        lastPerCpuUsage = stats.lastPerCpuUsage
+            with(stats) {
+                respond(
+                    StatsStreamingResponse(
+                        InternalStatsResponse(
+                            memoryUsage = memoryUsage,
+                            memoryUsagePercent = stats.getMemoryUsagePercentage(),
+                            memoryMaxUsage = memoryMaxUsage,
+                            memoryLimit = memoryLimit,
+                            memoryCache = memoryCache,
+                            onlineCpus = onlineCpus,
+                            lastOnlineCpus = lastOnlineCpus,
+                            cpuUsage = cpuUsage,
+                            cpuUsagePercent = getCpuUsagePercentage(),
+                            lastCpuUsage = lastCpuUsage,
+                            systemCpuUsage = systemCpuUsage,
+                            lastSystemCpuUsage = lastSystemCpuUsage,
+                            perCpuUsage = perCpuUsage,
+                            perCpuUsagePercent = perCpuUsage.map { stats.getCpuUsagePercentage(it) }
+                                .toFloatArray(),
+                            lastPerCpuUsage = lastPerCpuUsage
+                        )
                     )
                 )
-            )
+            }
         }
     }
 }

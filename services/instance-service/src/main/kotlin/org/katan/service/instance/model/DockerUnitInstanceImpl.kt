@@ -9,7 +9,7 @@ import org.katan.model.io.HostPort
 import org.katan.model.unit.ImageUpdatePolicy
 
 internal data class DockerUnitInstanceImpl(
-    override val id: Long,
+    override val id: Snowflake,
     override val status: InstanceStatus,
     override val updatePolicy: ImageUpdatePolicy,
     override val containerId: String?,

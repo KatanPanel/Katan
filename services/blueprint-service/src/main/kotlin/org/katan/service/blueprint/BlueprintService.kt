@@ -5,6 +5,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
 import org.katan.model.blueprint.BlueprintSpec
 import org.katan.service.blueprint.model.BlueprintImpl
@@ -20,7 +21,7 @@ public interface BlueprintService {
 
     public suspend fun listBlueprints(): List<Blueprint>
 
-    public suspend fun getBlueprint(id: Long): Blueprint
+    public suspend fun getBlueprint(id: Snowflake): Blueprint
 
     public suspend fun importBlueprint(source: BlueprintSpecSource): BlueprintSpec
 }
@@ -42,14 +43,14 @@ internal class BlueprintServiceImpl(
     override suspend fun listBlueprints(): List<Blueprint> =
         blueprintRepository.findAll().map(::toModel)
 
-    override suspend fun getBlueprint(id: Long): Blueprint =
-        blueprintRepository.find(id)?.let(::toModel)
+    override suspend fun getBlueprint(id: Snowflake): Blueprint =
+        blueprintRepository.find(id.value)?.let(::toModel)
             ?: throw BlueprintNotFoundException()
 
     override suspend fun importBlueprint(source: BlueprintSpecSource): BlueprintSpec {
         val spec = blueprintSpecProvider.provide(source)
         blueprintRepository.create(
-            id = idService.generate(),
+            id = idService.generate().value,
             spec = json.encodeToString(spec as BlueprintSpecImpl).encodeToByteArray(),
             createdAt = Clock.System.now()
         )

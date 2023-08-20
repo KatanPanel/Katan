@@ -1,13 +1,14 @@
 package org.katan.service.unit.model
 
 import kotlinx.datetime.Instant
+import org.katan.model.Snowflake
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.UnitStatus
 
 internal data class UnitImpl(
-    override val id: Long,
+    override val id: Snowflake,
     override val externalId: String?,
-    override val instanceId: Long?,
+    override val instanceId: Snowflake?,
     override val nodeId: Int,
     override val name: String,
     override val createdAt: Instant,

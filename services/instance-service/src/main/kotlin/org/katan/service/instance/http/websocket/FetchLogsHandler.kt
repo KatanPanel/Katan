@@ -10,6 +10,7 @@ import org.katan.http.websocket.WebSocketPacketContext
 import org.katan.http.websocket.WebSocketPacketEventHandler
 import org.katan.http.websocket.respond
 import org.katan.http.websocket.stringData
+import org.katan.model.toSnowflake
 import org.katan.service.instance.InstanceService
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -25,11 +26,11 @@ internal class FetchLogsHandler :
     private val instanceService by inject<InstanceService>()
 
     override suspend fun WebSocketPacketContext.handle() {
-        val target = stringData(TARGET_ID)?.toLongOrNull() ?: return
+        val target = stringData(TARGET_ID)?.toLongOrNull()?.toSnowflake() ?: return
 
         launch(IO) {
-            instanceService.getInstanceLogs(target).collect {
-                respond(FetchLogsResponse(it))
+            instanceService.getInstanceLogs(target).collect { frame ->
+                respond(FetchLogsResponse(frame))
             }
         }
     }

@@ -1,17 +1,16 @@
 package org.katan.service.instance.repository
 
 import kotlinx.datetime.Instant
-import org.katan.model.Snowflake
 
 interface InstanceEntity {
 
-    fun getId(): Snowflake
+    fun getId(): Long
 
     var updatePolicy: String
 
     var containerId: String?
 
-    var blueprintId: Snowflake
+    var blueprintId: Long
 
     var host: String?
 

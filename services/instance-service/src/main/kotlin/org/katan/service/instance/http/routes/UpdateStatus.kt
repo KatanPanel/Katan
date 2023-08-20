@@ -10,8 +10,8 @@ import jakarta.validation.Validator
 import org.katan.http.response.HttpError
 import org.katan.http.response.respondError
 import org.katan.http.response.validateOrThrow
+import org.katan.model.instance.InstanceNotFoundException
 import org.katan.model.instance.InstanceUpdateCode
-import org.katan.service.instance.InstanceNotFoundException
 import org.katan.service.instance.InstanceService
 import org.katan.service.instance.http.InstanceRoutes
 import org.katan.service.instance.http.dto.UpdateStatusCodeRequest
@@ -28,9 +28,8 @@ internal fun Route.updateStatus() {
         val code = InstanceUpdateCode.getByCode(request.code)
             ?: respondError(HttpError.InvalidInstanceUpdateCode)
 
-        val id = params.instanceId.toLong()
         val instance = try {
-            instanceService.getInstance(id)
+            instanceService.getInstance(params.instanceId)
         } catch (_: InstanceNotFoundException) {
             respondError(HttpError.UnknownInstance)
         }

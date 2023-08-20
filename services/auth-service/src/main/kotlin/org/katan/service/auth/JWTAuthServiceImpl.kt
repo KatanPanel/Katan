@@ -18,6 +18,7 @@ import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.AuthenticationException
 import org.katan.model.security.InvalidCredentialsException
 import org.katan.model.security.SecurityException
+import org.katan.model.toSnowflake
 import org.katan.service.account.AccountService
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -72,7 +73,7 @@ internal class JWTAuthServiceImpl(
             ?: throw AuthenticationException("Invalid account id: $subject")
 
         return runCatching {
-            accountService.getAccount(id)
+            accountService.getAccount(id.toSnowflake())
         }.recoverCatching { exception ->
             throw AuthenticationException("Failed to verify JWT credentials", exception)
         }.getOrNull()

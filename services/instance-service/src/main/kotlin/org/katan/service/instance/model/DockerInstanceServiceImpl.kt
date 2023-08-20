@@ -21,18 +21,20 @@ import org.katan.config.KatanConfig
 import org.katan.event.EventsDispatcher
 import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceInternalStats
+import org.katan.model.instance.InstanceNotFoundException
 import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.instance.InstanceUpdateCode
 import org.katan.model.instance.UnitInstance
+import org.katan.model.instance.containerIdOrThrow
+import org.katan.model.instance.runtimeOrThrow
 import org.katan.model.io.HostPort
+import org.katan.model.toSnowflake
 import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.service.blueprint.BlueprintService
 import org.katan.service.id.IdService
 import org.katan.service.instance.InstanceCreatedEvent
-import org.katan.service.instance.InstanceNotFoundException
 import org.katan.service.instance.InstanceService
-import org.katan.service.instance.InstanceUnreachableRuntimeException
 import org.katan.service.instance.internal.DockerEventScope
 import org.katan.service.instance.repository.InstanceEntity
 import org.katan.service.instance.repository.InstanceRepository
@@ -67,17 +69,15 @@ internal class DockerInstanceServiceImpl(
         DockerEventScope(dockerClient, eventsDispatcher, coroutineContext)
     }
 
-    override suspend fun getInstance(id: Long): UnitInstance {
+    override suspend fun getInstance(id: Snowflake): UnitInstance {
         // TODO cache service
         return instanceRepository.findById(id)?.toDomain()
             ?: throw InstanceNotFoundException()
     }
 
-    override suspend fun getInstanceLogs(id: Long): Flow<String> {
+    override suspend fun getInstanceLogs(id: Snowflake): Flow<String> {
         val instance = getInstance(id)
-        if (instance.runtime == null) {
-            throw InstanceUnreachableRuntimeException()
-        }
+        val runtime = instance.runtimeOrThrow
 
         return flow { }
         // TODO get container logs
@@ -114,11 +114,10 @@ internal class DockerInstanceServiceImpl(
 //        }
     }
 
-    override suspend fun runInstanceCommand(id: Long, command: String) {
+    override suspend fun runInstanceCommand(id: Snowflake, command: String) {
         val instance = getInstance(id)
-        val cid = instance.containerId ?: throw InstanceUnreachableRuntimeException()
-        val eid = dockerClient.containers.exec(
-            container = cid,
+        val execId = dockerClient.containers.exec(
+            container = instance.containerIdOrThrow,
             options = ExecCreateOptions().apply {
                 this.command = command.split(" ")
                 tty = true
@@ -129,16 +128,16 @@ internal class DockerInstanceServiceImpl(
         )
 
         dockerClient.exec.start(
-            id = eid,
+            id = execId,
             options = ExecStartOptions().apply {
                 detach = true
             }
         )
     }
 
-    override suspend fun streamInternalStats(id: Long): Flow<InstanceInternalStats> {
+    override suspend fun streamInternalStats(id: Snowflake): Flow<InstanceInternalStats> {
         val instance = getInstance(id)
-        val runtime = instance.runtime ?: throw InstanceUnreachableRuntimeException()
+        val runtime = instance.runtimeOrThrow
 
         // TODO implement /containers/:id/stats on Yoki
         // TODO handle docker client calls properly
@@ -147,9 +146,12 @@ internal class DockerInstanceServiceImpl(
 
     override suspend fun deleteInstance(instance: UnitInstance) {
         instanceRepository.delete(instance.id)
-        dockerClient.containers.remove(instance.containerId!!) {
-            removeAnonymousVolumes = true
-            force = true
+
+        instance.containerId?.also { containerId ->
+            dockerClient.containers.remove(containerId) {
+                removeAnonymousVolumes = true
+                force = true
+            }
         }
     }
 
@@ -174,14 +176,14 @@ internal class DockerInstanceServiceImpl(
     }
 
     private suspend fun restartInstance(instance: UnitInstance) {
-        val cid = instance.containerId ?: throw InstanceUnreachableRuntimeException()
+        val containerId = instance.containerIdOrThrow
 
         // container will be deleted so restart command will fail
-        if (tryUpdateImage(cid, instance.updatePolicy)) {
+        if (tryUpdateImage(containerId, instance.updatePolicy)) {
             return
         }
 
-        dockerClient.containers.restart(cid)
+        dockerClient.containers.restart(containerId)
     }
 
     private suspend fun tryUpdateImage(containerId: String, updatePolicy: ImageUpdatePolicy): Boolean {
@@ -208,7 +210,7 @@ internal class DockerInstanceServiceImpl(
         return true
     }
 
-    private suspend fun updateInstance(id: Long, status: InstanceStatus) {
+    private suspend fun updateInstance(id: Snowflake, status: InstanceStatus) {
         instanceRepository.update(id) {
             this.status = status.value
         }
@@ -310,7 +312,7 @@ internal class DockerInstanceServiceImpl(
     }
 
     private suspend fun registerInstance(
-        instanceId: Long,
+        instanceId: Snowflake,
         blueprintId: Snowflake,
         status: InstanceStatus,
         containerId: String?,
@@ -348,12 +350,9 @@ internal class DockerInstanceServiceImpl(
         return dockerClient.containers.create {
             this.image = image
             this.name = name
-            labels = createDefaultContainerLabels(instanceId)
+            labels = mapOf("id" to BASE_LABEL + instanceId.value)
         }
     }
-
-    private fun createDefaultContainerLabels(instanceId: Long): Map<String, String> =
-        mapOf("id" to BASE_LABEL + instanceId)
 
     private suspend fun buildRuntime(containerId: String): InstanceRuntime? {
         val inspection = dockerClient.containers.inspect(containerId)
@@ -408,18 +407,16 @@ internal class DockerInstanceServiceImpl(
             status == InstanceStatus.Paused
     }
 
-    private suspend fun InstanceEntity.toDomain(): UnitInstance {
-        return DockerUnitInstanceImpl(
-            id = getId(),
-            updatePolicy = ImageUpdatePolicy.getById(updatePolicy),
-            containerId = containerId,
-            status = toStatus(status),
-            connection = networkService.createConnection(host, port),
-            runtime = containerId?.let { buildRuntime(it) },
-            blueprintId = blueprintId,
-            createdAt = createdAt
-        )
-    }
+    private suspend fun InstanceEntity.toDomain(): UnitInstance = DockerUnitInstanceImpl(
+        id = getId().toSnowflake(),
+        updatePolicy = ImageUpdatePolicy.getById(updatePolicy),
+        containerId = containerId,
+        status = toStatus(status),
+        connection = networkService.createConnection(host, port),
+        runtime = containerId?.let { buildRuntime(it) },
+        blueprintId = blueprintId.toSnowflake(),
+        createdAt = createdAt
+    )
 
     private fun toStatus(value: String): InstanceStatus {
         return when (value.lowercase()) {

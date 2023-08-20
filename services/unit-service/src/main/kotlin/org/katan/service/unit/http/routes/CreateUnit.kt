@@ -7,6 +7,7 @@ import io.ktor.server.routing.Route
 import jakarta.validation.Validator
 import org.katan.http.response.receiveValidating
 import org.katan.http.response.respond
+import org.katan.model.toSnowflake
 import org.katan.service.auth.http.shared.AccountKey
 import org.katan.service.unit.UnitService
 import org.katan.service.unit.http.UnitRoutes
@@ -24,7 +25,7 @@ internal fun Route.createUnit() {
         val unit = unitService.createUnit(
             UnitCreateOptions(
                 name = request.name,
-                blueprintId = request.blueprint.toLong(),
+                blueprintId = request.blueprint.toSnowflake(),
                 externalId = null,
                 actorId = call.attributes.getOrNull(AccountKey)?.id,
                 image = request.image,

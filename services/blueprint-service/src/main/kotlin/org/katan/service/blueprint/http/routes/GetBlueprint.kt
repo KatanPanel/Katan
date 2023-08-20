@@ -17,7 +17,7 @@ internal fun Route.getBlueprint() {
     get<BlueprintRoutes.ById> { parameters ->
         validator.validateOrThrow(parameters)
 
-        val blueprint = blueprintService.getBlueprint(parameters.blueprintId.toLong())
+        val blueprint = blueprintService.getBlueprint(parameters.blueprintId)
         respond(BlueprintResponse(blueprint))
     }
 }

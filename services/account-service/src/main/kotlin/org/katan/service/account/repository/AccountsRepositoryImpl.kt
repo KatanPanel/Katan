@@ -68,7 +68,7 @@ internal class AccountsRepositoryImpl(private val database: Database) : Accounts
 
     override suspend fun addAccount(account: Account, hash: String) {
         newSuspendedTransaction(db = database) {
-            AccountEntity.new(account.id) {
+            AccountEntity.new(account.id.value) {
                 this.username = account.username
                 this.email = account.email
                 this.hash = hash

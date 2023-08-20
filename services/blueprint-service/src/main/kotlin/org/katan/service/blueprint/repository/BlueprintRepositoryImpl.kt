@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.katan.model.Snowflake
+import org.katan.model.toSnowflake
 
 internal object BlueprintTable : LongIdTable("blueprints") {
 
@@ -27,7 +28,7 @@ internal class BlueprintEntityImpl(id: EntityID<Long>) : LongEntity(id), Bluepri
     override var updatedAt: Instant by BlueprintTable.updatedAt
     override var content: ExposedBlob by BlueprintTable.content
 
-    override fun getId(): Snowflake = id.value
+    override fun getId(): Snowflake = id.value.toSnowflake()
 }
 
 internal class BlueprintRepositoryImpl(private val database: Database) : BlueprintRepository {
@@ -44,14 +45,12 @@ internal class BlueprintRepositoryImpl(private val database: Database) : Bluepri
         }
     }
 
-    override suspend fun find(id: Snowflake): BlueprintEntity? {
-        return newSuspendedTransaction(db = database) {
-            BlueprintEntityImpl.findById(id)
-        }
+    override suspend fun find(id: Long): BlueprintEntity? = newSuspendedTransaction(db = database) {
+        BlueprintEntityImpl.findById(id)
     }
 
-    override suspend fun create(id: Snowflake, spec: ByteArray, createdAt: Instant) {
-        return newSuspendedTransaction(db = database) {
+    override suspend fun create(id: Long, spec: ByteArray, createdAt: Instant) {
+        newSuspendedTransaction(db = database) {
             BlueprintEntityImpl.new(id) {
                 content = ExposedBlob(spec)
                 this.createdAt = createdAt
@@ -60,8 +59,8 @@ internal class BlueprintRepositoryImpl(private val database: Database) : Bluepri
         }
     }
 
-    override suspend fun delete(id: Snowflake) {
-        return newSuspendedTransaction(db = database) {
+    override suspend fun delete(id: Long) {
+        newSuspendedTransaction(db = database) {
             BlueprintEntityImpl.findById(id)?.delete()
         }
     }

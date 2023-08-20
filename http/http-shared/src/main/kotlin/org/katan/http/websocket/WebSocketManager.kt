@@ -67,7 +67,7 @@ class WebSocketManager : CoroutineScope by CoroutineScope(
         val context = WebSocketPacketContext(packet, session)
 
         handlers[packet.op]?.forEach { handler ->
-            handler.apply {
+            with (handler) {
                 context.handle()
             }
         }

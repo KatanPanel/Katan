@@ -8,7 +8,9 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.katan.config.KatanConfig
 import org.katan.event.EventsDispatcher
+import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceStatus
+import org.katan.model.toSnowflake
 import org.katan.model.unit.KUnit
 import org.katan.model.unit.UnitStatus
 import org.katan.model.unit.auditlog.AuditLog
@@ -80,8 +82,8 @@ internal class LocalUnitService(
     }
 
     private suspend fun registerUnitCreateAuditLog(
-        targetId: Long,
-        actorId: Long?,
+        targetId: Snowflake,
+        actorId: Snowflake?,
         instant: Instant
     ) = unitRepository.createAuditLog(
         AuditLogEntryImpl(
@@ -168,17 +170,15 @@ internal class LocalUnitService(
         )
     }
 
-    private fun UnitEntity.toDomain(): KUnit {
-        return UnitImpl(
-            id = getId(),
-            externalId = externalId,
-            instanceId = instanceId,
-            nodeId = nodeId,
-            name = name,
-            createdAt = createdAt,
-            updatedAt = updatedAt,
-            deletedAt = deletedAt,
-            status = UnitStatus.getByValue(status)
-        )
-    }
+    private fun UnitEntity.toDomain(): KUnit = UnitImpl(
+        id = getId().toSnowflake(),
+        externalId = externalId,
+        instanceId = instanceId?.toSnowflake(),
+        nodeId = nodeId,
+        name = name,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        deletedAt = deletedAt,
+        status = UnitStatus.getByValue(status)
+    )
 }
