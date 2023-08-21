@@ -19,7 +19,6 @@ dependencies {
     implementation(projects.model)
     implementation(projects.eventsDispatcher)
     implementation(projects.http.httpServer)
-    implementation(projects.http.httpClient)
     implementation(projects.services.idService)
     implementation(projects.services.unitService)
     implementation(projects.services.accountService)

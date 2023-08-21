@@ -8,7 +8,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.http.httpClient)
     implementation(projects.http.httpShared)
     implementation(projects.services.idService)
     implementation(projects.services.databaseService)
@@ -22,6 +21,9 @@ dependencies {
     implementation(libs.ktx.serialization.hocon)
     implementation(libs.ktx.serialization.json)
     implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.feature.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
     testImplementation(kotlin("test"))
 }
 

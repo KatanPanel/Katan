@@ -1,5 +1,9 @@
 package org.katan.service.blueprint
 
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 import org.katan.http.importHttpModule
 import org.katan.service.blueprint.http.BlueprintHttpModule
 import org.katan.service.blueprint.parser.BlueprintParser
@@ -33,5 +37,12 @@ public val blueprintServiceDI: Module = module {
     }
     single {
         BlueprintParser()
+    }
+    single {
+        HttpClient {
+            install(ContentNegotiation) {
+                json(get())
+            }
+        }
     }
 }

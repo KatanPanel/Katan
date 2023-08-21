@@ -17,7 +17,6 @@ include(
     "http:http-shared",
     "http:http-server",
     "http:http-test",
-    "http:http-client",
     "services:auth-service",
     "services:id-service",
     "services:unit-service",
