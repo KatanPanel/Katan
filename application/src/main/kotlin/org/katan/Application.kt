@@ -35,12 +35,14 @@ private object Application {
     @JvmStatic
     fun main(args: Array<String>) {
         val di = initDI()
-        val debug = if (di.koin.get<KatanConfig>().isDevelopment) {
+        val isDevMode = di.koin.get<KatanConfig>().isDevelopment
+
+        System.setProperty("io.ktor.development", isDevMode.toString())
+        System.setProperty(DEBUG_PROPERTY_NAME, if (isDevMode) {
             DEBUG_PROPERTY_VALUE_ON
         } else {
             DEBUG_PROPERTY_VALUE_AUTO
-        }
-        System.setProperty(DEBUG_PROPERTY_NAME, debug)
+        })
         start()
     }
 
@@ -48,7 +50,7 @@ private object Application {
         val katan = Katan()
         Runtime.getRuntime().addShutdownHook(
             Thread {
-                katan.close()
+                runBlocking { katan.close() }
             }
         )
         runBlocking(CoroutineName("Katan")) {
