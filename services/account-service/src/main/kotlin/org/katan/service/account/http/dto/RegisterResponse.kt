@@ -15,7 +15,7 @@ internal data class RegisterResponse internal constructor(
 ) {
 
     constructor(account: Account) : this(
-        id = account.id.toString(),
+        id = account.id.value.toString(),
         username = account.username,
         displayName = account.displayName,
         email = account.email,
