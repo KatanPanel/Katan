@@ -6,7 +6,6 @@ import io.ktor.server.resources.get
 import io.ktor.server.routing.Route
 import org.katan.http.response.respond
 import org.katan.service.auth.http.AuthResource
-import org.katan.service.auth.http.dto.AccountResponse
 import org.katan.service.auth.http.dto.VerifyResponse
 import org.katan.service.auth.http.shared.AccountPrincipal
 
@@ -15,6 +14,6 @@ internal fun Route.verify() {
         // TODO handle null AccountPrincipal
         val account = call.principal<AccountPrincipal>()!!.account
 
-        respond(VerifyResponse(AccountResponse(account)))
+        respond(VerifyResponse(account))
     }
 }
