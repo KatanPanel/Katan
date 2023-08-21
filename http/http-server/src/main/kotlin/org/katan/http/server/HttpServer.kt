@@ -24,16 +24,14 @@ import org.koin.core.component.get
 import org.koin.core.component.inject
 import kotlin.reflect.jvm.jvmName
 
-class HttpServer(
-    private val host: String,
-    private val port: Int
-) : CoroutineScope by CoroutineScope(CoroutineName(HttpServer::class.jvmName)), KoinComponent {
+class HttpServer(private val host: String, private val port: Int) :
+    CoroutineScope by CoroutineScope(CoroutineName(HttpServer::class.jvmName)), KoinComponent {
 
     companion object {
-        private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
-
         private const val STOP_GRACE_PERIOD_MILLIS: Long = 1000
         private const val TIMEOUT_MILLIS: Long = 5000
+
+        private val logger: Logger = LogManager.getLogger(HttpServer::class.java)
     }
 
     private val config by inject<KatanConfig>()
@@ -88,6 +86,7 @@ class HttpServer(
                 host = this@HttpServer.host
                 port = this@HttpServer.port
             }
-        )
+        ),
+        watchPaths = listOf("classes").takeIf { config.isDevelopment }.orEmpty(),
     )
 }
