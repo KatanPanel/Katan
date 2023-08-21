@@ -35,7 +35,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 @OptIn(ExperimentalSerializationApi::class)
-fun Application.installDefaultFeatures(isDevelopmentMode: Boolean) {
+fun Application.installDefaultFeatures(isDevelopmentMode: Boolean, json: Json) {
     install(Routing)
     install(Resources)
     install(DefaultHeaders)
@@ -51,12 +51,9 @@ fun Application.installDefaultFeatures(isDevelopmentMode: Boolean) {
         logger = LoggerFactory.getLogger("Ktor")
     }
     install(ContentNegotiation) {
-        json(
-            Json {
-                ignoreUnknownKeys = true
-                explicitNulls = false
-            }
-        )
+        json(Json(from = json) {
+            explicitNulls = false
+        })
     }
     install(StatusPages) {
         exception<ValidationException> { call, exception ->
@@ -67,6 +64,7 @@ fun Application.installDefaultFeatures(isDevelopmentMode: Boolean) {
         }
 
         exception<SerializationException> { call, exception ->
+            if (isDevelopmentMode) call.application.log.error(exception)
             call.respond(
                 status = HttpStatusCode.UnprocessableEntity,
                 message = HttpError.Generic(exception.localizedMessage)

@@ -9,9 +9,7 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.configuration)
     implementation(projects.eventsDispatcher)
-    implementation(projects.configuration)
     implementation(projects.http.httpShared)
     implementation(projects.services.idService)
     implementation(projects.services.networkService)

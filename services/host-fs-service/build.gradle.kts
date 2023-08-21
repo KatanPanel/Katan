@@ -7,7 +7,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.configuration)
     implementation(projects.model)
     implementation(projects.services.fsService)
     implementation(libs.yoki)

@@ -4,7 +4,7 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import org.katan.config.KatanConfig
+import org.katan.model.KatanConfig
 import org.katan.http.server.dto.ServerInfoBuild
 import org.katan.http.server.dto.ServerInfoResponse
 import org.koin.ktor.ext.inject

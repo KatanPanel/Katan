@@ -16,6 +16,7 @@ import io.ktor.server.routing.routing
 import org.katan.http.HttpModule
 import org.katan.http.response.HttpError
 import org.katan.http.response.respondError
+import org.katan.model.KatanConfig
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.http.routes.login
 import org.katan.service.auth.http.routes.verify
@@ -28,14 +29,12 @@ internal class AuthHttpModule : HttpModule() {
     // Needed to Ktor's [Authentication] plugin be installed before services try to hook on it
     override val priority: Int get() = 1
 
-    override fun install(app: Application) {
-        with(app) {
-            installAuthentication()
-            routing {
-                login()
-                authenticate { verify() }
-                addAccountAttributeIfNeeded()
-            }
+    override fun install(app: Application): Unit = with(app) {
+        installAuthentication()
+        routing {
+            login()
+            authenticate { verify() }
+            addAccountAttributeIfNeeded()
         }
     }
 
@@ -50,6 +49,7 @@ internal class AuthHttpModule : HttpModule() {
     private fun Application.installAuthentication() {
         val authService by inject<AuthService>()
         val jwtVerifier by inject<JWTVerifier>()
+        val config by inject<KatanConfig>()
 
         install(Authentication) {
             jwt {
@@ -61,9 +61,14 @@ internal class AuthHttpModule : HttpModule() {
                 }
 
                 validate { credentials ->
-                    authService.verify(credentials.subject)
-                        ?.let(::AccountPrincipal)
+                    val account = runCatching { authService.verify(credentials.subject) }
+                        .onFailure { exception ->
+                            if (config.isDevelopment) exception.printStackTrace()
+                        }
+                        .getOrNull()
                         ?: respondError(HttpError.UnknownAccount)
+
+                    AccountPrincipal(account)
                 }
             }
         }

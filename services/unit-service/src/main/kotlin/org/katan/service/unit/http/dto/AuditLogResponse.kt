@@ -28,7 +28,7 @@ internal data class AuditLogActorResponse internal constructor(
 ) {
 
     constructor(account: Account) : this(
-        id = account.id.toString(),
+        id = account.id.value.toString(),
         username = account.username
     )
 }
@@ -46,9 +46,9 @@ internal data class AuditLogEntryResponse(
 ) {
 
     constructor(entry: AuditLogEntry) : this(
-        id = entry.id.toString(),
-        targetId = entry.targetId.toString(),
-        actorId = entry.actorId?.toString(),
+        id = entry.id.value.toString(),
+        targetId = entry.targetId.value.toString(),
+        actorId = entry.actorId?.value?.toString(),
         event = entry.event,
         reason = entry.reason,
         additionalData = entry.additionalData,

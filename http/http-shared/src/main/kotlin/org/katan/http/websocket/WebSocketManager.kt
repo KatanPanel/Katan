@@ -18,22 +18,17 @@ import java.nio.channels.ClosedChannelException
 import java.util.Collections
 import kotlin.reflect.jvm.jvmName
 
-class WebSocketManager : CoroutineScope by CoroutineScope(
+class WebSocketManager(val json: Json) : CoroutineScope by CoroutineScope(
     SupervisorJob() + CoroutineName(WebSocketManager::class.jvmName)
 ) {
 
-    companion object {
-
-        private val logger = LogManager.getLogger(WebSocketManager::class.java)
-        val json = Json { ignoreUnknownKeys = true }
-    }
-
+    private val logger = LogManager.getLogger(WebSocketManager::class.java)
     private val sessions = Collections.synchronizedSet<WebSocketSession>(linkedSetOf())
     private val generatedId = atomic(0)
     private val handlers = mutableMapOf<WebSocketOp, MutableList<WebSocketPacketEventHandler>>()
 
     suspend fun connect(connection: DefaultWebSocketServerSession) {
-        val session = WebSocketSession(generatedId.getAndIncrement(), connection)
+        val session = WebSocketSession(generatedId.getAndIncrement(), connection, json)
         sessions.add(session)
         logger.debug(
             "WebSocket session {} connected @ {}",

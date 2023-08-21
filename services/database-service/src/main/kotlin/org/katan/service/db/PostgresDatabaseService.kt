@@ -3,7 +3,7 @@ package org.katan.service.db
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.DatabaseConfig
 import org.jetbrains.exposed.sql.Slf4jSqlDebugLogger
-import org.katan.config.KatanConfig
+import org.katan.model.KatanConfig
 
 internal class PostgresDatabaseService(private val config: KatanConfig) : DatabaseService {
 

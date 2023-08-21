@@ -8,7 +8,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.configuration)
     implementation(projects.eventsDispatcher)
     implementation(projects.services.authService)
     implementation(projects.services.idService)

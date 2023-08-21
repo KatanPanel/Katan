@@ -17,8 +17,8 @@ import me.devnatan.yoki.resource.container.create
 import me.devnatan.yoki.resource.container.remove
 import me.devnatan.yoki.resource.image.ImageNotFoundException
 import org.apache.logging.log4j.LogManager
-import org.katan.config.KatanConfig
 import org.katan.event.EventsDispatcher
+import org.katan.model.KatanConfig
 import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceNotFoundException
@@ -342,7 +342,7 @@ internal class DockerInstanceServiceImpl(
 
     private fun generateContainerName(instanceId: Snowflake, nameFormat: String?): String =
         (nameFormat ?: "katan-{node}-{id}")
-            .replace("{id}", instanceId.toString())
+            .replace("{id}", instanceId.value.toString())
             .replace("{node}", config.nodeId.toString())
 
     private suspend fun createContainer(instanceId: Snowflake, image: String, name: String): String {

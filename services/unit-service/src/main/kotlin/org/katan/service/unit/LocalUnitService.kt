@@ -6,7 +6,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import org.katan.config.KatanConfig
+import org.katan.model.KatanConfig
 import org.katan.event.EventsDispatcher
 import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceStatus

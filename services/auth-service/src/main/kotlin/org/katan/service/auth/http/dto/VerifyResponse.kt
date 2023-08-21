@@ -16,7 +16,7 @@ internal data class VerifyResponse internal constructor(
 ) {
 
     constructor(account: Account) : this(
-        id = account.id.toString(),
+        id = account.id.value.toString(),
         username = account.username,
         email = account.email,
         createdAt = account.createdAt,

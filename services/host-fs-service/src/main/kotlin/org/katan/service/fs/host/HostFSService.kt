@@ -8,7 +8,7 @@ import me.devnatan.yoki.Yoki
 import me.devnatan.yoki.models.volume.Volume
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.katan.config.KatanConfig
+import org.katan.model.KatanConfig
 import org.katan.model.io.Bucket
 import org.katan.model.io.BucketNotFoundException
 import org.katan.model.io.FileNotAccessibleException

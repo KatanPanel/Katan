@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.configuration)
+    implementation(projects.model)
     implementation(libs.jedis)
     implementation(libs.log4j.core)
     implementation(libs.koin.core)

@@ -17,7 +17,7 @@ repositories {
 dependencies {
     runtimeOnly(libs.log4j.slf4j2)
     implementation(projects.crypto)
-    implementation(projects.configuration)
+    implementation(projects.model)
     implementation(projects.eventsDispatcher)
     implementation(projects.http.httpServer)
     implementation(projects.http.httpClient)
@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.ktx.coroutines.core)
     implementation(libs.exposed.core)
+    implementation(libs.ktx.serialization.json)
 }
 
 tasks {

@@ -19,7 +19,7 @@ internal data class UnitResponse(
 ) {
 
     constructor(value: KUnit) : this(
-        id = value.id.toString(),
+        id = value.id.value.toString(),
         externalId = value.externalId,
         nodeId = value.nodeId,
         name = value.name,

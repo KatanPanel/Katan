@@ -13,7 +13,6 @@ pluginManagement {
 include(
     "model",
     "application",
-    "configuration",
     "events-dispatcher",
     "crypto",
     "http:http-shared",

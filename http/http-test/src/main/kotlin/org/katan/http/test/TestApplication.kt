@@ -12,7 +12,10 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import kotlinx.serialization.json.Json
 import org.katan.http.installDefaultFeatures
+
+val json: Json = Json { ignoreUnknownKeys = true }
 
 inline fun withTestApplication(
     noinline setup: Application.() -> Unit,
@@ -20,7 +23,7 @@ inline fun withTestApplication(
 ) {
     testApplication {
         application {
-            installDefaultFeatures(isDevelopmentMode = true)
+            installDefaultFeatures(isDevelopmentMode = true, json = json)
             setup()
         }
 

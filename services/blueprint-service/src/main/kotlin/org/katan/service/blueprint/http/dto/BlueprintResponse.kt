@@ -15,7 +15,7 @@ internal data class BlueprintResponse(
 ) {
 
     constructor(blueprint: Blueprint) : this(
-        id = blueprint.id.toString(),
+        id = blueprint.id.value.toString(),
         createdAt = blueprint.createdAt,
         updatedAt = blueprint.updatedAt,
         spec = blueprint.spec as BlueprintSpecImpl

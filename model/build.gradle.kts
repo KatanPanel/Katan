@@ -12,6 +12,8 @@ repositories {
 dependencies {
     implementation(libs.ktx.datetime)
     implementation(libs.ktx.serialization.core)
+    implementation(libs.ktx.serialization.json)
+    implementation(libs.koin.core)
 }
 
 kotlin {

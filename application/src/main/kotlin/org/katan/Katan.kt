@@ -1,24 +1,38 @@
 package org.katan
 
+import kotlinx.serialization.json.Json
+import me.devnatan.yoki.Yoki
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.katan.config.KatanConfig
+import org.katan.crypto.cryptoDI
+import org.katan.event.eventsDispatcherDI
+import org.katan.http.client.di.httpClientDI
 import org.katan.http.server.HttpServer
+import org.katan.http.server.httpServerDI
+import org.katan.model.KatanConfig
+import org.katan.model.modelDI
+import org.katan.service.account.di.accountServiceDI
+import org.katan.service.auth.authServiceDI
+import org.katan.service.blueprint.blueprintServiceDI
+import org.katan.service.db.databaseServiceDI
+import org.katan.service.fs.host.hostFsServiceDI
+import org.katan.service.id.idServiceDI
+import org.katan.service.instance.instanceServiceDI
+import org.katan.service.network.networkServiceDI
+import org.katan.service.unit.unitServiceDI
+import org.katan.services.cache.cacheServiceDI
+import org.koin.core.KoinApplication
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
-import java.net.ConnectException
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 import java.sql.SQLException
 import kotlin.system.exitProcess
 
 internal class Katan : KoinComponent {
-
-    private companion object {
-
-        private val logger: Logger = LogManager.getLogger(Katan::class.java)
-    }
 
     private val config: KatanConfig by inject()
     private lateinit var httpServer: HttpServer
@@ -36,19 +50,60 @@ internal class Katan : KoinComponent {
                 database.connector()
             }
         } catch (exception: SQLException) {
-            if (config.isDevelopment)
+            if (config.isDevelopment) {
                 logger.error("Unable to establish database connection.", exception)
-            else
+            } else {
                 logger.debug("Unable to establish database connection: {}", exception.message)
+            }
 
             exitProcess(0)
         }
     }
 
     internal fun close() {
-        if (!::httpServer.isInitialized)
+        if (!::httpServer.isInitialized) {
             return
+        }
 
         httpServer.stop()
+    }
+
+    internal companion object {
+
+        private val logger: Logger = LogManager.getLogger(Katan::class.java)
+
+        internal fun createDI(): KoinApplication = startKoin {
+            logger(KoinLog4jLogger())
+            modules(
+                cryptoDI,
+                httpServerDI,
+                eventsDispatcherDI,
+                idServiceDI,
+                accountServiceDI,
+                unitServiceDI,
+                networkServiceDI,
+                instanceServiceDI,
+                cacheServiceDI,
+                databaseServiceDI,
+                hostFsServiceDI,
+                httpClientDI,
+                blueprintServiceDI,
+                authServiceDI,
+                modelDI,
+                module {
+                    single {
+                        val config = get<KatanConfig>()
+                        Yoki {
+                            socketPath(config.dockerHost)
+                        }
+                    }
+                    single {
+                        Json {
+                            ignoreUnknownKeys = true
+                        }
+                    }
+                }
+            )
+        }
     }
 }

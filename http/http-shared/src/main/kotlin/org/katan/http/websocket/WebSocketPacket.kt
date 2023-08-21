@@ -41,11 +41,6 @@ data class WebSocketResponse<T>(
     @SerialName(DATA) val data: T
 )
 
-suspend inline fun <reified T> WebSocketPacketContext.respond(
-    data: T,
-    code: Int = packet.op
-) {
-    session.connection.outgoing.send(
-        Frame.Text(WebSocketManager.json.encodeToString(WebSocketResponse(code, data)))
-    )
+suspend inline fun <reified T> WebSocketPacketContext.respond(data: T, code: Int = packet.op) {
+    session.send(WebSocketResponse(code, data))
 }

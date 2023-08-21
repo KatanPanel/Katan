@@ -21,11 +21,11 @@ data class InstanceResponse internal constructor(
 ) {
 
     internal constructor(instance: UnitInstance) : this(
-        id = instance.id.toString(),
+        id = instance.id.value.toString(),
         updatePolicy = instance.updatePolicy.id,
         containerId = instance.containerId,
         status = instance.status.value,
-        blueprintId = instance.blueprintId.toString(),
+        blueprintId = instance.blueprintId.value.toString(),
         connection = instance.connection?.let(::InstanceConnectionResponse),
         runtime = instance.runtime?.let(::InstanceRuntimeResponse)
     )

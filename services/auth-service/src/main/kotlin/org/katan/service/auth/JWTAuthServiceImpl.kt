@@ -61,7 +61,7 @@ internal class JWTAuthServiceImpl(
                 .withIssuedAt(now.toJavaInstant())
                 .withIssuer(JWT_ISSUER)
                 .withExpiresAt(now.plus(jwtTokenLifetime).toJavaInstant())
-                .withSubject(account.id.toString())
+                .withSubject(account.id.value.toString())
                 .sign(algorithm)
         } catch (e: JWTCreationException) {
             throw AuthenticationException("Failed to generate access token", e)

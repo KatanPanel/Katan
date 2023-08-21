@@ -1,7 +1,7 @@
 package org.katan
 
 import org.apache.logging.log4j.LogManager
-import org.katan.config.KatanConfig
+import org.katan.model.KatanConfig
 import org.koin.core.Koin
 import org.koin.core.logger.Level
 import org.koin.core.logger.MESSAGE

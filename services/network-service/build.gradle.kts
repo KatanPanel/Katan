@@ -7,7 +7,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.configuration)
     implementation(projects.model)
     implementation(libs.yoki)
     implementation(libs.log4j.core)

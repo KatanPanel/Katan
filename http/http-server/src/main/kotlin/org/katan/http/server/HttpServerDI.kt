@@ -9,6 +9,6 @@ import org.koin.dsl.module
 
 val httpServerDI: Module = module {
     single { HttpModuleRegistry() }
-    single { WebSocketManager() }
+    single { WebSocketManager(json = get()) }
     single<Validator> { Validation.buildDefaultValidatorFactory().validator }
 }

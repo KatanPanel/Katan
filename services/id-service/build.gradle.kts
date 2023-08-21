@@ -8,7 +8,6 @@ repositories {
 
 dependencies {
     implementation(projects.model)
-    implementation(projects.configuration)
     implementation(libs.snowflakeId)
     implementation(libs.hibernateValidator)
     implementation(libs.koin.core)
