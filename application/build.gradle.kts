@@ -15,6 +15,7 @@ repositories {
 }
 
 dependencies {
+    runtimeOnly(libs.log4j.slf4j2)
     implementation(projects.crypto)
     implementation(projects.configuration)
     implementation(projects.eventsDispatcher)
