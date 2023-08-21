@@ -6,13 +6,13 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.katan.crypto.cryptoDI
 import org.katan.event.eventsDispatcherDI
 import org.katan.http.client.di.httpClientDI
 import org.katan.http.server.HttpServer
 import org.katan.http.server.httpServerDI
 import org.katan.model.KatanConfig
 import org.katan.model.modelDI
+import org.katan.model.security.cryptoDI
 import org.katan.service.account.di.accountServiceDI
 import org.katan.service.auth.authServiceDI
 import org.katan.service.blueprint.blueprintServiceDI

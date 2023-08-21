@@ -14,7 +14,6 @@ include(
     "model",
     "application",
     "events-dispatcher",
-    "crypto",
     "http:http-shared",
     "http:http-server",
     "http:http-test",

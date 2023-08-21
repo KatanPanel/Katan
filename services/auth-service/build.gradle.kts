@@ -8,7 +8,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.crypto)
     implementation(projects.services.accountService)
     implementation(projects.http.httpShared)
     implementation(projects.model)

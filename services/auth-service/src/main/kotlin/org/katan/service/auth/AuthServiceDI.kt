@@ -1,7 +1,7 @@
 package org.katan.service.auth
 
 import com.auth0.jwt.interfaces.JWTVerifier
-import org.katan.crypto.Hash
+import org.katan.model.security.Hash
 import org.katan.http.importHttpModule
 import org.katan.service.auth.http.AuthHttpModule
 import org.koin.core.module.Module

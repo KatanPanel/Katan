@@ -1,4 +1,4 @@
-package org.katan.crypto
+package org.katan.model.security
 
 /**
  * Represents a salted hashing algorithm.

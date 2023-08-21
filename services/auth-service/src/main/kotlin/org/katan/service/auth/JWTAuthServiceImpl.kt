@@ -12,7 +12,7 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
-import org.katan.crypto.Hash
+import org.katan.model.security.Hash
 import org.katan.model.account.Account
 import org.katan.model.account.AccountNotFoundException
 import org.katan.model.security.AuthenticationException

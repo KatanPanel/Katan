@@ -8,7 +8,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.crypto)
     implementation(projects.services.idService)
     implementation(projects.http.httpShared)
     implementation(projects.eventsDispatcher)

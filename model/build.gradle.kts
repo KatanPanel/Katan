@@ -14,8 +14,16 @@ dependencies {
     implementation(libs.ktx.serialization.core)
     implementation(libs.ktx.serialization.json)
     implementation(libs.koin.core)
+    implementation(libs.bcprov)
 }
 
 kotlin {
     explicitApi()
+}
+
+configurations {
+    implementation {
+        exclude(module = "bcpkix-jdk15on")
+        exclude(module = "bcprov-jdk15on")
+    }
 }

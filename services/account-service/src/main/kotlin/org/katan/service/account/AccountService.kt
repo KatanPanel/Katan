@@ -1,8 +1,7 @@
 package org.katan.service.account
 
 import kotlinx.datetime.Clock
-import org.katan.crypto.Hash
-import org.katan.crypto.SaltedHash
+import org.katan.model.security.Hash
 import org.katan.event.EventsDispatcher
 import org.katan.model.Snowflake
 import org.katan.model.account.Account
