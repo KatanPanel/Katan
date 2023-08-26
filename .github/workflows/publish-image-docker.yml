@@ -12,6 +12,7 @@ on:
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "main" ]
+    types: [ "opened", "synchronize", "reopened" ]
   workflow_dispatch:
 
 env:
@@ -23,6 +24,7 @@ env:
 
 jobs:
   build:
+    if: github.event.pull_request.labels[0].name != 'dependency update'
     runs-on: ubuntu-latest
     permissions:
       contents: read
