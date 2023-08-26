@@ -1,0 +1,25 @@
+version: "3"
+services:
+  katan:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: katan-cp
+    links:
+      - postgres
+    ports:
+      - 8080:8080
+    environment:
+      - DB_PASS=katan
+      - DOCKER_HOST=tcp://localhost:2375
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./katan/cp:/usr/katan"
+  postgres:
+    image: postgres:latest
+    container_name: katan-db
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=katan
+    volumes:
+      - "./katan/db:/var/lib/postgresql/data"
