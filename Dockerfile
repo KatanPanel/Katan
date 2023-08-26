@@ -4,7 +4,7 @@ COPY . $BUILD_HOME
 
 WORKDIR $BUILD_HOME
 USER root
-RUN ./gradlew -x test build application:shadowJar
+RUN ./gradlew application:shadowJar
 
 # Production build
 FROM adoptopenjdk/openjdk11:alpine
