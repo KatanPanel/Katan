@@ -48,5 +48,7 @@ tasks {
 
     shadowJar {
         archiveBaseName.set("katan")
+        // TODO Set classifier based on environment
+        archiveClassifier.set(null as String?)
     }
 }
