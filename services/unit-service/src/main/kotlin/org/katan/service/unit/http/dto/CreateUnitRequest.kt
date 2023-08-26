@@ -12,7 +12,7 @@ private const val IMAGE_REGEX = ".*[a-zA-Z0-9_.-]"
 
 @Serializable
 internal data class CreateUnitRequest(
-    @field:NotBlank(message = "Name must be provided.")
+    @field:NotBlank(message = "Name must be provided")
     @field:Size(
         min = 2,
         max = 64,

@@ -33,7 +33,7 @@ internal fun Route.createUnit() {
                 network = request.network?.let { network ->
                     UnitCreateOptions.Network(
                         host = network.host,
-                        port = network.port
+                        port = network.port,
                     )
                 }
             )
@@ -41,7 +41,7 @@ internal fun Route.createUnit() {
 
         respond(
             response = UnitResponse(unit),
-            status = HttpStatusCode.Created
+            status = HttpStatusCode.Created,
         )
     }
 }
