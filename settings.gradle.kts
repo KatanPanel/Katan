@@ -28,4 +28,5 @@ include(
     "services:fs-service",
     "services:host-fs-service",
     "services:blueprint-service",
+    "services:projects-service"
 )

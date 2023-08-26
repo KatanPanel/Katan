@@ -20,6 +20,7 @@ import org.katan.service.fs.host.hostFsServiceDI
 import org.katan.service.id.idServiceDI
 import org.katan.service.instance.instanceServiceDI
 import org.katan.service.network.networkServiceDI
+import org.katan.service.projects.projectServiceDI
 import org.katan.service.unit.unitServiceDI
 import org.katan.services.cache.cacheServiceDI
 import org.koin.core.KoinApplication
@@ -73,7 +74,24 @@ internal class Katan : KoinComponent {
 
         internal fun createDI(): KoinApplication = startKoin {
             logger(KoinLog4jLogger())
+
+            val rootModule = module {
+                single {
+                    val config = get<KatanConfig>()
+                    Yoki {
+                        socketPath(config.dockerHost)
+                    }
+                }
+                single {
+                    Json {
+                        ignoreUnknownKeys = true
+                    }
+                }
+            }
+
             modules(
+                rootModule,
+                modelDI,
                 cryptoDI,
                 httpServerDI,
                 eventsDispatcherDI,
@@ -87,20 +105,7 @@ internal class Katan : KoinComponent {
                 hostFsServiceDI,
                 blueprintServiceDI,
                 authServiceDI,
-                modelDI,
-                module {
-                    single {
-                        val config = get<KatanConfig>()
-                        Yoki {
-                            socketPath(config.dockerHost)
-                        }
-                    }
-                    single {
-                        Json {
-                            ignoreUnknownKeys = true
-                        }
-                    }
-                }
+                projectServiceDI
             )
         }
     }
