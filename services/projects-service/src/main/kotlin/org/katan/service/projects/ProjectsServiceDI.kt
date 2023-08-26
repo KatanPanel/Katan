@@ -7,7 +7,7 @@ import org.koin.dsl.module
 
 public val projectServiceDI: Module = module {
     single<ProjectsService> {
-        ProjectsServiceImpl()
+        ProjectsServiceImpl(eventsDispatcher = get())
     }
     single<ProjectsRepository> {
         RemoteProjectsRepository(database = get())
