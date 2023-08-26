@@ -6,10 +6,10 @@ services:
       dockerfile: Dockerfile
     links:
       - database
+      - web-ui
     depends_on:
       - database
     restart: on-failure
-    #      - web-ui
     ports:
       - "8080:8080"
     environment:
@@ -20,16 +20,12 @@ services:
       - DOCKER_HOST=tcp://localhost:2375
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-#  web-ui:
-#    image: ghcr.io/katanpanel/web-ui:main
-#    container_name: web-ui
-#    restart: always
-#    ports:
-#      - "80:8081"
-#    environment:
-#
-#    volumes:
-#      - "./katan/web-ui:/etc/nginx"
+  web-ui:
+    image: ghcr.io/katanpanel/web-ui:main
+    container_name: web-ui
+    restart: always
+    ports:
+      - "80:80"
   database:
     image: postgres:latest
     restart: always
