@@ -17,6 +17,7 @@ dependencies {
     implementation(libs.exposed.dao)
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.hibernateValidator)
+    implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.feature.resources)
     implementation(libs.ktx.serialization.hocon)
     implementation(libs.ktx.serialization.json)

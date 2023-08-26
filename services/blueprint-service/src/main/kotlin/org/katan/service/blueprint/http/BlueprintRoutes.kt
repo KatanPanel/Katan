@@ -17,7 +17,7 @@ internal class BlueprintRoutes {
     @Resource("{blueprintId}")
     internal class ById(
         val parent: BlueprintRoutes = BlueprintRoutes(),
-        @field:MustBeSnowflake val blueprintId: Snowflake
+        @field:MustBeSnowflake val blueprintId: String
     )
 
     @Serializable

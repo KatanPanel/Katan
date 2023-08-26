@@ -12,7 +12,7 @@ import org.katan.service.blueprint.http.dto.ImportBlueprintRequest
 import org.katan.service.blueprint.importBlueprint
 import org.koin.ktor.ext.inject
 
-internal fun Route.importSpec() {
+internal fun Route.importBlueprint() {
     val blueprintService by inject<BlueprintService>()
     val validator by inject<Validator>()
 
