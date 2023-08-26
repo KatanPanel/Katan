@@ -1,4 +1,5 @@
-FROM adoptopenjdk/openjdk11:alpine AS TEMP_BUILD_IMAGE
+FROM eclipse-temurin:17-jdk AS TEMP_BUILD_IMAGE
+LABEL MAINTAINER="Natan Vieira Do Nascimento <natanvnascimento@gmail.com>"
 ENV BUILD_HOME=/usr/katan-build/
 COPY . $BUILD_HOME
 
@@ -7,7 +8,7 @@ USER root
 RUN ./gradlew application:shadowJar
 
 # Production build
-FROM adoptopenjdk/openjdk11:alpine
+FROM eclipse-temurin:17-jdk
 ENV ARTIFACT_NAME=katan-*.jar
 ENV BUILD_HOME=/usr/katan-build/
 ENV HOME=/usr/katan/
