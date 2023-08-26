@@ -2,6 +2,7 @@ package org.katan.http.response
 
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.request.receiveNullable
+import jakarta.validation.ConstraintViolation
 import jakarta.validation.Validator
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -27,11 +28,7 @@ internal data class ValidationException(
 ) : RuntimeException()
 
 fun Validator.validateOrThrow(value: Any) {
-    val violations = validate(value)
-    if (violations.isEmpty()) {
-        return
-    }
-
+    val violations = validate(value).ifEmpty { return }
     val mappedViolations = violations.groupBy { violation ->
         val propValue = violation.propertyPath.toString()
         val serialName =
@@ -43,7 +40,7 @@ fun Validator.validateOrThrow(value: Any) {
     }.map { (path, violation) ->
         ValidationConstraintViolation(
             property = path,
-            info = violation.map { it.message }
+            info = violation.map(ConstraintViolation<*>::getMessage)
         )
     }.toSet()
 

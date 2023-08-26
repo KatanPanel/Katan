@@ -23,8 +23,7 @@ data class HttpError internal constructor(
         val RequestedResourceIsNotAFile = createError(1009, "The requested resource is not a file")
         val UnavailableFileSystem = createError(1010, "Unavailable file system")
         val UnknownBlueprint = createError(1011, "Unknown blueprint")
-        val RawBlueprintNotFound = createError(1012, "Blueprint not found")
-        val RawBlueprintParse: (String) -> HttpError =
+        val BlueprintParse: (String) -> HttpError =
             { createError(1012, "Failed to parse blueprint file", it) }
         val InvalidAccessToken = createError(2001, "Invalid or missing access token")
         val AccountInvalidCredentials = createError(2002, "Invalid account credentials")
