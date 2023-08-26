@@ -1,9 +1,7 @@
 version: "3"
 services:
   katan:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/katanpanel/katan:main
     links:
       - database
       - web-ui
@@ -26,6 +24,8 @@ services:
     restart: always
     ports:
       - "80:80"
+    environment:
+      - VITE_KATAN_API=katan:8080
   database:
     image: postgres:latest
     restart: always
