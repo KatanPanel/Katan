@@ -4,24 +4,34 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: control-panel
     links:
       - database
+    depends_on:
+      - database
+    restart: on-failure
+    #      - web-ui
     ports:
       - "8080:8080"
     environment:
+      - PORT=8080
       - DB_HOST=database
       - DB_PASS=katan
       - ENV=dev
       - DOCKER_HOST=tcp://localhost:2375
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./katan/cp:/usr/katan"
+#  web-ui:
+#    image: ghcr.io/katanpanel/web-ui:main
+#    container_name: web-ui
+#    restart: always
+#    ports:
+#      - "80:8081"
+#    environment:
+#
+#    volumes:
+#      - "./katan/web-ui:/etc/nginx"
   database:
     image: postgres:latest
-    container_name: database
     restart: always
     environment:
       - POSTGRES_PASSWORD=katan
-    volumes:
-      - "./katan/db:/var/lib/postgresql/data"

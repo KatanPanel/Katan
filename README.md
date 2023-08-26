@@ -9,11 +9,7 @@ with low cost while reducing the level of engineering and operational effort.
 
 ## Setup local development environment
 
-```
+```shell
 docker-compose -f docker-compose.dev.yml up -d
-```
-
-For consecutive builds
-```
 docker-compose -f docker-compose.dev.yml up --build -d --force-recreate
 ```
