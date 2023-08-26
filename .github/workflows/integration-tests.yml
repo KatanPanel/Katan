@@ -21,10 +21,10 @@ jobs:
         uses: docker-practice/actions-setup-docker@master
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup JDK 11
+      - name: Setup JDK 17
         uses: actions/setup-java@v2
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'adopt'
           server-id: github
           cache: 'gradle'
