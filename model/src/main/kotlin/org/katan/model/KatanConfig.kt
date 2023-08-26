@@ -7,7 +7,7 @@ public data class KatanConfig internal constructor(
     val gitCommit: String? = env("GIT_COMMIT"),
     val nodeId: Int = env("NODE_ID", "0").toInt(),
     val host: String = env("HOST", "0.0.0.0"),
-    val port: Int = env("PORT", "80").toInt(),
+    val port: Int = env("PORT", "0").toInt(),
     val dockerHost: String = env("DOCKER_HOST", "unix:///var/run/docker.sock"),
     val dockerNetwork: String = env("DOCKER_NETWORK", "katan0"),
     val databaseHost: String = env("DB_HOST", "localhost"),
