@@ -2,8 +2,6 @@ version: "3"
 services:
   katan:
     image: ghcr.io/katanpanel/katan:main
-    depends_on:
-      - database
     restart: on-failure
     ports:
       - "8080:8080"
