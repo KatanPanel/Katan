@@ -2,9 +2,6 @@ version: "3"
 services:
   katan:
     image: ghcr.io/katanpanel/katan:main
-    links:
-      - database
-      - web-ui
     depends_on:
       - database
     restart: on-failure
@@ -26,9 +23,8 @@ services:
       - "80:80"
       - "433:433"
     environment:
-      - BASE_URL=/
-      - VITE_KATAN_API=http://katan:8080
-      - VITE_KATAN_GATEWAY=ws://katan:8080
+      - VITE_KATAN_API=http://localhost:8080
+      - VITE_KATAN_GATEWAY=ws://localhost:8080
   database:
     image: postgres:latest
     restart: on-failure
