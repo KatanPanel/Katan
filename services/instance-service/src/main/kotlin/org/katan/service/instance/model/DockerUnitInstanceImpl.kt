@@ -16,5 +16,5 @@ internal data class DockerUnitInstanceImpl(
     override val connection: HostPort?,
     override val runtime: InstanceRuntime?,
     override val blueprintId: Snowflake,
-    override val createdAt: Instant
+    override val createdAt: Instant,
 ) : UnitInstance

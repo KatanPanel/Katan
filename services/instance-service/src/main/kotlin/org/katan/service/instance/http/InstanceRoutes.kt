@@ -15,14 +15,14 @@ internal class InstanceRoutes {
     @Resource("{instanceId}")
     internal class ById(
         val parent: InstanceRoutes = InstanceRoutes(),
-        @field:MustBeSnowflake val instanceId: Snowflake
+        @field:MustBeSnowflake val instanceId: Snowflake,
     )
 
     @Serializable
     @Resource("{instanceId}/status")
     internal class UpdateStatus(
         val parent: InstanceRoutes = InstanceRoutes(),
-        @field:MustBeSnowflake val instanceId: Snowflake
+        @field:MustBeSnowflake val instanceId: Snowflake,
     )
 
     @Serializable
@@ -30,7 +30,7 @@ internal class InstanceRoutes {
     internal class FSBucket(
         val parent: InstanceRoutes = InstanceRoutes(),
         @field:MustBeSnowflake val instanceId: Snowflake,
-        @field:NotBlank(message = "Bucket must be provided") val bucket: String
+        @field:NotBlank(message = "Bucket must be provided") val bucket: String,
     )
 
     @Serializable
@@ -39,7 +39,7 @@ internal class InstanceRoutes {
         val parent: InstanceRoutes = InstanceRoutes(),
         @field:MustBeSnowflake val instanceId: Snowflake,
         @field:NotBlank(message = "Bucket must be provided") val bucket: String,
-        val path: String? = ""
+        val path: String? = "",
     )
 
     @Serializable
@@ -50,6 +50,6 @@ internal class InstanceRoutes {
         @field:NotBlank(message = "Bucket must be provided") val bucket: String,
         @field:NotBlank(message = "File absolute path must be provided") val path: String? = null,
         @SerialName("start") val startIndex: Int? = null,
-        @SerialName("end") val endIndex: Int? = null
+        @SerialName("end") val endIndex: Int? = null,
     )
 }

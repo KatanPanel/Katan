@@ -26,7 +26,7 @@ private object Application {
                 DEBUG_PROPERTY_VALUE_ON
             } else {
                 DEBUG_PROPERTY_VALUE_AUTO
-            }
+            },
         )
         start()
     }
@@ -36,7 +36,7 @@ private object Application {
         Runtime.getRuntime().addShutdownHook(
             Thread {
                 runBlocking { katan.close() }
-            }
+            },
         )
         runBlocking(CoroutineName("Katan")) {
             katan.start()

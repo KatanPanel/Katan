@@ -105,7 +105,7 @@ internal class Katan : KoinComponent {
                 hostFsServiceDI,
                 blueprintServiceDI,
                 authServiceDI,
-                projectServiceDI
+                projectServiceDI,
             )
         }
     }

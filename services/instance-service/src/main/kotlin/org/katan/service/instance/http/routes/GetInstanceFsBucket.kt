@@ -31,7 +31,7 @@ internal fun Route.getInstanceFsBucket() {
 
         val runtime = instance.runtime ?: respondError(
             HttpError.InstanceRuntimeNotAvailable,
-            HttpStatusCode.ServiceUnavailable
+            HttpStatusCode.ServiceUnavailable,
         )
 
         // TODO move to instance service to check for bucket reachability
@@ -39,12 +39,12 @@ internal fun Route.getInstanceFsBucket() {
             it.target == parameters.bucket
         } ?: respondError(
             HttpError.UnknownFSBucket,
-            HttpStatusCode.Unauthorized
+            HttpStatusCode.Unauthorized,
         )
 
         val bucket = fsService.getBucket(
             matchingBind.target,
-            matchingBind.destination
+            matchingBind.destination,
         ) ?: respondError(HttpError.UnknownFSBucket)
 
         respond(FSBucketResponse(bucket))

@@ -17,7 +17,7 @@ import org.koin.core.component.inject
 
 @Serializable
 private data class FetchLogsResponse(
-    @SerialName(VALUE) val value: String
+    @SerialName(VALUE) val value: String,
 )
 
 internal class FetchLogsHandler :

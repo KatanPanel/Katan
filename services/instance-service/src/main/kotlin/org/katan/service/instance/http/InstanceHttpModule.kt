@@ -25,7 +25,7 @@ internal class InstanceHttpModule : HttpModule() {
         return mapOf(
             INSTANCE_FETCH_LOGS to FetchLogsHandler(),
             INSTANCE_RUN_COMMAND to ExecuteCommandHandler(),
-            INSTANCE_STATS_STREAMING to StatsStreamingHandler()
+            INSTANCE_STATS_STREAMING to StatsStreamingHandler(),
         )
     }
 

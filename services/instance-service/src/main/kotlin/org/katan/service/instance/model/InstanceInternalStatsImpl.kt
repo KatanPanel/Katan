@@ -15,5 +15,5 @@ data class InstanceInternalStatsImpl(
     override val lastCpuUsage: Long?,
     @Suppress("ArrayInDataClass") override val lastPerCpuUsage: LongArray?,
     override val lastSystemCpuUsage: Long?,
-    override val lastOnlineCpus: Long?
+    override val lastOnlineCpus: Long?,
 ) : InstanceInternalStats

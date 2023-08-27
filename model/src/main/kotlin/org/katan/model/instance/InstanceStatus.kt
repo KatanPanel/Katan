@@ -3,7 +3,7 @@ package org.katan.model.instance
 public sealed class InstanceStatus(
     public val value: String,
     public val isInitialStatus: Boolean = false,
-    public val isRuntimeStatus: Boolean = false
+    public val isRuntimeStatus: Boolean = false,
 ) {
     public data object Created : InstanceStatus("created")
     public data object NetworkAssignmentFailed : InstanceStatus("network-assignment-failed")

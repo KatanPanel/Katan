@@ -14,7 +14,7 @@ import kotlin.reflect.jvm.jvmName
 internal class DockerEventScope(
     private val client: Yoki,
     private val eventsDispatcher: EventsDispatcher,
-    coroutineContext: CoroutineContext
+    coroutineContext: CoroutineContext,
 ) : CoroutineScope by CoroutineScope(coroutineContext + SupervisorJob() + CoroutineName(DockerEventScope::class.jvmName)) {
 
     companion object {

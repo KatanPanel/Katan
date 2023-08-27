@@ -126,7 +126,8 @@ public enum class UnitStatus(public val value: String) {
     Created("created"),
     MissingInstance("missing-instance"),
     CreatingInstance("creating-instance"),
-    Ready("ready");
+    Ready("ready"),
+    ;
 
     public companion object {
 

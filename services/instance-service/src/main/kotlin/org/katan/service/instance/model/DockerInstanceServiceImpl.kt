@@ -52,11 +52,11 @@ internal class DockerInstanceServiceImpl(
     private val blueprintService: BlueprintService,
     private val dockerClient: Yoki,
     private val instanceRepository: InstanceRepository,
-    private val config: KatanConfig
+    private val config: KatanConfig,
 ) : InstanceService,
     CoroutineScope by CoroutineScope(
         SupervisorJob() +
-            CoroutineName(DockerInstanceServiceImpl::class.jvmName)
+            CoroutineName(DockerInstanceServiceImpl::class.jvmName),
     ) {
 
     private companion object {
@@ -124,14 +124,14 @@ internal class DockerInstanceServiceImpl(
                 attachStdin = false
                 attachStdout = false
                 attachStderr = false
-            }
+            },
         )
 
         dockerClient.exec.start(
             id = execId,
             options = ExecStartOptions().apply {
                 detach = true
-            }
+            },
         )
     }
 
@@ -243,7 +243,7 @@ internal class DockerInstanceServiceImpl(
                 blueprintId = blueprint.id,
                 status = statusFromConnection(connection),
                 containerId = containerId,
-                connection = connection
+                connection = connection,
             )
         } catch (e: ImageNotFoundException) {
             val instance = registerInstance(
@@ -251,13 +251,13 @@ internal class DockerInstanceServiceImpl(
                 blueprintId = blueprint.id,
                 status = InstanceStatus.ImagePullNeeded,
                 containerId = null,
-                connection = null
+                connection = null,
             )
 
             setupInstanceAsync(
                 instanceId = instance.id,
                 instanceName = generatedName,
-                options = options
+                options = options,
             )
 
             instance
@@ -294,7 +294,7 @@ internal class DockerInstanceServiceImpl(
     private suspend fun connectInstance(
         containerId: String,
         host: String?,
-        port: Int?
+        port: Int?,
     ): HostPort? {
         logger.debug("Connecting $containerId to ${config.dockerNetwork}...")
         return runCatching {
@@ -302,7 +302,7 @@ internal class DockerInstanceServiceImpl(
                 network = config.dockerNetwork,
                 instance = containerId,
                 host = host,
-                port = port?.toShort()
+                port = port?.toShort(),
             )
             logger.debug("Connected {} to {} @ {}", containerId, config.dockerNetwork, connection)
             connection
@@ -316,7 +316,7 @@ internal class DockerInstanceServiceImpl(
         blueprintId: Snowflake,
         status: InstanceStatus,
         containerId: String?,
-        connection: HostPort?
+        connection: HostPort?,
     ): DockerUnitInstanceImpl {
         val instance = DockerUnitInstanceImpl(
             id = instanceId,
@@ -326,7 +326,7 @@ internal class DockerInstanceServiceImpl(
             connection = connection,
             runtime = containerId?.let { buildRuntime(it) },
             blueprintId = blueprintId,
-            createdAt = Clock.System.now()
+            createdAt = Clock.System.now(),
         )
 
         instanceRepository.create(instance)
@@ -334,8 +334,8 @@ internal class DockerInstanceServiceImpl(
             InstanceCreatedEvent(
                 instanceId = instance.id,
                 blueprintId = instance.blueprintId,
-                createdAt = instance.createdAt
-            )
+                createdAt = instance.createdAt,
+            ),
         )
         return instance
     }
@@ -364,7 +364,7 @@ internal class DockerInstanceServiceImpl(
             network = InstanceRuntimeNetworkImpl(
                 ipV4Address = "",
                 hostname = null,
-                networks = emptyList()
+                networks = emptyList(),
                 // TODO missing properties
 //                ipV4Address = networkSettings.ipAddress,
 //                hostname = inspection.config.hostName,
@@ -388,7 +388,7 @@ internal class DockerInstanceServiceImpl(
             // TODO missing properties
 //            fsPath = inspection.config.keys.firstOrNull(),
             outOfMemory = state.oomKilled,
-            mounts = emptyList()
+            mounts = emptyList(),
 //            mounts = inspection.mouts?.map { mount ->
 //                InstanceRuntimeMountImpl(
 //                    type = (mount.rawValues["Type"] as? String) ?: "volume",
@@ -415,7 +415,7 @@ internal class DockerInstanceServiceImpl(
         connection = networkService.createConnection(host, port),
         runtime = containerId?.let { buildRuntime(it) },
         blueprintId = blueprintId.toSnowflake(),
-        createdAt = createdAt
+        createdAt = createdAt,
     )
 
     private fun toStatus(value: String): InstanceStatus {

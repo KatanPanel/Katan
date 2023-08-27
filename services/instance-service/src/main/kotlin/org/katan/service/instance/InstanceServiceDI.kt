@@ -12,7 +12,7 @@ val instanceServiceDI: Module = module {
     importHttpModule(::InstanceHttpModule)
     single<InstanceRepository> {
         InstanceRepositoryImpl(
-            database = get()
+            database = get(),
         )
     }
     single<InstanceService> {
@@ -23,7 +23,7 @@ val instanceServiceDI: Module = module {
             blueprintService = get(),
             dockerClient = get(),
             instanceRepository = get(),
-            config = get()
+            config = get(),
         )
     }
 }

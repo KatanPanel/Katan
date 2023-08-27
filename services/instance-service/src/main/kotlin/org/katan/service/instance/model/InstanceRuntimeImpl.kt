@@ -18,25 +18,25 @@ internal data class InstanceRuntimeImpl(
     override val fsPath: String?,
     override val startedAt: Instant?,
     override val finishedAt: Instant?,
-    override val mounts: List<InstanceRuntimeMount>
+    override val mounts: List<InstanceRuntimeMount>,
 ) : InstanceRuntime
 
 internal data class InstanceRuntimeNetworkImpl(
     override val ipV4Address: String,
     override val hostname: String?,
-    override val networks: List<InstanceRuntimeSingleNetwork>
+    override val networks: List<InstanceRuntimeSingleNetwork>,
 ) : InstanceRuntimeNetwork
 
 internal data class InstanceRuntimeSingleNetworkImpl(
     override val id: String,
     override val name: String,
     override val ipv4Address: String?,
-    override val ipv6Address: String?
+    override val ipv6Address: String?,
 ) : InstanceRuntimeSingleNetwork
 
 internal data class InstanceRuntimeMountImpl(
     override val type: String,
     override val target: String,
     override val destination: String,
-    override val readonly: Boolean
+    override val readonly: Boolean,
 ) : InstanceRuntimeMount

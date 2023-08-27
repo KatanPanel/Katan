@@ -35,7 +35,7 @@ internal fun Route.getInstanceFsFile() {
 
         val runtime = instance.runtime ?: respondError(
             HttpError.InstanceRuntimeNotAvailable,
-            HttpStatusCode.ServiceUnavailable
+            HttpStatusCode.ServiceUnavailable,
         )
 
         // TODO move to instance service to check for bucket reachability
@@ -46,7 +46,7 @@ internal fun Route.getInstanceFsFile() {
             fsService.getFile(
                 matchingBind.target,
                 matchingBind.destination,
-                parameters.path.orEmpty()
+                parameters.path.orEmpty(),
             ) ?: respondError(HttpError.UnknownFSFile)
         } catch (_: BucketNotFoundException) {
             respondError(HttpError.UnknownFSBucket)
@@ -59,7 +59,7 @@ internal fun Route.getInstanceFsFile() {
                 FSDirectoryResponse(file)
             } else {
                 FSFileResponse(file)
-            }
+            },
         )
     }
 }

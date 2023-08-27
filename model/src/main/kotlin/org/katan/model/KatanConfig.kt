@@ -17,7 +17,7 @@ public data class KatanConfig internal constructor(
     val redisPassword: String = env("REDIS_PASS").orEmpty(),
     val redisHost: String? = env("REDIS_HOST"),
     val redisPort: String? = env("REDIS_PORT"),
-    val isDevelopment: Boolean = env == DEVELOPMENT
+    val isDevelopment: Boolean = env == DEVELOPMENT,
 ) {
 
     public companion object {

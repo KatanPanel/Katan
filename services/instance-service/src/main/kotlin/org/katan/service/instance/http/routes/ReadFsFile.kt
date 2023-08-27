@@ -34,33 +34,33 @@ internal fun Route.readFsFile() {
         if (instance.runtime == null) {
             respondError(
                 HttpError.InstanceRuntimeNotAvailable,
-                HttpStatusCode.ServiceUnavailable
+                HttpStatusCode.ServiceUnavailable,
             )
         }
 
         // TODO move to instance service to check for bucket reachability
         if (instance.runtime!!.mounts.firstOrNull {
-            it.target == parameters.bucket
-        } == null
+                it.target == parameters.bucket
+            } == null
         ) {
             respondError(
                 HttpError.ResourceNotAccessible,
-                HttpStatusCode.Unauthorized
+                HttpStatusCode.Unauthorized,
             )
         }
 
         val file = fsService.readFile(
             parameters.path!!,
             parameters.startIndex,
-            parameters.endIndex
+            parameters.endIndex,
         )
 
         call.response.header(
             HttpHeaders.ContentDisposition,
             ContentDisposition.Mixed.withParameter(
                 ContentDisposition.Parameters.FileName,
-                file.name
-            ).toString()
+                file.name,
+            ).toString(),
         )
         call.respondFile(file)
     }

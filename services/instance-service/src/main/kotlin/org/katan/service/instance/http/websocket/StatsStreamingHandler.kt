@@ -17,7 +17,7 @@ import org.koin.core.component.inject
 
 @Serializable
 private data class StatsStreamingResponse(
-    @SerialName(VALUE) val value: InternalStatsResponse
+    @SerialName(VALUE) val value: InternalStatsResponse,
 )
 
 @Suppress("ArrayInDataClass")
@@ -37,7 +37,7 @@ private data class InternalStatsResponse(
     @SerialName("last-sys-cpu") val lastSystemCpuUsage: Long?,
     @SerialName("per-cpu") val perCpuUsage: LongArray?,
     @SerialName("per-cpu-pc") val perCpuUsagePercent: FloatArray,
-    @SerialName("last-per-cpu") val lastPerCpuUsage: LongArray?
+    @SerialName("last-per-cpu") val lastPerCpuUsage: LongArray?,
 )
 
 internal class StatsStreamingHandler :
@@ -68,9 +68,9 @@ internal class StatsStreamingHandler :
                             perCpuUsage = perCpuUsage,
                             perCpuUsagePercent = perCpuUsage.map { stats.getCpuUsagePercentage(it) }
                                 .toFloatArray(),
-                            lastPerCpuUsage = lastPerCpuUsage
-                        )
-                    )
+                            lastPerCpuUsage = lastPerCpuUsage,
+                        ),
+                    ),
                 )
             }
         }
