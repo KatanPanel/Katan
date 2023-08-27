@@ -24,10 +24,13 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "433:433"
     environment:
-      - VITE_KATAN_API=katan:8080
+      - BASE_URL=/
+      - VITE_KATAN_API=http://katan:8080
+      - VITE_KATAN_GATEWAY=ws://katan:8080
   database:
     image: postgres:latest
-    restart: always
+    restart: on-failure
     environment:
       - POSTGRES_PASSWORD=katan
