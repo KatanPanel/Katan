@@ -4,6 +4,8 @@ import org.katan.model.account.Account
 
 internal interface AccountsRepository {
 
+    suspend fun findAll(): List<AccountEntity>
+
     suspend fun findById(id: Long): AccountEntity?
 
     suspend fun findByUsername(username: String): AccountEntity?

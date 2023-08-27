@@ -12,6 +12,8 @@ import org.katan.service.id.IdService
 
 interface AccountService {
 
+    suspend fun listAccounts(): List<Account>
+
     suspend fun getAccount(id: Snowflake): Account?
 
     suspend fun getAccount(username: String): Account?
@@ -29,6 +31,10 @@ internal class AccountServiceImpl(
     private val hashAlgorithm: Hash,
     private val eventsDispatcher: EventsDispatcher
 ) : AccountService {
+
+    override suspend fun listAccounts(): List<Account> {
+        return accountsRepository.findAll().map { entity -> entity.toDomain() }
+    }
 
     override suspend fun getAccount(id: Snowflake): Account? {
         return accountsRepository.findById(id.value)?.toDomain()

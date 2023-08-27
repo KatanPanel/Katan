@@ -11,5 +11,9 @@ internal class AccountRoutes {
 
     @Serializable
     @Resource("")
+    internal class List(val parent: AccountRoutes = AccountRoutes())
+
+    @Serializable
+    @Resource("")
     internal class Register(val parent: AccountRoutes = AccountRoutes())
 }

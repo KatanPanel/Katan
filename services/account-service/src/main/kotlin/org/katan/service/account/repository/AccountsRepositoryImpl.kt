@@ -44,6 +44,10 @@ internal class AccountsRepositoryImpl(private val database: Database) : Accounts
         }
     }
 
+    override suspend fun findAll(): List<AccountEntity> = newSuspendedTransaction(db = database) {
+        AccountEntity.all().notForUpdate().toList()
+    }
+
     override suspend fun findById(id: Long): AccountEntity? {
         return newSuspendedTransaction(db = database) {
             AccountEntity.findById(id)
