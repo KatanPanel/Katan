@@ -17,7 +17,6 @@ import org.katan.service.instance.http.routes.updateStatus
 import org.katan.service.instance.http.websocket.ExecuteCommandHandler
 import org.katan.service.instance.http.websocket.FetchLogsHandler
 import org.katan.service.instance.http.websocket.StatsStreamingHandler
-import org.koin.core.component.get
 
 internal class InstanceHttpModule : HttpModule() {
 

@@ -354,7 +354,7 @@ internal class DockerInstanceServiceImpl(
         }
     }
 
-    private suspend fun buildRuntime(containerId: String): InstanceRuntime? {
+    private suspend fun buildRuntime(containerId: String): InstanceRuntime {
         val inspection = dockerClient.containers.inspect(containerId)
 //        val networkSettings = inspection.networkSettings
         val state = inspection.state
