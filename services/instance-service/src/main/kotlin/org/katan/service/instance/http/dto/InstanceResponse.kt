@@ -7,7 +7,7 @@ import org.katan.model.instance.InstanceRuntime
 import org.katan.model.instance.InstanceRuntimeMount
 import org.katan.model.instance.InstanceRuntimeSingleNetwork
 import org.katan.model.instance.UnitInstance
-import org.katan.model.io.HostPort
+import org.katan.model.net.HostPort
 
 @Serializable
 data class InstanceResponse internal constructor(

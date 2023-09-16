@@ -6,18 +6,18 @@ package org.katan.security
  * It is used to apply hashing functions to input and also to  [compare] values that have already
  * been applied to hashing functions. See [SaltedHash] for salted hashes.
  */
-public interface Hash {
+interface Hash {
 
-    public companion object {
+    companion object {
 
-        public val SHA1: Hash = SHA1Hash
-        public val Bcrypt: Hash = BcryptHash
+        val SHA1: Hash = SHA1Hash
+        val Bcrypt: Hash = BcryptHash
     }
 
     /**
      * Returns the name of the hashing algorithm.
      */
-    public val name: String
+    val name: String
 
     /**
      * Creates a hash for the specific input ([value]), that can be compared later using the
@@ -26,7 +26,7 @@ public interface Hash {
      * @param value The input.
      * @return The input with the hashing function applied.
      */
-    public fun hash(value: CharArray): String
+    fun hash(value: CharArray): String
 
     /**
      * Checks whether the [value] is valid for the specified [hash].
@@ -34,5 +34,5 @@ public interface Hash {
      * @param value The input.
      * @param hash The hash (obtained through [Hash.hash])
      */
-    public fun compare(value: CharArray, hash: String): Boolean
+    fun compare(value: CharArray, hash: String): Boolean
 }

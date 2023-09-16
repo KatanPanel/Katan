@@ -28,7 +28,7 @@ import org.katan.model.instance.InstanceUpdateCode
 import org.katan.model.instance.UnitInstance
 import org.katan.model.instance.containerIdOrThrow
 import org.katan.model.instance.runtimeOrThrow
-import org.katan.model.io.HostPort
+import org.katan.model.net.HostPort
 import org.katan.model.toSnowflake
 import org.katan.model.unit.ImageUpdatePolicy
 import org.katan.service.blueprint.BlueprintService

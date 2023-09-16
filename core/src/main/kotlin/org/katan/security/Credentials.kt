@@ -1,5 +1,11 @@
 package org.katan.security
 
-public interface Credentials
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-public data class TokenCredentials(val token: String) : Credentials
+@Serializable
+sealed interface Credentials
+
+@Serializable
+@SerialName("token")
+data class TokenCredentials(val token: String) : Credentials

@@ -8,7 +8,6 @@ import kotlinx.serialization.json.decodeFromStream
 import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
 import org.katan.model.blueprint.BlueprintSpec
-import org.katan.service.blueprint.model.BlueprintImpl
 import org.katan.service.blueprint.model.BlueprintSpecImpl
 import org.katan.service.blueprint.provider.BlueprintSpecProvider
 import org.katan.service.blueprint.provider.BlueprintSpecSource
