@@ -10,7 +10,7 @@ repositories {
 dependencies {
     implementation(projects.services.idService)
     implementation(projects.http.httpShared)
-    implementation(projects.eventsDispatcher)
+    implementation(projects.core)
     implementation(projects.model)
     implementation(libs.koin.ktor)
     implementation(libs.ktor.server.feature.resources)

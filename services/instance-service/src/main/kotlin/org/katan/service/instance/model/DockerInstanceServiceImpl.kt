@@ -17,7 +17,7 @@ import me.devnatan.yoki.resource.container.create
 import me.devnatan.yoki.resource.container.remove
 import me.devnatan.yoki.resource.image.ImageNotFoundException
 import org.apache.logging.log4j.LogManager
-import org.katan.event.EventsDispatcher
+import org.katan.EventsDispatcher
 import org.katan.model.KatanConfig
 import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceInternalStats

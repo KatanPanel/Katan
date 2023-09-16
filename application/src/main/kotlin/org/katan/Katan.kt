@@ -6,7 +6,6 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.katan.event.eventsDispatcherDI
 import org.katan.http.server.HttpServer
 import org.katan.http.server.httpServerDI
 import org.katan.model.KatanConfig
@@ -94,7 +93,7 @@ internal class Katan : KoinComponent {
                 modelDI,
                 cryptoDI,
                 httpServerDI,
-                eventsDispatcherDI,
+                coreDI,
                 idServiceDI,
                 accountServiceDI,
                 unitServiceDI,

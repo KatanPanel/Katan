@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.eventsDispatcher)
+    implementation(projects.core)
     implementation(projects.services.authService)
     implementation(projects.services.idService)
     implementation(projects.services.idService)

@@ -1,6 +1,6 @@
 package org.katan.service.projects
 
-import org.katan.event.EventsDispatcher
+import org.katan.EventsDispatcher
 import org.katan.model.project.Project
 import org.katan.service.projects.model.CreateProjectOptions
 

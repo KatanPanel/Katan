@@ -13,7 +13,7 @@ pluginManagement {
 include(
     "model",
     "application",
-    "events-dispatcher",
+    "core",
     "http:http-shared",
     "http:http-server",
     "http:http-test",

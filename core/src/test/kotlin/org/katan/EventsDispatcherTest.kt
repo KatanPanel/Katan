@@ -1,4 +1,4 @@
-package org.katan.event
+package org.katan
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.launchIn

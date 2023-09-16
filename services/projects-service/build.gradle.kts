@@ -9,7 +9,7 @@ repositories {
 
 dependencies {
     implementation(projects.model)
-    implementation(projects.eventsDispatcher)
+    implementation(projects.core)
     implementation(projects.http.httpShared)
     implementation(libs.koin.core)
     implementation(libs.koin.ktor)

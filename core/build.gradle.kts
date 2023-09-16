@@ -15,7 +15,3 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation(libs.ktx.coroutines.test)
 }
-
-kotlin {
-    explicitApi()
-}

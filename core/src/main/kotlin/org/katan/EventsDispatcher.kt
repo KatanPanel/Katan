@@ -1,4 +1,4 @@
-package org.katan.event
+package org.katan
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +34,6 @@ public inline fun <reified T : Any> EventsDispatcher.listen(): Flow<T> {
     return listen(T::class)
 }
 
-/** Basic EventScope implementation **/
 internal class EventsDispatcherImpl :
     EventsDispatcher,
     CoroutineScope by CoroutineScope(Dispatchers.IO + SupervisorJob()) {

@@ -2,7 +2,7 @@ package org.katan.service.account
 
 import kotlinx.datetime.Clock
 import org.katan.model.security.Hash
-import org.katan.event.EventsDispatcher
+import org.katan.EventsDispatcher
 import org.katan.model.Snowflake
 import org.katan.model.account.Account
 import org.katan.model.toSnowflake

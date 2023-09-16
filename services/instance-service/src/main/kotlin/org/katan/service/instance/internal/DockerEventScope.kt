@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import me.devnatan.yoki.Yoki
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.katan.event.EventsDispatcher
+import org.katan.EventsDispatcher
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.jvm.jvmName
 
