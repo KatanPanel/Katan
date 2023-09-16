@@ -1,3 +1,5 @@
 package org.katan.model.account
 
-public class AccountNotFoundException : RuntimeException()
+import org.katan.KatanException
+
+class AccountNotFoundException : KatanException()

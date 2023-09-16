@@ -1,16 +1,13 @@
 package org.katan.model.unit.auditlog
 
-/**
- * All audit log events type ids.
- *
- * @see AuditLogEntry
- */
-public object AuditLogEvents {
+typealias AuditLogEvent = UInt
 
-    public const val UnitCreate: UInt = 1u
-    public const val UnitUpdate: UInt = 2u
-    public const val UnitDelete: UInt = 3u
-    public const val RoleCreate: UInt = 4u
-    public const val RoleUpdate: UInt = 5u
-    public const val RoleDelete: UInt = 6u
+object AuditLogEvents {
+
+    const val UnitCreate: UInt = 1u
+    const val UnitUpdate: UInt = 2u
+    const val UnitDelete: UInt = 3u
+    const val RoleCreate: UInt = 4u
+    const val RoleUpdate: UInt = 5u
+    const val RoleDelete: UInt = 6u
 }

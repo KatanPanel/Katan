@@ -1,14 +1,12 @@
 package org.katan.model.io
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
-public interface Bucket {
-
-    public val path: String
-
-    public val name: String
-
-    public val isLocal: Boolean
-
-    public val createdAt: Instant?
-}
+@Serializable
+data class Bucket(
+    val path: String,
+    val name: String,
+    val isLocal: Boolean,
+    val createdAt: Instant?
+)

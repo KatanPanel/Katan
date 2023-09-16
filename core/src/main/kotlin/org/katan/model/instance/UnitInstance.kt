@@ -1,30 +1,25 @@
 package org.katan.model.instance
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 import org.katan.model.Snowflake
-import org.katan.model.io.HostPort
+import org.katan.model.net.HostPort
 import org.katan.model.unit.ImageUpdatePolicy
 
-public interface UnitInstance {
-    public val id: Snowflake
+@Serializable
+class UnitInstance(
+    val id: Snowflake,
+    val status: InstanceStatus,
+    val containerId: String?,
+    val updatePolicy: ImageUpdatePolicy,
+    val connection: HostPort?,
+    val runtime: InstanceRuntime?,
+    val blueprintId: Snowflake,
+    val createdAt: Instant
+)
 
-    public val status: InstanceStatus
-
-    public val containerId: String?
-
-    public val updatePolicy: ImageUpdatePolicy
-
-    public val connection: HostPort?
-
-    public val runtime: InstanceRuntime?
-
-    public val blueprintId: Snowflake
-
-    public val createdAt: Instant
-}
-
-public val UnitInstance.containerIdOrThrow: String
+val UnitInstance.containerIdOrThrow: String
     get() = containerId ?: throw InstanceUnreachableRuntimeException()
 
-public val UnitInstance.runtimeOrThrow: InstanceRuntime
+val UnitInstance.runtimeOrThrow: InstanceRuntime
     get() = runtime ?: throw InstanceUnreachableRuntimeException()

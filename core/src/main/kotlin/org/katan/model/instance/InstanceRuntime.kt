@@ -1,61 +1,43 @@
 package org.katan.model.instance
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
-public interface InstanceRuntime {
+@Serializable
+internal data class InstanceRuntime(
+    val id: String,
+    val network: InstanceRuntimeNetwork,
+    val platform: String?,
+    val exitCode: Int,
+    val outOfMemory: Boolean,
+    val error: String?,
+    val status: String,
+    val pid: Int,
+    val fsPath: String?,
+    val startedAt: Instant?,
+    val finishedAt: Instant?,
+    val mounts: List<InstanceRuntimeMount>,
+)
 
-    public val id: String
+@Serializable
+internal data class InstanceRuntimeNetwork(
+    val ipV4Address: String,
+    val hostname: String?,
+    val networks: List<InstanceRuntimeSingleNetwork>,
+)
 
-    public val status: String
+@Serializable
+internal data class InstanceRuntimeSingleNetwork(
+    val id: String,
+    val name: String,
+    val ipv4Address: String?,
+    val ipv6Address: String?,
+)
 
-    public val exitCode: Int
-
-    public val pid: Int
-
-    public val outOfMemory: Boolean
-
-    public val error: String?
-
-    public val startedAt: Instant?
-
-    public val finishedAt: Instant?
-
-    public val platform: String?
-
-    public val fsPath: String?
-
-    public val network: InstanceRuntimeNetwork
-
-    public val mounts: List<InstanceRuntimeMount>
-}
-
-public interface InstanceRuntimeNetwork {
-
-    public val ipV4Address: String
-
-    public val hostname: String?
-
-    public val networks: List<InstanceRuntimeSingleNetwork>
-}
-
-public interface InstanceRuntimeSingleNetwork {
-
-    public val id: String
-
-    public val name: String
-
-    public val ipv4Address: String?
-
-    public val ipv6Address: String?
-}
-
-public interface InstanceRuntimeMount {
-
-    public val type: String
-
-    public val target: String
-
-    public val destination: String
-
-    public val readonly: Boolean
-}
+@Serializable
+internal data class InstanceRuntimeMount(
+    val type: String,
+    val target: String,
+    val destination: String,
+    val readonly: Boolean,
+)

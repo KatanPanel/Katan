@@ -1,15 +1,13 @@
 package org.katan.model.unit
 
-public enum class ImageUpdatePolicy(public val id: String) {
+enum class ImageUpdatePolicy(val id: String) {
 
     Always("always"),
-    Never("never"),
-    ;
+    Never("never");
 
-    public companion object {
+    companion object {
 
-        @JvmStatic
-        public fun getById(id: String): ImageUpdatePolicy =
+        fun getById(id: String): ImageUpdatePolicy =
             entries.firstOrNull { it.id.equals(id, ignoreCase = true) } ?: Always
     }
 }

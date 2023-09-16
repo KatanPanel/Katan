@@ -1,19 +1,19 @@
 package org.katan.model.io
 
-import org.katan.model.KatanException
+import org.katan.KatanException
 
-public open class FSException : KatanException()
+open class FSException : KatanException()
 
-public class BucketNotFoundException(bucket: String) : FSException() {
+class BucketNotFoundException(bucket: String) : FSException() {
     override val message: String = bucket
 }
 
-public class FileNotFoundException : FSException()
+class FileNotFoundException : FSException()
 
-public class NotAFileException : FSException()
+class NotAFileException : FSException()
 
-public class FileNotAccessibleException : FSException()
+class FileNotAccessibleException : FSException()
 
-public class FileNotReadableException : FSException()
+class FileNotReadableException : FSException()
 
-public class FileNotWritableException : FSException()
+class FileNotWritableException : FSException()

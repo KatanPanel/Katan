@@ -1,8 +1,10 @@
 package org.katan.model.project
 
+import kotlinx.serialization.Serializable
 import org.katan.model.Snowflake
 
-public data class Project(
+@Serializable
+data class Project(
     val id: Snowflake,
     val name: String,
 )

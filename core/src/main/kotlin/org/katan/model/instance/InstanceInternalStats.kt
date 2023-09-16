@@ -1,40 +1,40 @@
 package org.katan.model.instance
 
-public interface InstanceInternalStats {
+data class InstanceInternalStats(
+    val pid: Long,
+    val memoryUsage: Long,
+    val memoryMaxUsage: Long,
+    val memoryLimit: Long,
+    val memoryCache: Long,
+    val cpuUsage: Long,
+    @Suppress("ArrayInDataClass") val perCpuUsage: LongArray,
+    val systemCpuUsage: Long,
+    val onlineCpus: Long,
+    val lastCpuUsage: Long?,
+    @Suppress("ArrayInDataClass") val lastPerCpuUsage: LongArray?,
+    val lastSystemCpuUsage: Long?,
+    val lastOnlineCpus: Long?,
+)
 
-    public val pid: Long
-    public val memoryUsage: Long
-    public val memoryMaxUsage: Long
-    public val memoryLimit: Long
-    public val memoryCache: Long
-    public val cpuUsage: Long
-    public val perCpuUsage: LongArray
-    public val systemCpuUsage: Long
-    public val onlineCpus: Long
-    public val lastCpuUsage: Long?
-    public val lastPerCpuUsage: LongArray?
-    public val lastSystemCpuUsage: Long?
-    public val lastOnlineCpus: Long?
-}
 
 private const val MAX_PERCENTAGE = 100.0f
 
-public fun InstanceInternalStats.getMemoryUsagePercentage(): Float {
+fun InstanceInternalStats.getMemoryUsagePercentage(): Float {
     val usedMemory = memoryUsage - memoryCache
     return (usedMemory.toFloat() / memoryLimit.toFloat()) * MAX_PERCENTAGE
 }
 
-public fun InstanceInternalStats.getCpuUsagePercentage(): Float {
+fun InstanceInternalStats.getCpuUsagePercentage(): Float {
     if (lastCpuUsage == null || lastSystemCpuUsage == null) {
         return 0.0F
     }
 
-    val cpuUsageDiff = cpuUsage - lastCpuUsage!!
-    val sysCpuUsageDiff = systemCpuUsage - lastSystemCpuUsage!!
+    val cpuUsageDiff = cpuUsage - lastCpuUsage
+    val sysCpuUsageDiff = systemCpuUsage - lastSystemCpuUsage
 
     return (cpuUsageDiff.toFloat() / sysCpuUsageDiff.toFloat()) * onlineCpus * MAX_PERCENTAGE
 }
 
-public fun InstanceInternalStats.getCpuUsagePercentage(usage: Long): Float {
+fun InstanceInternalStats.getCpuUsagePercentage(usage: Long): Float {
     return (usage.toFloat() / cpuUsage) * MAX_PERCENTAGE
 }

@@ -1,10 +1,10 @@
 package org.katan.model.unit.auditlog
 
+import kotlinx.serialization.Serializable
 import org.katan.model.account.Account
 
-public interface AuditLog {
-
-    public val entries: List<AuditLogEntry>
-
-    public val actors: List<Account>
-}
+@Serializable
+data class AuditLog(
+    val entries: List<AuditLogEntry>,
+    val actors: List<Account>
+)

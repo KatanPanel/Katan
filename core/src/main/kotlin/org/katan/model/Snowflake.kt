@@ -1,11 +1,16 @@
 package org.katan.model
 
+import kotlinx.serialization.Serializable
+
 @Serializable
 @JvmInline
-public value class Snowflake @PublishedApi internal constructor(public val value: Long)
+value class Snowflake(val value: Long) {
+
+    override fun toString(): String = value.toString()
+}
 
 @Suppress("NOTHING_TO_INLINE")
-public inline fun Long.toSnowflake(): Snowflake = Snowflake(this)
+inline fun Long.toSnowflake(): Snowflake = Snowflake(this)
 
 @Suppress("NOTHING_TO_INLINE")
-public inline fun String.toSnowflake(): Snowflake = toLong().toSnowflake()
+inline fun String.toSnowflake(): Snowflake = toLong().toSnowflake()

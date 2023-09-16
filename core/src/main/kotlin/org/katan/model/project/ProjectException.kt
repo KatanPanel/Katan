@@ -1,7 +1,7 @@
 package org.katan.model.project
 
-import org.katan.model.KatanException
+import org.katan.KatanException
 
-public open class ProjectException : KatanException()
+open class ProjectException : KatanException()
 
-public class ProjectNotFoundException : ProjectException()
+class ProjectNotFoundException : ProjectException()

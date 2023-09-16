@@ -1,15 +1,14 @@
 package org.katan.model.blueprint
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.katan.model.Snowflake
 
-public interface Blueprint {
-
-    public val id: Snowflake
-
-    public val createdAt: Instant
-
-    public val updatedAt: Instant
-
-    public val spec: BlueprintSpec
-}
+@Serializable
+data class Blueprint(
+    val id: Snowflake,
+    val createdAt: Instant,
+    val updatedAt: Instant,
+    val spec: BlueprintSpec
+)
