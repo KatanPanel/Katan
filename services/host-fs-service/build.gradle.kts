@@ -7,7 +7,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.model)
     implementation(projects.services.fsService)
     implementation(libs.yoki)
     implementation(libs.koin.core)

@@ -11,7 +11,6 @@ pluginManagement {
 }
 
 include(
-    "model",
     "application",
     "core",
     "http:http-shared",

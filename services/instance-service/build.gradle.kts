@@ -15,7 +15,6 @@ dependencies {
     implementation(projects.services.networkService)
     implementation(projects.services.fsService)
     implementation(projects.services.blueprintService)
-    implementation(projects.model)
     implementation(libs.hibernateValidator)
     implementation(libs.bundles.exposed)
     implementation(libs.koin.ktor)

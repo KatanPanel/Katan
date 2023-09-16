@@ -1,4 +1,4 @@
-package org.katan.model.security
+package org.katan.security
 
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt
 import java.security.SecureRandom

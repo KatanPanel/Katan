@@ -8,7 +8,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.model)
     implementation(projects.core)
     implementation(projects.http.httpShared)
     implementation(libs.koin.core)

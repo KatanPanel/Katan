@@ -12,7 +12,6 @@ dependencies {
     implementation(projects.services.idService)
     implementation(projects.services.databaseService)
     implementation(projects.services.fsService)
-    implementation(projects.model)
     implementation(libs.koin.ktor)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.kotlin.datetime)

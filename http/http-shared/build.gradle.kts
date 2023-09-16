@@ -8,7 +8,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.model)
     implementation(libs.koin.core)
     implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.server.feature.defaultHeaders)

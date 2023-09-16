@@ -13,7 +13,6 @@ dependencies {
     compileOnly(libs.ktor.server.core)
     compileOnly(libs.ktor.server.cio)
     implementation(projects.http.httpShared)
-    implementation(projects.model)
     implementation(libs.ktor.server.websockets)
     implementation(libs.hibernateValidator)
     implementation(libs.hibernateValidator.cdi)

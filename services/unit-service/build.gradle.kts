@@ -16,7 +16,6 @@ dependencies {
     implementation(projects.services.accountService)
     implementation(projects.services.blueprintService)
     implementation(projects.http.httpShared)
-    implementation(projects.model)
     implementation(libs.koin.ktor)
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.feature.resources)

@@ -1,4 +1,4 @@
-package org.katan.model
+package org.katan
 
 public data class KatanConfig internal constructor(
     val env: String = env(ENV, DEVELOPMENT),

@@ -8,7 +8,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.model)
     implementation(libs.ktx.serialization.core)
     implementation(libs.ktx.datetime)
 }

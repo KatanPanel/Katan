@@ -1,6 +1,6 @@
 package org.katan.service.account.di
 
-import org.katan.model.security.Hash
+import org.katan.security.Hash
 import org.katan.http.importHttpModule
 import org.katan.service.account.AccountService
 import org.katan.service.account.AccountServiceImpl

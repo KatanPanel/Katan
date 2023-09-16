@@ -1,7 +1,6 @@
 package org.katan.model.unit
 
 import kotlinx.datetime.Instant
-import kotlinx.serialization.Serializable
 import org.katan.model.Snowflake
 
 public typealias KUnit = Unit

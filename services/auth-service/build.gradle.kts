@@ -10,7 +10,6 @@ repositories {
 dependencies {
     implementation(projects.services.accountService)
     implementation(projects.http.httpShared)
-    implementation(projects.model)
     implementation(libs.javaJwt)
     implementation(libs.koin.ktor)
     implementation(libs.ktor.server.feature.resources)

@@ -1,4 +1,4 @@
-package org.katan.model.security
+package org.katan.security
 
 /**
  * An unsalted hashing algorithm.

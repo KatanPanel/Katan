@@ -8,9 +8,6 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.katan.http.server.HttpServer
 import org.katan.http.server.httpServerDI
-import org.katan.model.KatanConfig
-import org.katan.model.modelDI
-import org.katan.model.security.cryptoDI
 import org.katan.service.account.di.accountServiceDI
 import org.katan.service.auth.authServiceDI
 import org.katan.service.blueprint.blueprintServiceDI
@@ -90,8 +87,6 @@ internal class Katan : KoinComponent {
 
             modules(
                 rootModule,
-                modelDI,
-                cryptoDI,
                 httpServerDI,
                 coreDI,
                 idServiceDI,

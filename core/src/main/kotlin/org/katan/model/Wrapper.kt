@@ -1,6 +1,5 @@
 package org.katan.model
 
-import kotlinx.serialization.Serializable
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 

@@ -16,7 +16,6 @@ repositories {
 
 dependencies {
     runtimeOnly(libs.log4j.slf4j2)
-    implementation(projects.model)
     implementation(projects.core)
     implementation(projects.http.httpServer)
     implementation(projects.services.idService)

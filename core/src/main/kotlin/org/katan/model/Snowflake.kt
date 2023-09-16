@@ -1,7 +1,5 @@
 package org.katan.model
 
-import kotlinx.serialization.Serializable
-
 @Serializable
 @JvmInline
 public value class Snowflake @PublishedApi internal constructor(public val value: Long)

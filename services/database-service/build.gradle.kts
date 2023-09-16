@@ -7,7 +7,6 @@ repositories {
 }
 
 dependencies {
-    implementation(projects.model)
     implementation(libs.postgresql)
     implementation(libs.bundles.exposed)
     implementation(libs.koin.core)
