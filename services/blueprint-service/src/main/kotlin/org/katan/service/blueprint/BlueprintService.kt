@@ -8,7 +8,6 @@ import kotlinx.serialization.json.decodeFromStream
 import org.katan.model.Snowflake
 import org.katan.model.blueprint.Blueprint
 import org.katan.model.blueprint.BlueprintSpec
-import org.katan.service.blueprint.model.BlueprintSpecImpl
 import org.katan.service.blueprint.provider.BlueprintSpecProvider
 import org.katan.service.blueprint.provider.BlueprintSpecSource
 import org.katan.service.blueprint.provider.RemoteBlueprintSpecSource
@@ -50,7 +49,7 @@ internal class BlueprintServiceImpl(
         val spec = blueprintSpecProvider.provide(source)
         blueprintRepository.create(
             id = idService.generate().value,
-            spec = json.encodeToString(spec as BlueprintSpecImpl).encodeToByteArray(),
+            spec = json.encodeToString(spec).encodeToByteArray(),
             createdAt = Clock.System.now()
         )
 
@@ -58,10 +57,10 @@ internal class BlueprintServiceImpl(
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    private fun toModel(entity: BlueprintEntity): Blueprint = BlueprintImpl(
+    private fun toModel(entity: BlueprintEntity): Blueprint = Blueprint(
         id = entity.getId(),
         createdAt = entity.createdAt,
         updatedAt = entity.updatedAt,
-        spec = json.decodeFromStream<BlueprintSpecImpl>(entity.content.inputStream)
+        spec = json.decodeFromStream<BlueprintSpec>(entity.content.inputStream)
     )
 }

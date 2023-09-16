@@ -6,26 +6,24 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import org.katan.model.KatanConfig
+import org.katan.KatanConfig
 import org.katan.EventsDispatcher
 import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.toSnowflake
 import org.katan.model.unit.KUnit
+import org.katan.model.unit.Unit
 import org.katan.model.unit.UnitStatus
 import org.katan.model.unit.auditlog.AuditLog
 import org.katan.model.unit.auditlog.AuditLogChange
+import org.katan.model.unit.auditlog.AuditLogEntry
 import org.katan.model.unit.auditlog.AuditLogEvents
 import org.katan.model.unwrap
 import org.katan.service.account.AccountService
 import org.katan.service.id.IdService
 import org.katan.service.instance.InstanceService
 import org.katan.service.instance.model.CreateInstanceOptions
-import org.katan.service.unit.model.AuditLogChangeImpl
-import org.katan.service.unit.model.AuditLogEntryImpl
-import org.katan.service.unit.model.AuditLogImpl
 import org.katan.service.unit.model.UnitCreateOptions
-import org.katan.service.unit.model.UnitImpl
 import org.katan.service.unit.model.UnitUpdateOptions
 import org.katan.service.unit.repository.UnitEntity
 import org.katan.service.unit.repository.UnitRepository
@@ -62,7 +60,7 @@ internal class LocalUnitService(
             else -> UnitStatus.Created
         }
         val createdAt = Clock.System.now()
-        val unit = UnitImpl(
+        val unit = Unit(
             id = generatedId,
             externalId = options.externalId,
             nodeId = config.nodeId,
@@ -86,7 +84,7 @@ internal class LocalUnitService(
         actorId: Snowflake?,
         instant: Instant
     ) = unitRepository.createAuditLog(
-        AuditLogEntryImpl(
+        AuditLogEntry(
             id = idService.generate(),
             targetId = targetId,
             actorId = actorId,
@@ -112,7 +110,7 @@ internal class LocalUnitService(
         if (changes.isNotEmpty()) {
             withContext(IO) {
                 unitRepository.createAuditLog(
-                    AuditLogEntryImpl(
+                    AuditLogEntry(
                         id = idService.generate(),
                         targetId = actualUnit.id,
                         actorId = options.actorId.unwrap(),
@@ -145,7 +143,7 @@ internal class LocalUnitService(
         val changes = mutableListOf<AuditLogChange>()
         options.name?.let {
             changes.add(
-                AuditLogChangeImpl(
+                AuditLogChange(
                     key = "name",
                     oldValue = actualUnit.name,
                     newValue = updatedUnit.name
@@ -164,13 +162,13 @@ internal class LocalUnitService(
             }
         }
 
-        return AuditLogImpl(
+        return AuditLog(
             entries,
             actors
         )
     }
 
-    private fun UnitEntity.toDomain(): KUnit = UnitImpl(
+    private fun UnitEntity.toDomain(): KUnit = Unit(
         id = getId().toSnowflake(),
         externalId = externalId,
         instanceId = instanceId?.toSnowflake(),

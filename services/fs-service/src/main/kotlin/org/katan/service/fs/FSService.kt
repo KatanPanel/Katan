@@ -1,12 +1,12 @@
 package org.katan.service.fs
 
 import org.katan.model.io.Bucket
-import org.katan.model.io.VirtualFile
+import org.katan.model.io.FileLike
 import java.io.File
 
 interface FSService {
 
-    suspend fun getFile(bucket: String?, destination: String, path: String): VirtualFile?
+    suspend fun getFile(bucket: String?, destination: String, path: String): FileLike?
 
     suspend fun readFile(path: String, startIndex: Int?, endIndex: Int?): File
 
@@ -14,5 +14,5 @@ interface FSService {
 
     suspend fun getBucket(bucket: String, destination: String): Bucket?
 
-    suspend fun uploadFile(bucket: String?, destination: String, name: String, contents: ByteArray): VirtualFile
+    suspend fun uploadFile(bucket: String?, destination: String, name: String, contents: ByteArray): FileLike
 }

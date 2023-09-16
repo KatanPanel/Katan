@@ -8,18 +8,16 @@ import me.devnatan.yoki.Yoki
 import me.devnatan.yoki.models.volume.Volume
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.katan.model.KatanConfig
+import org.katan.KatanConfig
 import org.katan.model.io.Bucket
 import org.katan.model.io.BucketNotFoundException
+import org.katan.model.io.Directory
+import org.katan.model.io.FileLike
 import org.katan.model.io.FileNotAccessibleException
 import org.katan.model.io.FileNotFoundException
 import org.katan.model.io.FileNotReadableException
 import org.katan.model.io.FileNotWritableException
-import org.katan.model.io.VirtualFile
 import org.katan.service.fs.FSService
-import org.katan.service.fs.impl.BucketImpl
-import org.katan.service.fs.impl.DirectoryImpl
-import org.katan.service.fs.impl.FileImpl
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.LinkOption
@@ -67,7 +65,7 @@ internal class HostFSService(private val dockerClient: Yoki, private val config:
 //        }
     }
 
-    override suspend fun getFile(bucket: String?, destination: String, path: String): VirtualFile? {
+    override suspend fun getFile(bucket: String?, destination: String, path: String): FileLike? {
         val volume = if (bucket != null) {
             runCatching { dockerClient.volumes.inspect(bucket) }
                 .onFailure { throw BucketNotFoundException(bucket) }
@@ -108,7 +106,7 @@ internal class HostFSService(private val dockerClient: Yoki, private val config:
     override suspend fun getBucket(bucket: String, destination: String): Bucket? {
         val volume = getVolumeOrNull(bucket) ?: return null
 
-        return BucketImpl(
+        return Bucket(
             path = volume.mountPoint,
             name = volume.name,
             isLocal = volume.driver == "local",
@@ -121,7 +119,7 @@ internal class HostFSService(private val dockerClient: Yoki, private val config:
         destination: String,
         name: String,
         contents: ByteArray
-    ): VirtualFile {
+    ): FileLike {
         if (!bucket.isNullOrBlank()) {
             throw IllegalStateException("Only local uploads are supported for now")
         }
@@ -164,7 +162,7 @@ internal class HostFSService(private val dockerClient: Yoki, private val config:
         }
     }
 
-    private fun File.toDomain(base: File, children: List<VirtualFile>? = null): VirtualFile {
+    private fun File.toDomain(base: File, children: List<FileLike>? = null): FileLike {
         val absPath = toPath()
         val modifiedAt = runCatching {
             Files.getLastModifiedTime(absPath, LinkOption.NOFOLLOW_LINKS)
@@ -184,30 +182,20 @@ internal class HostFSService(private val dockerClient: Yoki, private val config:
                 .sumOf(File::length)
         }
 
-        val file = FileImpl(
+        return FileLike(
             name = name,
             relativePath = toRelativeStringOrEmpty(base),
             absolutePath = absolutePath,
             size = size,
-            isDirectory = isDirectory,
             isHidden = isHidden,
             createdAt = createdAt ?: modifiedAt,
-            modifiedAt = modifiedAt
+            modifiedAt = modifiedAt,
+            children = children
         )
-        if (children == null) {
-            return file
-        }
-
-        return DirectoryImpl(file, children)
     }
 
-    private fun File.toRelativeStringOrEmpty(base: File): String {
-        return toRelativeString(base).let {
-            if (it.equals(name, ignoreCase = false)) {
-                ""
-            } else {
-                it.substringBeforeLast(File.separatorChar)
-            }
-        }
-    }
+    private fun File.toRelativeStringOrEmpty(base: File): String = toRelativeString(base)
+        .takeIf { relative -> !relative.equals(name, ignoreCase = false) }
+        ?.substringBeforeLast(File.separatorChar)
+        .orEmpty()
 }

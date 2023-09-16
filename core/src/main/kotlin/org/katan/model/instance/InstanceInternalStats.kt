@@ -16,7 +16,6 @@ data class InstanceInternalStats(
     val lastOnlineCpus: Long?,
 )
 
-
 private const val MAX_PERCENTAGE = 100.0f
 
 fun InstanceInternalStats.getMemoryUsagePercentage(): Float {

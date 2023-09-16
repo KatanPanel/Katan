@@ -8,5 +8,5 @@ data class Bucket(
     val path: String,
     val name: String,
     val isLocal: Boolean,
-    val createdAt: Instant?
+    val createdAt: Instant?,
 )

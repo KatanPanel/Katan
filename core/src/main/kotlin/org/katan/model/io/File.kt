@@ -5,8 +5,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName("directory")
-data class Directory(
+@SerialName("file")
+data class File(
     override val name: String,
     override val relativePath: String,
     override val absolutePath: String,
@@ -14,8 +14,7 @@ data class Directory(
     override val isHidden: Boolean,
     override val createdAt: Instant?,
     override val modifiedAt: Instant?,
-    val children: List<FileLike>,
 ) : FileLike {
 
-    override val isDirectory: Boolean get() = true
+    override val isDirectory: Boolean get() = false
 }

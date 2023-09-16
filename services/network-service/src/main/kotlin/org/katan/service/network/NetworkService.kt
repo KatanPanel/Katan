@@ -1,6 +1,6 @@
 package org.katan.service.network
 
-import org.katan.model.io.HostPort
+import org.katan.model.net.HostPort
 
 public interface NetworkService {
 

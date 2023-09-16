@@ -1,7 +1,7 @@
 package org.katan.service.id
 
 import de.mkammerer.snowflakeid.SnowflakeIdGenerator
-import org.katan.model.KatanConfig
+import org.katan.KatanConfig
 import org.katan.model.Snowflake
 import org.katan.model.toSnowflake
 import kotlin.coroutines.resume

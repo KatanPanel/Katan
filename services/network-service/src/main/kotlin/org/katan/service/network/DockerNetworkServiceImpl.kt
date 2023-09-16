@@ -8,10 +8,10 @@ import me.devnatan.yoki.models.network.Network
 import me.devnatan.yoki.resource.NetworkNotFoundException
 import me.devnatan.yoki.resource.network.create
 import org.apache.logging.log4j.LogManager
-import org.katan.model.io.HostPort
-import org.katan.model.io.InvalidNetworkAssignmentException
-import org.katan.model.io.NetworkConnectionFailed
-import org.katan.model.io.UnknownNetworkException
+import org.katan.model.net.HostPort
+import org.katan.model.net.InvalidNetworkAssignmentException
+import org.katan.model.net.NetworkConnectionFailed
+import org.katan.model.net.UnknownNetworkException
 
 internal class DockerNetworkServiceImpl(private val dockerClient: Yoki) : NetworkService {
 

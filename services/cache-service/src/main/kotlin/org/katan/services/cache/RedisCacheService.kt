@@ -1,7 +1,7 @@
 package org.katan.services.cache
 
 import org.apache.logging.log4j.LogManager
-import org.katan.model.KatanConfig
+import org.katan.KatanConfig
 import redis.clients.jedis.DefaultJedisClientConfig
 import redis.clients.jedis.HostAndPort
 import redis.clients.jedis.JedisCluster

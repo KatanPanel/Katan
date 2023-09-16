@@ -1,6 +1,6 @@
 package org.katan.service.unit
 
-import org.katan.model.KatanException
+import org.katan.KatanException
 
 public open class UnitException : KatanException()
 

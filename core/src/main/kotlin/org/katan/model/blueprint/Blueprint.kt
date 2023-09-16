@@ -1,7 +1,6 @@
 package org.katan.model.blueprint
 
 import kotlinx.datetime.Instant
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.model.Snowflake
 
@@ -10,5 +9,5 @@ data class Blueprint(
     val id: Snowflake,
     val createdAt: Instant,
     val updatedAt: Instant,
-    val spec: BlueprintSpec
+    val spec: BlueprintSpec,
 )

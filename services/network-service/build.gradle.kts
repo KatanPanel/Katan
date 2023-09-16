@@ -7,6 +7,7 @@ repositories {
 }
 
 dependencies {
+    implementation(projects.core)
     implementation(libs.yoki)
     implementation(libs.log4j.core)
     implementation(libs.koin.core)

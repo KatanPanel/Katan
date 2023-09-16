@@ -12,6 +12,7 @@ dependencies {
     runtimeOnly(libs.expressly)
     compileOnly(libs.ktor.server.core)
     compileOnly(libs.ktor.server.cio)
+    implementation(projects.core)
     implementation(projects.http.httpShared)
     implementation(libs.ktor.server.websockets)
     implementation(libs.hibernateValidator)

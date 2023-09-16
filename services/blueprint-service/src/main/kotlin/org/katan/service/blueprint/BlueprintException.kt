@@ -1,6 +1,6 @@
 package org.katan.service.blueprint
 
-import org.katan.model.KatanException
+import org.katan.KatanException
 
 public open class BlueprintException internal constructor() : KatanException()
 

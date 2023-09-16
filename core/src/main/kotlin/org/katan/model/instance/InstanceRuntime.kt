@@ -4,7 +4,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class InstanceRuntime(
+data class InstanceRuntime(
     val id: String,
     val network: InstanceRuntimeNetwork,
     val platform: String?,
@@ -20,14 +20,14 @@ internal data class InstanceRuntime(
 )
 
 @Serializable
-internal data class InstanceRuntimeNetwork(
+data class InstanceRuntimeNetwork(
     val ipV4Address: String,
     val hostname: String?,
     val networks: List<InstanceRuntimeSingleNetwork>,
 )
 
 @Serializable
-internal data class InstanceRuntimeSingleNetwork(
+data class InstanceRuntimeSingleNetwork(
     val id: String,
     val name: String,
     val ipv4Address: String?,
@@ -35,7 +35,7 @@ internal data class InstanceRuntimeSingleNetwork(
 )
 
 @Serializable
-internal data class InstanceRuntimeMount(
+data class InstanceRuntimeMount(
     val type: String,
     val target: String,
     val destination: String,

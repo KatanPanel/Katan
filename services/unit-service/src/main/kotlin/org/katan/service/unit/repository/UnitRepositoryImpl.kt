@@ -9,9 +9,8 @@ import org.jetbrains.exposed.sql.update
 import org.katan.model.ifNotEmpty
 import org.katan.model.toSnowflake
 import org.katan.model.unit.KUnit
+import org.katan.model.unit.auditlog.AuditLogChange
 import org.katan.model.unit.auditlog.AuditLogEntry
-import org.katan.service.unit.model.AuditLogChangeImpl
-import org.katan.service.unit.model.AuditLogEntryImpl
 import org.katan.service.unit.model.UnitUpdateOptions
 import org.katan.service.unit.repository.entity.UnitAuditLogChangeEntity
 import org.katan.service.unit.repository.entity.UnitAuditLogChangesTable
@@ -71,7 +70,7 @@ internal class UnitRepositoryImpl(private val database: Database) : UnitReposito
         }
 
         entity.map { entry ->
-            AuditLogEntryImpl(
+            AuditLogEntry(
                 id = entry.id.value.toSnowflake(),
                 targetId = entry.targetId.toSnowflake(),
                 actorId = entry.actorId?.toSnowflake(),
@@ -80,7 +79,7 @@ internal class UnitRepositoryImpl(private val database: Database) : UnitReposito
                 additionalData = entry.additionalData,
                 createdAt = entry.createdAt,
                 changes = entry.changes.map { change ->
-                    AuditLogChangeImpl(
+                    AuditLogChange(
                         key = change.key,
                         oldValue = change.oldValue,
                         newValue = change.newValue

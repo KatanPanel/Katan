@@ -13,5 +13,5 @@ data class AuditLogEntry(
     val reason: String?,
     val changes: List<AuditLogChange>,
     val additionalData: String?,
-    val createdAt: Instant
+    val createdAt: Instant,
 )

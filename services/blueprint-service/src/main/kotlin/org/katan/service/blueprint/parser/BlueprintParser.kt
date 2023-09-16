@@ -15,10 +15,9 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.katan.model.blueprint.BlueprintSpec
-import org.katan.service.blueprint.model.BlueprintSpecBuildImpl
-import org.katan.service.blueprint.model.BlueprintSpecImageImpl
-import org.katan.service.blueprint.model.BlueprintSpecImpl
-import org.katan.service.blueprint.model.BlueprintSpecInstanceImpl
+import org.katan.model.blueprint.BlueprintSpecBuild
+import org.katan.model.blueprint.BlueprintSpecImage
+import org.katan.model.blueprint.BlueprintSpecInstance
 import kotlin.reflect.KClass
 
 // TODO detailed error diagnostics
@@ -216,17 +215,17 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
     }
 
     private fun transform(value: JsonObject): BlueprintSpec = with(value) {
-        BlueprintSpecImpl(
+        BlueprintSpec(
             name = string("name"),
             version = string("version"),
             remote = null,
             build = struct("build")?.let { build ->
-                BlueprintSpecBuildImpl(
+                BlueprintSpecBuild(
                     entrypoint = build.string("entrypoint"),
                     env = emptyMap(),
                     image = build.getValue("image").let(::elementToImage),
                     instance = build.struct("instance")?.let { instance ->
-                        BlueprintSpecInstanceImpl(
+                        BlueprintSpecInstance(
                             name = instance.string("name")
                         )
                     }
@@ -236,27 +235,27 @@ internal class BlueprintParser(private val supportedProperties: List<Property> =
         )
     }
 
-    private fun elementToImage(element: JsonElement): BlueprintSpecImageImpl {
+    private fun elementToImage(element: JsonElement): BlueprintSpecImage {
         return when (element) {
-            is JsonObject -> BlueprintSpecImageImpl.Ref(
+            is JsonObject -> BlueprintSpecImage.Ref(
                 ref = element.string("ref"),
                 tag = element.string("tag")
             )
 
-            is JsonArray -> BlueprintSpecImageImpl.Multiple(
+            is JsonArray -> BlueprintSpecImage.Multiple(
                 images = element.map { child ->
                     if (child !is JsonObject) {
                         error("Expected a JsonObject for image multiple child, given $child")
                     }
 
-                    BlueprintSpecImageImpl.Ref(
+                    BlueprintSpecImage.Ref(
                         ref = child.string("ref"),
                         tag = child.string("tag")
                     )
                 }
             )
 
-            is JsonPrimitive -> BlueprintSpecImageImpl.Identifier(
+            is JsonPrimitive -> BlueprintSpecImage.Identifier(
                 id = element.content
             )
 

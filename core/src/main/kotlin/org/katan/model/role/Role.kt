@@ -13,5 +13,5 @@ data class Role(
     val id: Snowflake,
     val name: String,
     val position: Int,
-    override val permissions: Permissions
+    override val permissions: Permissions,
 ) : PermissionsHolder

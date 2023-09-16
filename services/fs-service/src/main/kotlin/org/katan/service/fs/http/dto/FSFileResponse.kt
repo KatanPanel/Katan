@@ -4,7 +4,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.katan.model.io.Directory
-import org.katan.model.io.VirtualFile
+import org.katan.model.io.FileLike
 
 @Serializable
 data class FSSingleFileResponse(
@@ -17,7 +17,7 @@ data class FSSingleFileResponse(
     @SerialName("created-at") val createdAt: Instant?,
     @SerialName("modified-at") val modifiedAt: Instant?
 ) {
-    constructor(file: VirtualFile) : this(
+    constructor(file: FileLike) : this(
         name = file.name,
         relativePath = file.relativePath,
         absolutePath = file.absolutePath,
@@ -32,7 +32,7 @@ data class FSSingleFileResponse(
 @Serializable
 data class FSFileResponse(val file: FSSingleFileResponse) {
 
-    constructor(file: VirtualFile) : this(FSSingleFileResponse(file))
+    constructor(file: FileLike) : this(FSSingleFileResponse(file))
 }
 
 @Serializable

@@ -15,7 +15,7 @@ class UnitInstance(
     val connection: HostPort?,
     val runtime: InstanceRuntime?,
     val blueprintId: Snowflake,
-    val createdAt: Instant
+    val createdAt: Instant,
 )
 
 val UnitInstance.containerIdOrThrow: String

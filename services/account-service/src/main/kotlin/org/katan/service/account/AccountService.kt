@@ -63,7 +63,7 @@ internal class AccountServiceImpl(
         }
 
         val now = Clock.System.now()
-        val account = AccountImpl(
+        val account = Account(
             id = idService.generate(),
             displayName = displayName,
             username = username,
@@ -85,16 +85,14 @@ internal class AccountServiceImpl(
         eventsDispatcher.dispatch(AccountDeletedEvent(id))
     }
 
-    private fun AccountEntity.toDomain(): Account {
-        return AccountImpl(
-            id = id.value.toSnowflake(),
-            email = email,
-            displayName = displayName,
-            username = username,
-            createdAt = createdAt,
-            updatedAt = updatedAt,
-            lastLoggedInAt = lastLoggedInAt,
-            avatar = avatar?.toSnowflake()
-        )
-    }
+    private fun AccountEntity.toDomain(): Account = Account(
+        id = id.value.toSnowflake(),
+        email = email,
+        displayName = displayName,
+        username = username,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        lastLoggedInAt = lastLoggedInAt,
+        avatar = avatar?.toSnowflake()
+    )
 }

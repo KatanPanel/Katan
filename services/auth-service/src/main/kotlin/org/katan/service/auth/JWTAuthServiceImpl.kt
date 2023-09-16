@@ -12,12 +12,12 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.JWTVerifier
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
-import org.katan.model.security.Hash
+import org.katan.security.Hash
 import org.katan.model.account.Account
 import org.katan.model.account.AccountNotFoundException
-import org.katan.model.security.AuthenticationException
-import org.katan.model.security.InvalidCredentialsException
-import org.katan.model.security.SecurityException
+import org.katan.security.AuthenticationException
+import org.katan.security.InvalidCredentialsException
+import org.katan.security.SecurityException
 import org.katan.model.toSnowflake
 import org.katan.service.account.AccountService
 import kotlin.time.Duration

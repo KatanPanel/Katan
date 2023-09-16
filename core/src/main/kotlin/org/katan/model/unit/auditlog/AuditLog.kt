@@ -6,5 +6,5 @@ import org.katan.model.account.Account
 @Serializable
 data class AuditLog(
     val entries: List<AuditLogEntry>,
-    val actors: List<Account>
+    val actors: List<Account>,
 )

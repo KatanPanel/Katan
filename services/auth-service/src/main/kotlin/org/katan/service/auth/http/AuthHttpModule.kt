@@ -16,7 +16,7 @@ import io.ktor.server.routing.routing
 import org.katan.http.HttpModule
 import org.katan.http.response.HttpError
 import org.katan.http.response.respondError
-import org.katan.model.KatanConfig
+import org.katan.KatanConfig
 import org.katan.service.auth.AuthService
 import org.katan.service.auth.http.routes.login
 import org.katan.service.auth.http.routes.verify

@@ -8,6 +8,7 @@ repositories {
 }
 
 dependencies {
+    implementation(projects.core)
     implementation(projects.services.accountService)
     implementation(projects.http.httpShared)
     implementation(libs.javaJwt)

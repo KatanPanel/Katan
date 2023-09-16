@@ -14,7 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import org.katan.model.KatanConfig
+import org.katan.KatanConfig
 import org.katan.http.HttpModule
 import org.katan.http.HttpModuleRegistry
 import org.katan.http.installDefaultFeatures

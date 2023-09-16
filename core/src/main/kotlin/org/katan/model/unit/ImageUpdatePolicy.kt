@@ -3,7 +3,8 @@ package org.katan.model.unit
 enum class ImageUpdatePolicy(val id: String) {
 
     Always("always"),
-    Never("never");
+    Never("never"),
+    ;
 
     companion object {
 

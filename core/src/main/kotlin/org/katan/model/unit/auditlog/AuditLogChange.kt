@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class AuditLogChange(
     val key: String,
     val oldValue: String?,
-    val newValue: String?
+    val newValue: String?,
 )

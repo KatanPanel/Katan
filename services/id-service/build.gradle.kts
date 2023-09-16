@@ -7,6 +7,7 @@ repositories {
 }
 
 dependencies {
+    implementation(projects.core)
     implementation(libs.snowflakeId)
     implementation(libs.hibernateValidator)
     implementation(libs.koin.core)

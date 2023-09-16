@@ -18,11 +18,12 @@ import me.devnatan.yoki.resource.container.remove
 import me.devnatan.yoki.resource.image.ImageNotFoundException
 import org.apache.logging.log4j.LogManager
 import org.katan.EventsDispatcher
-import org.katan.model.KatanConfig
+import org.katan.KatanConfig
 import org.katan.model.Snowflake
 import org.katan.model.instance.InstanceInternalStats
 import org.katan.model.instance.InstanceNotFoundException
 import org.katan.model.instance.InstanceRuntime
+import org.katan.model.instance.InstanceRuntimeNetwork
 import org.katan.model.instance.InstanceStatus
 import org.katan.model.instance.InstanceUpdateCode
 import org.katan.model.instance.UnitInstance
@@ -317,8 +318,8 @@ internal class DockerInstanceServiceImpl(
         status: InstanceStatus,
         containerId: String?,
         connection: HostPort?,
-    ): DockerUnitInstanceImpl {
-        val instance = DockerUnitInstanceImpl(
+    ): UnitInstance {
+        val instance = UnitInstance(
             id = instanceId,
             status = status,
             updatePolicy = ImageUpdatePolicy.Always,
@@ -359,9 +360,9 @@ internal class DockerInstanceServiceImpl(
 //        val networkSettings = inspection.networkSettings
         val state = inspection.state
 
-        return InstanceRuntimeImpl(
+        return InstanceRuntime(
             id = inspection.id,
-            network = InstanceRuntimeNetworkImpl(
+            network = InstanceRuntimeNetwork(
                 ipV4Address = "",
                 hostname = null,
                 networks = emptyList(),
@@ -407,7 +408,7 @@ internal class DockerInstanceServiceImpl(
             status == InstanceStatus.Paused
     }
 
-    private suspend fun InstanceEntity.toDomain(): UnitInstance = DockerUnitInstanceImpl(
+    private suspend fun InstanceEntity.toDomain(): UnitInstance = UnitInstance(
         id = getId().toSnowflake(),
         updatePolicy = ImageUpdatePolicy.getById(updatePolicy),
         containerId = containerId,
